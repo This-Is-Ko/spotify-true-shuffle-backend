@@ -7,5 +7,6 @@ from services import spotify_playlist_service
 def get_playlists():
     data = request.get_json()
     if "spotifyAccessInfo" in data:
+        data["spotifyAccessInfo"]["expires_at"] = int(data["spotifyAccessInfo"]["expires_at"])
         return(spotify_playlist_service.get_user_playlists(data["spotifyAccessInfo"]))
     return {"error": "Missing spotify access token"}, 400

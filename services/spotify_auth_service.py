@@ -6,7 +6,7 @@ def generate_spotify_auth_uri():
 
 def get_spotify_tokens(code):
     auth_manager = create_auth_manager()
-    auth_response = auth_manager.get_access_token(code, check_cache=False)
+    auth_response = auth_manager.get_access_token(code=code, check_cache=False)
     if ("access_token") in auth_response:
         return auth_response
     else:
