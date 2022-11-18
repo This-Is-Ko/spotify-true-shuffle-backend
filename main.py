@@ -8,7 +8,7 @@ from controllers.spotify_auth_controller import *
 from controllers.spotify_playlist_controller import *
 from controllers.shuffle_controller import *
 
-@app.route('/')
+@app.route('/health')
 def status():
    return {"status": "healthy"}
 
