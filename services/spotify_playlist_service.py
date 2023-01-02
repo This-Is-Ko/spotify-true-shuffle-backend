@@ -13,7 +13,11 @@ def get_user_playlists(spotify_access_info):
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     if not auth_manager.validate_token(spotify_access_info):
         return {"error": "Invalid token"}, 400
-    user = spotify.current_user()
+    # user = spotify.current_user()
+    user = {
+                "display_name": "Test",
+           }
+    
     playlists = spotify.current_user_playlists()
     if not "items" in playlists:
         return {"error": "Unable to retrieve playlists"}, 400
