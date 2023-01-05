@@ -39,6 +39,17 @@ def create_shuffled_playlist(spotify_access_info, playlist_id, playlist_name):
     
     if len(all_tracks) == 0:
         return {"error": "No tracks found for playlist " + playlist_id}
+    
+    # Increment counters for playlists and tracks
+    with open('./counters/playlist_counter.txt', 'r') as f:
+        t=f.read()
+    with open('./counters/playlist_counter.txt', 'w') as f:
+        f.write(str(int(t)+1))
+
+    with open('./counters/track_counter.txt', 'r') as f:
+        t=f.read()
+    with open('./counters/track_counter.txt', 'w') as f:
+        f.write(str(int(t)+len(all_tracks)))
 
     random.shuffle(all_tracks)
     
