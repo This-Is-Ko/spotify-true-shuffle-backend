@@ -1,4 +1,5 @@
 import random
+import os
 
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
@@ -41,14 +42,14 @@ def create_shuffled_playlist(spotify_access_info, playlist_id, playlist_name):
         return {"error": "No tracks found for playlist " + playlist_id}
     
     # Increment counters for playlists and tracks
-    with open('./counters/playlist_counter.txt', 'r') as f:
+    with open(os.environ.get("COUNTER_DIRECTORY") + '/playlist_counter.txt', 'r') as f:
         t=f.read()
-    with open('./counters/playlist_counter.txt', 'w') as f:
+    with open(os.environ.get("COUNTER_DIRECTORY") + '/playlist_counter.txt', 'w') as f:
         f.write(str(int(t)+1))
 
-    with open('./counters/track_counter.txt', 'r') as f:
+    with open(os.environ.get("COUNTER_DIRECTORY") + '/track_counter.txt', 'r') as f:
         t=f.read()
-    with open('./counters/track_counter.txt', 'w') as f:
+    with open(os.environ.get("COUNTER_DIRECTORY") + '/track_counter.txt', 'w') as f:
         f.write(str(int(t)+len(all_tracks)))
 
     random.shuffle(all_tracks)
