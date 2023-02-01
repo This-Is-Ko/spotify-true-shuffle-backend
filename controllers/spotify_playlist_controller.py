@@ -1,12 +1,19 @@
-from main import app
-from flask import request
+from flask import request, Blueprint
 
 from services import spotify_playlist_service
 
-@app.route('/api/spotify/me/playlists', methods=['POST'])
+spotify_playlist_controller = Blueprint(
+    'spotify_playlist_controller', __name__, url_prefix='/api/spotify/me')
+
+
+@spotify_playlist_controller.route('/playlists', methods=['POST'])
 def get_playlists():
-    data = request.get_json()
-    if "spotifyAccessInfo" in data:
-        data["spotifyAccessInfo"]["expires_at"] = int(data["spotifyAccessInfo"]["expires_at"])
-        return(spotify_playlist_service.get_user_playlists(data["spotifyAccessInfo"]))
-    return {"error": "Missing spotify access token"}, 400
+    try:
+        data = request.get_json()
+        if "spotifyAccessInfo" in data:
+            data["spotifyAccessInfo"]["expires_at"] = int(
+                data["spotifyAccessInfo"]["expires_at"])
+            return (spotify_playlist_service.get_user_playlists(data["spotifyAccessInfo"]))
+        return {"error": "Missing spotify access token"}, 400
+    except Exception as e:
+        return {"error": "Unable to retrieve user playlists"}, 400

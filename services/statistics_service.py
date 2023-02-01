@@ -5,7 +5,7 @@ TRACK_COUNTER_FILE = "/track_counter.txt"
 
 def get_overall_statistics():
     try:
-    # Increment counters for playlists and tracks
+    # Retrieve counters for playlists and tracks
         with open(os.environ.get("COUNTER_DIRECTORY") + PLAYLIST_COUNTER_FILE, 'r') as f:
             playlist_counter=f.read()
         
@@ -17,6 +17,6 @@ def get_overall_statistics():
             "playlist_counter": playlist_counter,
             "track_counter": track_counter
         }
-    except:
-        return {"error": "Unable to retrieve statistics"}, 400
+    except Exception as e:
+        return {"error": "Unable to retrieve statistics" + e}, 400
 
