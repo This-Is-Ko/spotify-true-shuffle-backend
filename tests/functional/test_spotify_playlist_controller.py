@@ -76,7 +76,8 @@ spotify_access_info_sample = {
         "expires_at": 1668425997,
         "expires_in": 3600,
         "refresh_token": "spotify_refresh_token",
-        "scope": "playlist-modify-private playlist-modify-public playlist-read-collaborative playlist-read-private user-library-read",
+        "scope": "playlist-modify-private playlist-modify-public"
+        + "playlist-read-collaborative playlist-read-private user-library-read",
         "token_type": "Bearer"
     }
 }
@@ -106,7 +107,7 @@ def test_get_playlists_success(mocker, client):
                            )
     response_json = response.get_json()
     assert response.status_code == 200
-    assert response_json["allPlaylists"] != None
+    assert response_json["allPlaylists"] is not None
     # Number of playlists returned from spotify + one for Liked Tracks
     assert len(response_json["allPlaylists"]) == 2
 
@@ -136,7 +137,7 @@ def test_get_playlists_failure_request_access_info_invalid(mocker, client):
                            )
     response_json = response.get_json()
     assert response.status_code == 400
-    assert response_json["error"] != None
+    assert response_json["error"] is not None
 
 
 @patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
@@ -162,7 +163,7 @@ def test_get_playlists_failure_request_missing_body(mocker, client):
     response = client.post('/api/spotify/me/playlists')
     response_json = response.get_json()
     assert response.status_code == 400
-    assert response_json["error"] != None
+    assert response_json["error"] is not None
 
 
 @patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
@@ -190,4 +191,4 @@ def test_get_playlists_failure_upstream_spotify_error(mocker, client):
                            )
     response_json = response.get_json()
     assert response.status_code == 400
-    assert response_json["error"] != None
+    assert response_json["error"] is not None
