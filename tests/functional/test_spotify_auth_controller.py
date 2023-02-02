@@ -14,7 +14,7 @@ def test_get_spotify_uri_success(client):
     response = client.get('/api/spotify/auth/login')
     response_json = response.get_json()
     assert response.status_code == 200
-    assert response_json["loginUri"] != None
+    assert response_json["loginUri"] is not None
 
 
 @patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
@@ -33,8 +33,8 @@ def test_handle_auth_code_success(mocker, client):
     response = client.post('/api/spotify/auth/code', json={"code": "1234"})
     response_json = response.get_json()
     assert response.status_code == 200
-    assert response_json["access_token"] != None
-    assert response_json["refresh_token"] != None
+    assert response_json["access_token"] is not None
+    assert response_json["refresh_token"] is not None
 
 
 @patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
@@ -48,7 +48,7 @@ def test_handle_auth_code_failure_missing_code(mocker, client):
     response = client.post('/api/spotify/auth/code')
     response_json = response.get_json()
     assert response.status_code == 400
-    assert response_json["error"] != None
+    assert response_json["error"] is not None
 
 
 @patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
@@ -67,4 +67,4 @@ def test_handle_auth_code_failure_upstream_spotify_error(mocker, client):
     response = client.post('/api/spotify/auth/code', json={"code": "1234"})
     response_json = response.get_json()
     assert response.status_code == 400
-    assert response_json["error"] != None
+    assert response_json["error"] is not None

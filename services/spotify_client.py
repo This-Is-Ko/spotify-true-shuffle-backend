@@ -1,7 +1,6 @@
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy.cache_handler import MemoryCacheHandler
 
-import os
 from dotenv import load_dotenv
 load_dotenv()
 

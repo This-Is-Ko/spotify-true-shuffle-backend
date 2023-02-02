@@ -1,5 +1,3 @@
-import os
-
 PLAYLIST_COUNTER_FILE = "/playlist_counter.txt"
 TRACK_COUNTER_FILE = "/track_counter.txt"
 
