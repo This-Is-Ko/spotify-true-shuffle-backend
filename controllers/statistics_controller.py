@@ -1,5 +1,4 @@
-# from main import app
-from flask import Blueprint
+from flask import Blueprint, current_app
 
 from services import statistics_service
 
@@ -9,4 +8,4 @@ statistics_controller = Blueprint(
 
 @statistics_controller.route('/overall', methods=['GET'])
 def get_statistics():
-    return (statistics_service.get_overall_statistics())
+    return (statistics_service.get_overall_statistics(current_app))

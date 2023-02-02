@@ -1,4 +1,5 @@
-from flask import request, Blueprint
+
+from flask import current_app, request, Blueprint
 
 from services import spotify_playlist_service
 
@@ -13,7 +14,7 @@ def get_playlists():
         if "spotifyAccessInfo" in data:
             data["spotifyAccessInfo"]["expires_at"] = int(
                 data["spotifyAccessInfo"]["expires_at"])
-            return (spotify_playlist_service.get_user_playlists(data["spotifyAccessInfo"]))
+            return (spotify_playlist_service.get_user_playlists(current_app, data["spotifyAccessInfo"]))
         return {"error": "Missing spotify access token"}, 400
     except Exception as e:
         return {"error": "Unable to retrieve user playlists"}, 400

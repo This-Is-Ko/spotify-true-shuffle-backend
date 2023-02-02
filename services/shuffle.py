@@ -11,8 +11,9 @@ SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 
 
-def create_shuffled_playlist(spotify_access_info, playlist_id, playlist_name):
-    auth_manager = create_auth_manager_with_token(spotify_access_info)
+def create_shuffled_playlist(current_app, spotify_access_info, playlist_id, playlist_name):
+    auth_manager = create_auth_manager_with_token(
+        current_app, spotify_access_info)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     if not auth_manager.validate_token(spotify_access_info):
         return {"error": "Invalid token"}, 400
@@ -45,14 +46,14 @@ def create_shuffled_playlist(spotify_access_info, playlist_id, playlist_name):
         return {"error": "No tracks found for playlist " + playlist_id}
 
     # Increment counters for playlists and tracks
-    with open(os.environ.get("COUNTER_DIRECTORY") + '/playlist_counter.txt', 'r') as f:
+    with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'r') as f:
         t = f.read()
-    with open(os.environ.get("COUNTER_DIRECTORY") + '/playlist_counter.txt', 'w') as f:
+    with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'w') as f:
         f.write(str(int(t)+1))
 
-    with open(os.environ.get("COUNTER_DIRECTORY") + '/track_counter.txt', 'r') as f:
+    with open(current_app.config["COUNTER_DIRECTORY"] + '/track_counter.txt', 'r') as f:
         t = f.read()
-    with open(os.environ.get("COUNTER_DIRECTORY") + '/track_counter.txt', 'w') as f:
+    with open(current_app.config["COUNTER_DIRECTORY"] + '/track_counter.txt', 'w') as f:
         f.write(str(int(t)+len(all_tracks)))
 
     random.shuffle(all_tracks)
@@ -93,8 +94,9 @@ def create_shuffled_playlist(spotify_access_info, playlist_id, playlist_name):
     }
 
 
-def delete_all_shuffled_playlists(spotify_access_info):
-    auth_manager = create_auth_manager_with_token(spotify_access_info)
+def delete_all_shuffled_playlists(current_app, spotify_access_info):
+    auth_manager = create_auth_manager_with_token(
+        current_app, spotify_access_info)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     if not auth_manager.validate_token(spotify_access_info):
         return {"error": "Invalid token"}, 400
