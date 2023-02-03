@@ -1,5 +1,8 @@
 import pytest
 from main import create_app
+from flask import Flask
+from unittest.mock import patch
+import os
 
 
 @pytest.fixture
@@ -8,7 +11,15 @@ def client():
     """
     test_app = create_app()
 
-    # app.config['TESTING'] = True
     client = test_app.test_client()
 
     yield client
+
+
+@pytest.fixture
+@patch.dict(os.environ, {"COUNTER_DIRECTORY": "./counters"})
+@patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
+@patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
+@patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})
+def env_patch():
+    return

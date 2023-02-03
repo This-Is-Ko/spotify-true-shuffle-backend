@@ -1,10 +1,7 @@
-import os
-from tests import client
-from unittest.mock import patch
+from tests import client, env_patch
 
 
-@patch.dict(os.environ, {"COUNTER_DIRECTORY": "./counters"})
-def test_get_statistics_success(mocker, client):
+def test_get_statistics_success(mocker, client, env_patch):
     """
     Successful GET Statistics call
     """

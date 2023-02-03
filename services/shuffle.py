@@ -32,7 +32,7 @@ def create_shuffled_playlist(current_app, spotify_access_info, playlist_id, play
             offset += len(tracks_response["items"])
     else:
         while True:
-            tracks_response = spotify.playlist_tracks(
+            tracks_response = spotify.playlist_items(
                 playlist_id, limit=50, offset=offset)
             if "items" in tracks_response:
                 if len(tracks_response["items"]) == 0:
@@ -83,13 +83,16 @@ def create_shuffled_playlist(current_app, spotify_access_info, playlist_id, play
             add_items_response = spotify.playlist_add_items(
                 shuffled_playlist["id"], all_tracks[i*100: i*100+100])
         if not "snapshot_id" in add_items_response:
+            current_app.logger.error(
+                "Added tracks failed. Response: " + add_items_response)
             return {
                 "error": "Unable to add tracks to playlist " + playlist_id
             }
 
     return {
         "status": "success",
-        "playlistUri": shuffled_playlist["external_urls"]["spotify"]
+        "playlist_uri": shuffled_playlist["external_urls"]["spotify"],
+        "num_of_tracks": len(all_tracks)
     }
 
 
@@ -110,5 +113,5 @@ def delete_all_shuffled_playlists(current_app, spotify_access_info):
 
     return {
         "status": "success",
-        "deletedPlaylistsCount": deleted_playlists_count
+        "deleted_playlists_count": deleted_playlists_count
     }

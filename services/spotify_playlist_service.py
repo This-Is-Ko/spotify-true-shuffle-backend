@@ -31,4 +31,4 @@ def get_user_playlists(current_app, spotify_access_info):
         all_playlists.append(Playlist(
             playlist_entry["name"], playlist_entry["owner"], playlist_entry["id"], playlist_entry["images"][0]))
 
-    return {"allPlaylists": all_playlists}
+    return {"all_playlists": all_playlists}

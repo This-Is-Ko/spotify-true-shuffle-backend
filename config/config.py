@@ -34,6 +34,7 @@ class DevelopmentConfig(Config):
 
 
 class TestingConfig(Config):
+    FLASK_ENV = 'test'
     TESTING = True
 
 

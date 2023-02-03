@@ -1,13 +1,8 @@
-import os
-from tests import client
-from unittest.mock import patch
+from tests import client, env_patch
 from spotipy.oauth2 import SpotifyOAuth
 
 
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
-@patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})
-def test_get_spotify_uri_success(client):
+def test_get_spotify_uri_success(client, env_patch):
     """
     Successful GET Spotify Uri
     """
@@ -17,10 +12,7 @@ def test_get_spotify_uri_success(client):
     assert response_json["loginUri"] is not None
 
 
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
-@patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})
-def test_handle_auth_code_success(mocker, client):
+def test_handle_auth_code_success(mocker, client, env_patch):
     """
     Successful POST Handle Auth Code
     """
@@ -37,10 +29,7 @@ def test_handle_auth_code_success(mocker, client):
     assert response_json["refresh_token"] is not None
 
 
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
-@patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})
-def test_handle_auth_code_failure_missing_code(mocker, client):
+def test_handle_auth_code_failure_missing_code(mocker, client, env_patch):
     """
     Failure POST Handle Auth Code
     Code missing
@@ -51,10 +40,7 @@ def test_handle_auth_code_failure_missing_code(mocker, client):
     assert response_json["error"] is not None
 
 
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
-@patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})
-def test_handle_auth_code_failure_upstream_spotify_error(mocker, client):
+def test_handle_auth_code_failure_upstream_spotify_error(mocker, client, env_patch):
     """
     Failure POST Handle Auth Code
     Error from upstream Spotify

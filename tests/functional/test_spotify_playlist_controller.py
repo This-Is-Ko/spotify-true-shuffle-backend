@@ -1,6 +1,4 @@
-import os
-from tests import client
-from unittest.mock import patch
+from tests import client, env_patch
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
 
@@ -71,10 +69,9 @@ user_playlists_sample = {
 }
 
 spotify_access_info_sample = {
-    "spotifyAccessInfo": {
+    "spotify_access_info": {
         "access_token": "spotify_access_token",
         "expires_at": 1668425997,
-        "expires_in": 3600,
         "refresh_token": "spotify_refresh_token",
         "scope": "playlist-modify-private playlist-modify-public"
         + "playlist-read-collaborative playlist-read-private user-library-read",
@@ -83,10 +80,7 @@ spotify_access_info_sample = {
 }
 
 
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
-@patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})
-def test_get_playlists_success(mocker, client):
+def test_get_playlists_success(mocker, client, env_patch):
     """
     Successful GET Playlists
     """
@@ -107,15 +101,12 @@ def test_get_playlists_success(mocker, client):
                            )
     response_json = response.get_json()
     assert response.status_code == 200
-    assert response_json["allPlaylists"] is not None
+    assert response_json["all_playlists"] is not None
     # Number of playlists returned from spotify + one for Liked Tracks
-    assert len(response_json["allPlaylists"]) == 2
+    assert len(response_json["all_playlists"]) == 2
 
 
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
-@patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})
-def test_get_playlists_failure_request_access_info_invalid(mocker, client):
+def test_get_playlists_failure_request_access_info_invalid(mocker, client, env_patch):
     """
     Failure GET Playlists
     Request access token structure invalid
@@ -140,10 +131,7 @@ def test_get_playlists_failure_request_access_info_invalid(mocker, client):
     assert response_json["error"] is not None
 
 
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
-@patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})
-def test_get_playlists_failure_request_missing_body(mocker, client):
+def test_get_playlists_failure_request_missing_body(mocker, client, env_patch):
     """
     Failure GET Playlists
     Request missing body
@@ -166,10 +154,7 @@ def test_get_playlists_failure_request_missing_body(mocker, client):
     assert response_json["error"] is not None
 
 
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
-@patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
-@patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})
-def test_get_playlists_failure_upstream_spotify_error(mocker, client):
+def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch):
     """
     Failure GET Playlists
     Error from upstream Spotify call
