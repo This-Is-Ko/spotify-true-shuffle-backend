@@ -20,11 +20,9 @@ def create_app():
 
 def register_all_blueprints(app):
     from controllers.spotify_auth_controller import spotify_auth_controller
-    from controllers.spotify_playlist_controller import spotify_playlist_controller
-    from controllers.shuffle_controller import shuffle_controller
+    from controllers.playlist_controller import playlist_controller
     from controllers.statistics_controller import statistics_controller
 
     app.register_blueprint(spotify_auth_controller)
-    app.register_blueprint(spotify_playlist_controller)
-    app.register_blueprint(shuffle_controller)
+    app.register_blueprint(playlist_controller)
     app.register_blueprint(statistics_controller)
