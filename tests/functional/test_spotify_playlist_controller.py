@@ -79,6 +79,10 @@ spotify_access_info_sample = {
     }
 }
 
+user_details_response_sample = {
+    "id": "user_id"
+}
+
 
 def test_get_playlists_success(mocker, client, env_patch):
     """
@@ -96,7 +100,10 @@ def test_get_playlists_success(mocker, client, env_patch):
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=user_playlists_sample
                         )
-    response = client.post('/api/spotify/me/playlists',
+    mocker.patch.object(
+        Spotify, "me", return_value=user_details_response_sample)
+
+    response = client.post('/api/playlist/me',
                            json=spotify_access_info_sample
                            )
     response_json = response.get_json()
@@ -123,7 +130,7 @@ def test_get_playlists_failure_request_access_info_invalid(mocker, client, env_p
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=user_playlists_sample
                         )
-    response = client.post('/api/spotify/me/playlists',
+    response = client.post('/api/playlist/me',
                            json={"access token": "Invalid"}
                            )
     response_json = response.get_json()
@@ -148,7 +155,7 @@ def test_get_playlists_failure_request_missing_body(mocker, client, env_patch):
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=user_playlists_sample
                         )
-    response = client.post('/api/spotify/me/playlists')
+    response = client.post('/api/playlist/me')
     response_json = response.get_json()
     assert response.status_code == 400
     assert response_json["error"] is not None
@@ -171,7 +178,7 @@ def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch)
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value={"error": "spotify error"}
                         )
-    response = client.post('/api/spotify/me/playlists',
+    response = client.post('/api/playlist/me',
                            json=spotify_access_info_sample
                            )
     response_json = response.get_json()

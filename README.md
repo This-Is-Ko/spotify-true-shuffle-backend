@@ -50,10 +50,12 @@ Use pytest to run tests on the app:
 
 `POST /api/spotify/auth/code`: Authenticate user with Spotify auth code
 
-`POST /api/spotify/me/playlists`: Retrieve Playlists
+`POST /api/playlist/me`: Retrieve Playlists
 
-`POST /api/playist/shuffle`: Shuffle Playlist
+`POST /api/playlist/shuffle`: Shuffle Playlist
 
-`POST /api/playist/delete`: Shuffle Playlist
+`POST /api/playlist/delete`: Shuffle Playlist
+
+`POST /api/playlist/share/liked-tracks`: Create playlist from Liked Songs
 
 `GET /api/statistics/overall`: Get usage statistics
