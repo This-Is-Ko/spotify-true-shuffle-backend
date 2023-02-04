@@ -1,5 +1,6 @@
 from tests import client, env_patch
 import time
+import datetime
 
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
@@ -104,11 +105,10 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
     response_json = response.get_json()
 
     assert response.status_code == 200
-    assert response_json == {
-        "status": "success",
-        "playlist_uri": SPOTIFY_PLAYLIST_URL,
-        "num_of_tracks": 2
-    }
+    assert response_json["status"] == "success"
+    assert response_json["playlist_uri"] == SPOTIFY_PLAYLIST_URL
+    assert response_json["num_of_tracks"] == 2
+    assert response_json["creation_time"] is not None
 
 
 def test_create_shuffled_playlist_playlist_name_missing_failure(mocker, client, env_patch):
@@ -163,6 +163,8 @@ def test_delete_shuffled_playlists_success(mocker, client, env_patch):
         Spotify, "current_user_playlists", return_value=all_user_playlists_response_sample)
     mocker.patch.object(
         Spotify, "current_user_unfollow_playlist", return_value=True)
+    mocker.patch.object(
+        Spotify, "me", return_value=user_details_response_sample)
 
     response = client.post('/api/playlist/delete', json=delete_request)
     response_json = response.get_json()
