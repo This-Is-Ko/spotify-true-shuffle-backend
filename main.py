@@ -19,7 +19,13 @@ def create_app():
     register_all_blueprints(app)
 
     # Initialise mongodb client
-    mongo.init_app(app)
+
+    try:
+        mongo.init_app(app)
+    except:
+        """We don't provide a URI when running unit tests, so PyMongo will fail to initialize.
+        This is okay because we replace it with a version for testing anyway. """
+        app.logger.info('PyMongo not initialized!')
 
     return app
 
