@@ -29,7 +29,7 @@ class Config:
 
     # Database
     MONGO_URI = os.getenv(
-        'MONGO_URI', default='mongodb+srv://dbUser:password@mongodb.net/database?retryWrites=true&w=majority')
+        'MONGO_URI', default='mongodb+srv://dbUser:password@cluster0.aa.mongodb.net/database?retryWrites=true&w=majority')
 
 
 class DevelopmentConfig(Config):
