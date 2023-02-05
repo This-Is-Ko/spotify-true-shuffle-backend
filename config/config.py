@@ -27,6 +27,10 @@ class Config:
     COUNTER_DIRECTORY = os.getenv(
         'COUNTER_DIRECTORY', default='./counters')
 
+    # Database
+    MONGO_URI = os.getenv(
+        'MONGO_URI', default='MONGO_URI')
+
 
 class DevelopmentConfig(Config):
     FLASK_ENV = 'development'

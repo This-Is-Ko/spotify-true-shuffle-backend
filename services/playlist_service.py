@@ -2,11 +2,13 @@ import random
 import spotipy
 from datetime import date, datetime
 
+from database import database
 from services.spotify_client import *
 from schemas.Playlist import Playlist
 
 SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
+TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 
 
 def get_user_playlists(current_app, spotify_access_info):
@@ -50,6 +52,11 @@ def create_shuffled_playlist(current_app, spotify_access_info, playlist_id, play
 
     if len(all_tracks) == 0:
         return {"error": "No tracks found for playlist " + playlist_id}
+
+    # TODO Check if user exists and shuffle tracker settings
+    # user = database.find_user(spotify.me()["id"])
+    # if user is not None:
+    #     if user[TRACK_SHUFFLES_ATTRIBUTE_NAME] is True:
 
     # Increment counters for playlists and tracks
     with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'r') as f:
@@ -126,6 +133,14 @@ def get_tracks_from_playlist(spotify, playlist_id):
                     all_tracks.append(track["track"]["uri"])
             offset += len(tracks_response["items"])
     return all_tracks
+
+
+def get_liked_tracks_count(current_app, spotify):
+    liked_tracks = spotify.current_user_saved_tracks()
+    get_liked_tracks_log = "Liked tracks response: {response}"
+    current_app.logger.debug(
+        get_liked_tracks_log.format(response=liked_tracks))
+    return liked_tracks["total"]
 
 
 def create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, public_status, playlist_description, tracks_to_add):

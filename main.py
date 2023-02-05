@@ -1,6 +1,9 @@
 from flask import Flask
 from flask_cors import CORS
 import os
+from flask_pymongo import PyMongo
+
+mongo = PyMongo()
 
 
 def create_app():
@@ -15,6 +18,9 @@ def create_app():
     # Register blueprints for app
     register_all_blueprints(app)
 
+    # Initialise mongodb client
+    mongo.init_app(app)
+
     return app
 
 
@@ -22,7 +28,11 @@ def register_all_blueprints(app):
     from controllers.spotify_auth_controller import spotify_auth_controller
     from controllers.playlist_controller import playlist_controller
     from controllers.statistics_controller import statistics_controller
+    from controllers.trackers_controller import trackers_controller
+    from controllers.user_controller import user_controller
 
     app.register_blueprint(spotify_auth_controller)
     app.register_blueprint(playlist_controller)
     app.register_blueprint(statistics_controller)
+    app.register_blueprint(trackers_controller)
+    app.register_blueprint(user_controller)
