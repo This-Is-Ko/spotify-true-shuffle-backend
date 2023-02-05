@@ -29,7 +29,7 @@ class Config:
 
     # Database
     MONGO_URI = os.getenv(
-        'MONGO_URI', default='MONGO_URI')
+        'MONGO_URI', default='mongodb+srv://dbuser:dbpassword@hostname:port/database')
 
 
 class DevelopmentConfig(Config):
