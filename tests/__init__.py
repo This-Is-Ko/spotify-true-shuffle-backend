@@ -21,5 +21,6 @@ def client():
 @patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
 @patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
 @patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})
+@patch.dict(os.environ, {"MONGO_URI": "MONGO_URI"})
 def env_patch():
     return
