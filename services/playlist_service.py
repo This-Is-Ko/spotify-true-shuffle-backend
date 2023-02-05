@@ -2,7 +2,7 @@ import random
 import spotipy
 from datetime import date, datetime
 
-from database import database
+# from database import database
 from services.spotify_client import *
 from schemas.Playlist import Playlist
 
