@@ -51,6 +51,7 @@ def update_liked_tracks_tracker(current_app):
             tracker_logger(current_app, USER_LIKED_TRACKS_TRACKER_LOG, TRACK_SHUFFLES_ATTRIBUTE_NAME,
                            user["user_id"], "Error while searching for previous tracker entry" + str(e), level="error")
             continue
+
         tracker_entry = {
             "user_id": user["user_id"], "count": current_count, "difference": difference, "created": datetime.datetime.today()}
 
@@ -73,10 +74,11 @@ def update_liked_tracks_tracker(current_app):
 
 
 def is_user_entry_valid(user):
-    if "user_id" not in user or "track_liked_tracks" not in user or "track_shuffles" not in user or "spotify" not in user:
+    if "user_id" not in user or "user_attributes" not in user or TRACK_LIKED_TRACKS_ATTRIBUTE_NAME not in user["user_attributes"] or TRACK_SHUFFLES_ATTRIBUTE_NAME not in user["user_attributes"] or "spotify" not in user:
         return False
 
-    if "refresh_token" not in user["spotify"] or "expires_at" not in user["spotify"]:
+    # required values for spotipy to use refresh token
+    if "refresh_token" not in user["spotify"] or "expires_at" not in user["spotify"] or "scope" not in user["spotify"]:
         return False
 
     return True

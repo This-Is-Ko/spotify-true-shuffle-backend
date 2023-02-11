@@ -49,3 +49,27 @@ def get_user():
         return {"error": "Invalid request"}, 400
 
     return user_service.get_user(current_app, request_body["spotify_access_info"])
+
+
+@user_controller.route('/tracker', methods=['POST'])
+def get_user_tracker_data():
+    """
+    Get the user tracker datapoints
+    Pass tracker name in url
+    Get user_id from token
+    """
+    try:
+        tracker_name = request.args.get("tracker-name")
+        if (tracker_name is None):
+            raise Exception("Missing tracker-name")
+        request_data = request.get_json()
+        schema = SaveUserRequestSchema()
+        request_body = schema.load(request_data)
+    except ValidationError as e:
+        current_app.logger.info("Invalid request: " + str(e.messages))
+        return {"error": "Invalid request"}, 400
+    except Exception as e:
+        current_app.logger.info("Invalid request: " + str(e))
+        return {"error": "Invalid request"}, 400
+
+    return user_service.get_user_tracker_data(current_app, request_body["spotify_access_info"], tracker_name)
