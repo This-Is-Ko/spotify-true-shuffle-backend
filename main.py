@@ -42,3 +42,6 @@ def register_all_blueprints(app):
     app.register_blueprint(statistics_controller)
     app.register_blueprint(trackers_controller)
     app.register_blueprint(user_controller)
+
+
+app = create_app()
