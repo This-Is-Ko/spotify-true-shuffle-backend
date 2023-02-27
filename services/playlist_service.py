@@ -58,16 +58,19 @@ def create_shuffled_playlist(current_app, spotify_access_info, playlist_id, play
     # if user is not None:
     #     if user[TRACK_SHUFFLES_ATTRIBUTE_NAME] is True:
 
-    # Increment counters for playlists and tracks
-    with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'r') as f:
-        t = f.read()
-    with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'w') as f:
-        f.write(str(int(t)+1))
+    try:
+        # Increment counters for playlists and tracks
+        with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'r') as f:
+            t = f.read()
+        with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'w') as f:
+            f.write(str(int(t)+1))
 
-    with open(current_app.config["COUNTER_DIRECTORY"] + '/track_counter.txt', 'r') as f:
-        t = f.read()
-    with open(current_app.config["COUNTER_DIRECTORY"] + '/track_counter.txt', 'w') as f:
-        f.write(str(int(t)+len(all_tracks)))
+        with open(current_app.config["COUNTER_DIRECTORY"] + '/track_counter.txt', 'r') as f:
+            t = f.read()
+        with open(current_app.config["COUNTER_DIRECTORY"] + '/track_counter.txt', 'w') as f:
+            f.write(str(int(t)+len(all_tracks)))
+    except Exception as e:
+        current_app.logger.error("Error updating trackers: " + str(e))
 
     random.shuffle(all_tracks)
 
