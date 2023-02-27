@@ -1,4 +1,3 @@
-from main import create_app
 from flask import Flask
 from flask_cors import CORS
 import os
@@ -43,6 +42,3 @@ def register_all_blueprints(app):
     app.register_blueprint(statistics_controller)
     app.register_blueprint(trackers_controller)
     app.register_blueprint(user_controller)
-
-
-application = create_app()
