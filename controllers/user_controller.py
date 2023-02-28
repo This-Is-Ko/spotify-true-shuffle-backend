@@ -3,6 +3,8 @@ from marshmallow import ValidationError
 
 from schemas.SaveUserRequestSchema import SaveUserRequestSchema
 from schemas.GetUserRequestSchema import GetUserRequestSchema
+from schemas.GetUserAnalysisRequestSchema import GetUserAnalysisRequestSchema
+from schemas.GetUserTrackerDataRequestSchema import GetUserTrackerDataRequestSchema
 from services import user_service
 
 user_controller = Blueprint(
@@ -39,7 +41,7 @@ def get_user():
     """
     try:
         request_data = request.get_json()
-        schema = SaveUserRequestSchema()
+        schema = GetUserRequestSchema()
         request_body = schema.load(request_data)
     except ValidationError as e:
         current_app.logger.info("Invalid request: " + str(e.messages))
@@ -63,7 +65,7 @@ def get_user_tracker_data():
         if (tracker_name is None):
             raise Exception("Missing tracker-name")
         request_data = request.get_json()
-        schema = SaveUserRequestSchema()
+        schema = GetUserTrackerDataRequestSchema()
         request_body = schema.load(request_data)
     except ValidationError as e:
         current_app.logger.info("Invalid request: " + str(e.messages))
@@ -73,3 +75,23 @@ def get_user_tracker_data():
         return {"error": "Invalid request"}, 400
 
     return user_service.get_user_tracker_data(current_app, request_body["spotify_access_info"], tracker_name)
+
+
+@user_controller.route('/analysis', methods=['POST'])
+def get_user_analysis():
+    """
+    Get user analysis including Liked Tracks data
+    Get user_id from token
+    """
+    try:
+        request_data = request.get_json()
+        schema = GetUserAnalysisRequestSchema()
+        request_body = schema.load(request_data)
+    except ValidationError as e:
+        current_app.logger.info("Invalid request: " + str(e.messages))
+        return {"error": "Invalid request"}, 400
+    except Exception as e:
+        current_app.logger.info("Invalid request: " + str(e))
+        return {"error": "Invalid request"}, 400
+
+    return user_service.get_user_analysis(current_app, request_body["spotify_access_info"])
