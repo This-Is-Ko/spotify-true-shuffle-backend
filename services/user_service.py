@@ -122,10 +122,7 @@ def get_user_analysis(current_app, spotify_access_info):
     if not auth_manager.validate_token(spotify_access_info):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
-    user = database.find_user(user_id)
-
-    user_json = json.loads(json_util.dumps(user))
-
+    print("hello")
     # TODO Check ANALYSE_LIBRARY_ATTRIBUTE_NAME status
     # if (ANALYSE_LIBRARY_ATTRIBUTE_NAME not in user_json["user_attributes"] or user_json["user_attributes"][ANALYSE_LIBRARY_ATTRIBUTE_NAME] is not True):
     #     return {
@@ -138,12 +135,35 @@ def get_user_analysis(current_app, spotify_access_info):
         all_tracks = get_all_tracks_with_data_from_playlist(
             spotify, LIKED_TRACKS_PLAYLIST_ID)
 
+        if len(all_tracks) == 0:
+            return {
+                "most_common_artists": [],
+                "most_common_albums": [],
+                "most_common_genre": [],
+                "total_length": {
+                    "days": 0,
+                    "hours": 0,
+                    "minutes": 0,
+                    "seconds": 0,
+                },
+                "average_track_length": {
+                    "days": 0,
+                    "hours": 0,
+                    "minutes": 0,
+                    "seconds": 0,
+                },
+                # "all_time_top_artists": [],
+                # "all_time_top_tracks": []
+            }
+
         most_common_artists = {}
         most_common_albums = {}
         most_common_genre = {}
         total_length = 0
         average_track_length = 0
-        oldest_release_date_track = ""
+        # TODO Find oldest and newest tracks
+        # oldest_release_date_track = {}
+        # latest_release_date_track = {}
         for track in all_tracks:
             track_data = track["track"]
             current_app.logger.debug(
@@ -193,11 +213,6 @@ def get_user_analysis(current_app, spotify_access_info):
             average_track_length)
         total_length_seconds, total_length_minutes, total_length_hours, total_length_days = calcFromMillis(
             total_length)
-        # average_track_length_seconds = (average_track_length/1000) % 60
-        # average_track_length_seconds = int(average_track_length_seconds)
-        # average_track_length_minutes = (average_track_length/(1000*60)) % 60
-        # average_track_length_minutes = int(average_track_length_minutes)
-        # average_track_length_hours = (average_track_length/(1000*60*60)) % 24
 
         # TODO Get top items from spotify (require scope extension)
         # all_time_top_artists = spotify.current_user_top_artists(

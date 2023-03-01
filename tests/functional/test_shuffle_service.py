@@ -4,18 +4,12 @@ import datetime
 
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
+from mock_responses import *
+from mock_requests import *
 
 SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 SPOTIFY_PLAYLIST_URL = "open.spotify.com/playlist/spotifyPlaylistUrl"
-
-spotify_access_info_sample = {
-    "token_type": "Bearer",
-    "access_token": "access token from spotify",
-    "refresh_token": "access token from spotify",
-    "expires_at": int(time.time()) + 3600,
-    "scope": "playlist-modify-private playlist-modify-public playlist-read-private playlist-read-collaborative user-library-read"
-}
 
 delete_request = {
     "spotify_access_info": spotify_access_info_sample
@@ -25,23 +19,6 @@ shuffle_request = {
     "spotify_access_info": spotify_access_info_sample,
     "playlist_id": "playlist_id0",
     "playlist_name": "playlist_name0"
-}
-
-tracks_response_sample = {
-    "items": [
-        {
-            "track":
-                {
-                    "uri": "track_uri0"
-                }
-        },
-        {
-            "track":
-                {
-                    "uri": "track_uri1"
-                }
-        }
-    ]
 }
 
 all_user_playlists_response_sample = {
@@ -66,10 +43,6 @@ empty_all_user_playlists_response_sample = {
     ]
 }
 
-user_details_response_sample = {
-    "id": "user_id"
-}
-
 create_user_playlist_response = {
     "id": "new_playlist_id",
     "external_urls": {
@@ -86,15 +59,15 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
     mocker.patch.object(SpotifyOAuth, "validate_token",
                         return_value=spotify_access_info_sample)
     mocker.patch.object(
-        Spotify, "current_user_saved_tracks", return_value=tracks_response_sample)
+        Spotify, "current_user_saved_tracks", return_value=mock_tracks_response)
     mocker.patch.object(
-        Spotify, "playlist_items", side_effect=[tracks_response_sample, empty_all_user_playlists_response_sample])
+        Spotify, "playlist_items", side_effect=[mock_tracks_response, empty_all_user_playlists_response_sample])
     mocker.patch.object(
         Spotify, "current_user_playlists", return_value=all_user_playlists_response_sample)
     mocker.patch.object(
         Spotify, "current_user_unfollow_playlist", return_value=True)
     mocker.patch.object(
-        Spotify, "me", return_value=user_details_response_sample)
+        Spotify, "me", return_value=mock_user_details_response)
     mocker.patch.object(
         Spotify, "user_playlist_create", return_value=create_user_playlist_response)
     mocker.patch.object(
@@ -164,7 +137,7 @@ def test_delete_shuffled_playlists_success(mocker, client, env_patch):
     mocker.patch.object(
         Spotify, "current_user_unfollow_playlist", return_value=True)
     mocker.patch.object(
-        Spotify, "me", return_value=user_details_response_sample)
+        Spotify, "me", return_value=mock_user_details_response)
 
     response = client.post('/api/playlist/delete', json=delete_request)
     response_json = response.get_json()

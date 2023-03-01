@@ -26,6 +26,8 @@ def get_all_tracks_with_data_from_playlist(spotify, playlist_id):
                 for track in tracks_response["items"]:
                     all_tracks.append(track)
             offset += len(tracks_response["items"])
+            if offset >= tracks_response["total"]:
+                break
     else:
         while True:
             tracks_response = spotify.playlist_items(
