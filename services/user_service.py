@@ -4,9 +4,14 @@ from bson import json_util
 import json
 
 from services.spotify_client import *
+from utils.utils import *
 
+LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
+
+TRACKERS_ENABLED_ATTRIBUTE_NAME = "trackers_enabled"
 TRACK_LIKED_TRACKS_ATTRIBUTE_NAME = "track_liked_tracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
+ANALYSE_LIBRARY_ATTRIBUTE_NAME = "analyse_library"
 
 
 def save_user(current_app, spotify_access_info, user_attributes):
@@ -81,10 +86,10 @@ def get_user_tracker_data(current_app, spotify_access_info, tracker_name):
     user_json = json.loads(json_util.dumps(user))
 
     # Check tracker status
-    if (tracker_name not in user_json["user_attributes"] or user_json["user_attributes"][tracker_name] is not True):
+    if (TRACKERS_ENABLED_ATTRIBUTE_NAME not in user_json["user_attributes"] or user_json["user_attributes"][TRACKERS_ENABLED_ATTRIBUTE_NAME] is not True):
         return {
             "status": "error",
-            "message": "Tracker not enabled"
+            "message": "Trackers not enabled"
         }, 400
 
     try:
@@ -106,6 +111,152 @@ def get_user_tracker_data(current_app, spotify_access_info, tracker_name):
             "data": data
         }
     except Exception as e:
+        return {
+            "status": "error"
+        }, 400
+
+
+def get_user_analysis(current_app, spotify_access_info):
+    """
+    Get all liked tracks to analyse
+    Calcuate most common tracks/artists/genres
+    """
+    auth_manager = create_auth_manager_with_token(
+        current_app, spotify_access_info)
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+    if not auth_manager.validate_token(spotify_access_info):
+        return {"error": "Invalid token"}, 400
+    user_id = spotify.me()["id"]
+
+    # TODO Check ANALYSE_LIBRARY_ATTRIBUTE_NAME status
+    # if (ANALYSE_LIBRARY_ATTRIBUTE_NAME not in user_json["user_attributes"] or user_json["user_attributes"][ANALYSE_LIBRARY_ATTRIBUTE_NAME] is not True):
+    #     return {
+    #         "status": "error",
+    #         "message": "Tracker not enabled"
+    #     }, 400
+
+    try:
+        # Get all tracks from library
+        all_tracks = get_all_tracks_with_data_from_playlist(
+            spotify, LIKED_TRACKS_PLAYLIST_ID)
+
+        if len(all_tracks) == 0:
+            return {
+                "most_common_artists": [],
+                "most_common_albums": [],
+                "most_common_genre": [],
+                "total_length": {
+                    "days": 0,
+                    "hours": 0,
+                    "minutes": 0,
+                    "seconds": 0,
+                },
+                "average_track_length": {
+                    "days": 0,
+                    "hours": 0,
+                    "minutes": 0,
+                    "seconds": 0,
+                },
+                # "all_time_top_artists": [],
+                # "all_time_top_tracks": []
+            }
+
+        most_common_artists = {}
+        most_common_albums = {}
+        most_common_genre = {}
+        total_length = 0
+        average_track_length = 0
+        # TODO Find oldest and newest tracks
+        # oldest_release_date_track = {}
+        # latest_release_date_track = {}
+        for track in all_tracks:
+            track_data = track["track"]
+            current_app.logger.debug(
+                "Adding track data for: " + track_data["name"])
+            # Most common artist
+            for artist in track_data["artists"]:
+                if artist["name"] in most_common_artists:
+                    most_common_artists[artist["name"]]["count"] += 1
+                else:
+                    artist_image_url = ""
+                    if "images" in artist:
+                        artist_image_url = artist["images"][0]["url"]
+                    most_common_artists[artist["name"]] = {
+                        "id": artist["id"],
+                        "name": artist["name"],
+                        "external_url": artist["external_urls"]["spotify"],
+                        "image": artist_image_url,
+                        "count": 1
+                    }
+            # Most common album
+            album = track_data["album"]
+            if album["name"] in most_common_albums:
+                most_common_albums[album["name"]]["count"] += 1
+            else:
+                album_image_url = ""
+                if "images" in artist:
+                    album_image_url = album["images"][0]["url"]
+                most_common_albums[album["name"]] = {
+                    "id": album["id"],
+                    "name": album["name"],
+                    "external_url": album["external_urls"]["spotify"],
+                    "image": album_image_url,
+                    "count": 1
+                }
+            # Most common genre
+            if "genres" in album:
+                for genre in album["genres"]:
+                    if genre in most_common_genre:
+                        most_common_genre[genre] += 1
+                    else:
+                        most_common_genre[genre] = 1
+            # Average track length
+            total_length += int(track_data["duration_ms"])
+
+        average_track_length = total_length / len(all_tracks)
+        average_track_length_seconds, average_track_length_minutes, average_track_length_hours, average_track_length_days = calcFromMillis(
+            average_track_length)
+        total_length_seconds, total_length_minutes, total_length_hours, total_length_days = calcFromMillis(
+            total_length)
+
+        # TODO Get top items from spotify (require scope extension)
+        # all_time_top_artists = spotify.current_user_top_artists(
+        #     limit=50, time_range="long_term")["items"]
+        # all_time_top_tracks = spotify.current_user_top_tracks(
+        #     limit=50, time_range="long_term")["items"]
+
+        most_common_artists_array = []
+        for v in most_common_artists.values():
+            most_common_artists_array.append(v)
+        most_common_albums_array = []
+        for v in most_common_albums.values():
+            most_common_albums_array.append(v)
+        most_common_genre_array = []
+        for k, v in most_common_genre.items():
+            most_common_genre_array.append({"name": k, "count": v})
+
+        return {
+            "most_common_artists": most_common_artists_array,
+            "most_common_albums": most_common_albums_array,
+            "most_common_genre": most_common_genre_array,
+            "total_length": {
+                "days": total_length_days,
+                "hours": total_length_hours,
+                "minutes": total_length_minutes,
+                "seconds": total_length_seconds,
+            },
+            "average_track_length": {
+                "days": average_track_length_days,
+                "hours": average_track_length_hours,
+                "minutes": average_track_length_minutes,
+                "seconds": average_track_length_seconds,
+            },
+            # "all_time_top_artists": all_time_top_artists,
+            # "all_time_top_tracks": all_time_top_tracks
+        }
+
+    except Exception as e:
+        current_app.logger.error("Error while generating analysis: " + str(e))
         return {
             "status": "error"
         }, 400

@@ -5,6 +5,7 @@ from database import database
 from services.spotify_client import *
 from utils import utils
 
+TRACKERS_ENABLED_ATTRIBUTE_NAME = "trackers_enabled"
 TRACK_LIKED_TRACKS_ATTRIBUTE_NAME = "track_liked_tracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 USER_LIKED_TRACKS_TRACKER_LOG = "Tracker: {tracker} -- User: {user_id} -- {status}"
@@ -12,17 +13,14 @@ SUCCESSFUL_UPDATES_LOG = "Tracker: {tracker} -- Successfully updated {success_co
 
 
 def update_trackers(current_app):
-    return update_liked_tracks_tracker(current_app)
-
-
-def update_liked_tracks_tracker(current_app):
     """
-    For each user who has tracker enabled, check latest track count and store
+    For each user who has tracker enabled, check latest liked tracks count and store
     Skip users who error
     """
     users = database.get_all_users_with_attribute(
-        TRACK_LIKED_TRACKS_ATTRIBUTE_NAME, True)
+        TRACKERS_ENABLED_ATTRIBUTE_NAME, True)
     success_counter = 0
+    # Track total users as users object is cursor
     total_users = 0
     for user in users:
         total_users += 1
@@ -69,12 +67,14 @@ def update_liked_tracks_tracker(current_app):
         tracker=TRACK_SHUFFLES_ATTRIBUTE_NAME, success_counter=success_counter, total_enabled_users=total_users))
     return {
         "status": "success",
-        "message": "Finished updating trackers"
+        "message": "Finished updating trackers",
+        "updated_users": success_counter,
+        "total_enabled_users": total_users
     }
 
 
 def is_user_entry_valid(user):
-    if "user_id" not in user or "user_attributes" not in user or TRACK_LIKED_TRACKS_ATTRIBUTE_NAME not in user["user_attributes"] or TRACK_SHUFFLES_ATTRIBUTE_NAME not in user["user_attributes"] or "spotify" not in user:
+    if "user_id" not in user or "user_attributes" not in user or TRACKERS_ENABLED_ATTRIBUTE_NAME not in user["user_attributes"] or "spotify" not in user:
         return False
 
     # required values for spotipy to use refresh token

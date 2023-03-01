@@ -2,21 +2,7 @@ from tests import client, env_patch
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
 
-user_sample = {
-    "country": "country_sample",
-    "display_name": "display_name_sample",
-    "email": "email_sample",
-    "external_urls": {
-        "spotify": "spotify_sample"
-    },
-    "followers": {
-        "href": "href_sample",
-        "total": 1
-    },
-    "href": "href_sample",
-    "id": "id_sample",
-    "uri": "uri_sample"
-}
+from mock_responses import *
 
 user_playlists_sample = {
     "items": [
@@ -79,7 +65,7 @@ spotify_access_info_sample = {
     }
 }
 
-user_details_response_sample = {
+mock_user_details_response = {
     "id": "user_id"
 }
 
@@ -95,13 +81,13 @@ def test_get_playlists_success(mocker, client, env_patch):
                         }
                         )
     mocker.patch.object(Spotify, "current_user",
-                        return_value=user_sample
+                        return_value=mock_user_response
                         )
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=user_playlists_sample
                         )
     mocker.patch.object(
-        Spotify, "me", return_value=user_details_response_sample)
+        Spotify, "me", return_value=mock_user_details_response)
 
     response = client.post('/api/playlist/me',
                            json=spotify_access_info_sample
@@ -125,7 +111,7 @@ def test_get_playlists_failure_request_access_info_invalid(mocker, client, env_p
                         }
                         )
     mocker.patch.object(Spotify, "current_user",
-                        return_value=user_sample
+                        return_value=mock_user_response
                         )
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=user_playlists_sample
@@ -150,7 +136,7 @@ def test_get_playlists_failure_request_missing_body(mocker, client, env_patch):
                         }
                         )
     mocker.patch.object(Spotify, "current_user",
-                        return_value=user_sample
+                        return_value=mock_user_response
                         )
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=user_playlists_sample
@@ -173,7 +159,7 @@ def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch)
                         }
                         )
     mocker.patch.object(Spotify, "current_user",
-                        return_value=user_sample
+                        return_value=mock_user_response
                         )
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value={"error": "spotify error"}
