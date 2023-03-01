@@ -8,6 +8,7 @@ from utils.utils import *
 
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 
+TRACKERS_ENABLED_ATTRIBUTE_NAME = "trackers_enabled"
 TRACK_LIKED_TRACKS_ATTRIBUTE_NAME = "track_liked_tracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 ANALYSE_LIBRARY_ATTRIBUTE_NAME = "analyse_library"
@@ -85,10 +86,10 @@ def get_user_tracker_data(current_app, spotify_access_info, tracker_name):
     user_json = json.loads(json_util.dumps(user))
 
     # Check tracker status
-    if (tracker_name not in user_json["user_attributes"] or user_json["user_attributes"][tracker_name] is not True):
+    if (TRACKERS_ENABLED_ATTRIBUTE_NAME not in user_json["user_attributes"] or user_json["user_attributes"][TRACKERS_ENABLED_ATTRIBUTE_NAME] is not True):
         return {
             "status": "error",
-            "message": "Tracker not enabled"
+            "message": "Trackers not enabled"
         }, 400
 
     try:
@@ -116,13 +117,17 @@ def get_user_tracker_data(current_app, spotify_access_info, tracker_name):
 
 
 def get_user_analysis(current_app, spotify_access_info):
+    """
+    Get all liked tracks to analyse
+    Calcuate most common tracks/artists/genres
+    """
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_access_info)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     if not auth_manager.validate_token(spotify_access_info):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
-    print("hello")
+
     # TODO Check ANALYSE_LIBRARY_ATTRIBUTE_NAME status
     # if (ANALYSE_LIBRARY_ATTRIBUTE_NAME not in user_json["user_attributes"] or user_json["user_attributes"][ANALYSE_LIBRARY_ATTRIBUTE_NAME] is not True):
     #     return {
