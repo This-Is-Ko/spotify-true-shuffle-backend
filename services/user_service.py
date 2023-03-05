@@ -189,7 +189,7 @@ def get_user_analysis(current_app, spotify):
                 "minutes": 0,
                 "seconds": 0,
             },
-            audio_features: {}
+            "audio_features": {}
             # "all_time_top_artists": [],
             # "all_time_top_tracks": []
         }

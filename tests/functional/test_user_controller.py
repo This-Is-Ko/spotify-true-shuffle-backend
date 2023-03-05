@@ -26,6 +26,8 @@ def test_get_user_analysis_success(mocker, client, env_patch):
         Spotify, "me", return_value=mock_user_details_response)
     mocker.patch.object(
         Spotify, "current_user_saved_tracks", return_value=mock_tracks_response)
+    mocker.patch.object(
+        Spotify, "audio_features", return_value=mock_audio_features_response)
 
     response = client.post('/api/user/analysis',
                            json=user_analysis_request
