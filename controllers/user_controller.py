@@ -74,7 +74,7 @@ def get_user_tracker_data():
         current_app.logger.info("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
 
-    return user_service.get_user_tracker_data(current_app, request_body["spotify_access_info"], tracker_name)
+    return user_service.handle_get_user_tracker_data(current_app, request_body["spotify_access_info"], tracker_name)
 
 
 @user_controller.route('/analysis', methods=['POST'])
@@ -94,4 +94,23 @@ def get_user_analysis():
         current_app.logger.info("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
 
-    return user_service.get_user_analysis(current_app, request_body["spotify_access_info"])
+    return user_service.handle_get_user_analysis(current_app, request_body["spotify_access_info"])
+
+
+@user_controller.route('/aggregate', methods=['POST'])
+def get_user_aggregated_data():
+    """
+    Get user trackers and analysis
+    """
+    try:
+        request_data = request.get_json()
+        schema = GetUserAnalysisRequestSchema()
+        request_body = schema.load(request_data)
+    except ValidationError as e:
+        current_app.logger.info("Invalid request: " + str(e.messages))
+        return {"error": "Invalid request"}, 400
+    except Exception as e:
+        current_app.logger.info("Invalid request: " + str(e))
+        return {"error": "Invalid request"}, 400
+
+    return user_service.aggregate_user_data(current_app, request_body["spotify_access_info"])

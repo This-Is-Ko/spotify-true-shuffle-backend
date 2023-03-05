@@ -38,10 +38,6 @@ def get_all_user_shuffles_history_data(user_id):
 # User functions
 
 
-def add_user():
-    users_collection = mongo.db.users.find()
-
-
 def find_and_update_user(user_id, user_entry):
     return mongo.db.users.find_one_and_update(
         {"user_id": user_id},

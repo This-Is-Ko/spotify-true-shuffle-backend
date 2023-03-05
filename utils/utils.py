@@ -44,7 +44,8 @@ def get_all_tracks_with_data_from_playlist(spotify, playlist_id):
 def get_liked_tracks_count(current_app, spotify):
     """
     Get number of songs in user library
-    If error, return False"""
+    If error, return False
+    """
     liked_tracks_response = spotify.current_user_saved_tracks()
     get_liked_tracks_log = "Liked tracks response: {response}"
     # current_app.logger.debug(
@@ -52,6 +53,29 @@ def get_liked_tracks_count(current_app, spotify):
     if "total" in liked_tracks_response:
         return liked_tracks_response["total"]
     return None
+
+
+def get_all_track_audio_features(current_app, spotify, tracks):
+    """
+    Get audio features for all tracks
+    If error, return False
+    """
+    tracks_left = len(tracks)
+    index = 0
+    all_track_features = []
+    while tracks_left > 0:
+        # Max 100 tracks at once
+        if tracks_left < 100:
+            tracks_to_analyse = tracks[index: index + tracks_left]
+            tracks_left -= tracks_left
+            index += tracks_left
+        else:
+            tracks_to_analyse = tracks[index: index + 100]
+            tracks_left -= 100
+            index += 100
+        response = spotify.audio_features(tracks_to_analyse)
+        all_track_features += response
+    return all_track_features
 
 
 def calcFromMillis(milliseconds):
