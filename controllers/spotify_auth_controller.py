@@ -35,3 +35,12 @@ def handle_auth_code():
         current_app.logger.info(
             "Unable to authenticate with Spotify: " + str(e))
         return {"error": "Unable to authenticate with Spotify"}, 400
+
+
+@spotify_auth_controller.route('/logout', methods=['POST'])
+def logout_user():
+    """
+    Update cookies to expired to logout user
+    """
+
+    return spotify_auth_service.handle_logout(current_app)

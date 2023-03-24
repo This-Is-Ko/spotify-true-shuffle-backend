@@ -41,3 +41,25 @@ def get_spotify_tokens(current_app, code):
     else:
         return {"status": "error",
                 "error": "Unable to obtain access token"}, 400
+
+
+def handle_logout(current_app):
+    response = make_response()
+    response.set_cookie(key="trueshuffle-spotifyAccessToken",
+                            value="",
+                            expires=0
+                        )
+    response.set_cookie(key="trueshuffle-spotifyRefreshToken",
+                            value="",
+                            expires=0
+                        )
+    response.set_cookie(key="trueshuffle-spotifyExpiresAt",
+                            value="",
+                            expires=0
+                        )
+    response.set_cookie(key="trueshuffle-spotifyScope",
+                            value="",
+                            expires=0
+                        )
+    current_app.logger.debug("Logging out user")
+    return response
