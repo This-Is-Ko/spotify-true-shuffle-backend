@@ -27,6 +27,10 @@ class Config:
     COUNTER_DIRECTORY = os.getenv(
         'COUNTER_DIRECTORY', default='./counters')
 
+    # Cookies
+    COOKIE_DOMAIN = os.getenv(
+        'COOKIE_DOMAIN', default=None)
+
     # Database
     MONGO_URI = os.getenv(
         'MONGO_URI', default='mongodb+srv://dbUser:password@cluster0.aa.mongodb.net/database?retryWrites=true&w=majority')

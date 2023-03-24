@@ -23,19 +23,27 @@ def get_spotify_tokens(current_app, code):
         response = make_response()
         response.set_cookie(key="trueshuffle-spotifyAccessToken",
                             value=auth_response["access_token"],
-                            # domain="127.0.0.1"
+                            httponly=True,
+                            domain=current_app.config["COOKIE_DOMAIN"]
                             )
         response.set_cookie(key="trueshuffle-spotifyRefreshToken",
                             value=auth_response["refresh_token"],
-                            # domain="127.0.0.1"
+                            httponly=True,
+                            domain=current_app.config["COOKIE_DOMAIN"]
                             )
         response.set_cookie(key="trueshuffle-spotifyExpiresAt",
                             value=str(auth_response["expires_at"]),
-                            # domain="127.0.0.1"
+                            httponly=True,
+                            domain=current_app.config["COOKIE_DOMAIN"]
                             )
         response.set_cookie(key="trueshuffle-spotifyScope",
                             value=auth_response["scope"],
-                            # domain="127.0.0.1"
+                            httponly=True,
+                            domain=current_app.config["COOKIE_DOMAIN"]
+                            )
+        response.set_cookie(key="trueshuffle-auth",
+                            value="true",
+                            domain=current_app.config["COOKIE_DOMAIN"]
                             )
         return response
     else:
@@ -58,6 +66,10 @@ def handle_logout(current_app):
                             expires=0
                         )
     response.set_cookie(key="trueshuffle-spotifyScope",
+                            value="",
+                            expires=0
+                        )
+    response.set_cookie(key="trueshuffle-auth",
                             value="",
                             expires=0
                         )
