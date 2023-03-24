@@ -76,8 +76,8 @@ def test_get_playlists_success(mocker, client, env_patch):
     """
     mocker.patch.object(SpotifyOAuth, "validate_token",
                         return_value={
-                            "access_token": "access token from spotify",
-                            "refresh_token": "access token from spotify"
+                            "access_token": "accesstokenfromspotify",
+                            "refresh_token": "refreshtokenfromspotify"
                         }
                         )
     mocker.patch.object(Spotify, "current_user",
@@ -89,9 +89,16 @@ def test_get_playlists_success(mocker, client, env_patch):
     mocker.patch.object(
         Spotify, "me", return_value=mock_user_details_response)
 
-    response = client.post('/api/playlist/me',
-                           json=spotify_access_info_sample
-                           )
+    # Init cookies
+    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
+                      'accesstokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
+                      'refreshtokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
+    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
+                      'scopefromspotify')
+
+    response = client.get('/api/playlist/me')
     response_json = response.get_json()
     assert response.status_code == 200
     assert response_json["all_playlists"] is not None
@@ -99,16 +106,13 @@ def test_get_playlists_success(mocker, client, env_patch):
     assert len(response_json["all_playlists"]) == 2
 
 
-def test_get_playlists_failure_request_access_info_invalid(mocker, client, env_patch):
+def test_get_playlists_failure_cookies_invalid(mocker, client, env_patch):
     """
     Failure GET Playlists
     Request access token structure invalid
     """
     mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value={
-                            "access_token": "access token from spotify",
-                            "refresh_token": "access token from spotify"
-                        }
+                        return_value=None
                         )
     mocker.patch.object(Spotify, "current_user",
                         return_value=mock_user_response
@@ -116,15 +120,23 @@ def test_get_playlists_failure_request_access_info_invalid(mocker, client, env_p
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=user_playlists_sample
                         )
-    response = client.post('/api/playlist/me',
-                           json={"access token": "Invalid"}
-                           )
+
+    # Init cookies
+    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
+                      'accesstokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
+                      'refreshtokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
+    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
+                      'scopefromspotify')
+
+    response = client.get('/api/playlist/me')
     response_json = response.get_json()
     assert response.status_code == 400
     assert response_json["error"] is not None
 
 
-def test_get_playlists_failure_request_missing_body(mocker, client, env_patch):
+def test_get_playlists_failure_missing_cookies(mocker, client, env_patch):
     """
     Failure GET Playlists
     Request missing body
@@ -141,7 +153,8 @@ def test_get_playlists_failure_request_missing_body(mocker, client, env_patch):
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=user_playlists_sample
                         )
-    response = client.post('/api/playlist/me')
+
+    response = client.get('/api/playlist/me')
     response_json = response.get_json()
     assert response.status_code == 400
     assert response_json["error"] is not None
@@ -164,9 +177,17 @@ def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch)
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value={"error": "spotify error"}
                         )
-    response = client.post('/api/playlist/me',
-                           json=spotify_access_info_sample
-                           )
+
+    # Init cookies
+    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
+                      'accesstokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
+                      'refreshtokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
+    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
+                      'scopefromspotify')
+
+    response = client.get('/api/playlist/me')
     response_json = response.get_json()
     assert response.status_code == 400
     assert response_json["error"] is not None

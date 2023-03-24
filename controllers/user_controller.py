@@ -2,9 +2,6 @@ from flask import current_app, request, Blueprint
 from marshmallow import ValidationError
 
 from schemas.SaveUserRequestSchema import SaveUserRequestSchema
-from schemas.GetUserRequestSchema import GetUserRequestSchema
-from schemas.GetUserAnalysisRequestSchema import GetUserAnalysisRequestSchema
-from schemas.GetUserTrackerDataRequestSchema import GetUserTrackerDataRequestSchema
 from services import user_service
 from utils.utils import create_spotify_auth_object
 

@@ -5,10 +5,6 @@ from spotipy import Spotify
 from mock_responses import *
 from mock_requests import *
 
-user_analysis_request = {
-    "spotify_access_info": spotify_access_info_sample
-}
-
 
 def test_get_user_analysis_success(mocker, client, env_patch):
     """
@@ -29,9 +25,16 @@ def test_get_user_analysis_success(mocker, client, env_patch):
     mocker.patch.object(
         Spotify, "audio_features", return_value=mock_audio_features_response)
 
-    response = client.post('/api/user/analysis',
-                           json=user_analysis_request
-                           )
+    # Init cookies
+    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
+                      'accesstokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
+                      'refreshtokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
+    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
+                      'scopefromspotify')
+
+    response = client.get('/api/user/analysis')
     response_json = response.get_json()
     assert response.status_code == 200
     assert response_json["most_common_artists"] is not None
@@ -60,9 +63,16 @@ def test_get_user_analysis_empty_liked_songs_success(mocker, client, env_patch):
     mocker.patch.object(
         Spotify, "current_user_saved_tracks", return_value=mock_no_liked_songs_tracks_response)
 
-    response = client.post('/api/user/analysis',
-                           json=user_analysis_request
-                           )
+    # Init cookies
+    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
+                      'accesstokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
+                      'refreshtokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
+    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
+                      'scopefromspotify')
+
+    response = client.get('/api/user/analysis')
     response_json = response.get_json()
     assert response.status_code == 200
     assert response_json["most_common_artists"] is not None
@@ -74,15 +84,12 @@ def test_get_user_analysis_empty_liked_songs_success(mocker, client, env_patch):
     assert len(response_json["most_common_artists"]) == 0
 
 
-def test_get_user_analysis_invalid_request_body_failure(mocker, client, env_patch):
+def test_get_user_analysis_spotify_auth_error_failure(mocker, client, env_patch):
     """
-    Successful GET Playlists
+    Error during spotify auth
     """
     mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value={
-                            "access_token": "access token from spotify",
-                            "refresh_token": "access token from spotify"
-                        }
+                        return_value=None
                         )
     mocker.patch.object(Spotify, "current_user",
                         return_value=mock_user_response
@@ -92,9 +99,16 @@ def test_get_user_analysis_invalid_request_body_failure(mocker, client, env_patc
     mocker.patch.object(
         Spotify, "current_user_saved_tracks", return_value=mock_tracks_response)
 
-    response = client.post('/api/user/analysis',
-                           json={"request": "invalid request"}
-                           )
+    # Init cookies
+    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
+                      'accesstokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
+                      'refreshtokenfromspotify')
+    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
+    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
+                      'scopefromspotify')
+
+    response = client.get('/api/user/analysis')
     response_json = response.get_json()
     assert response.status_code == 400
     assert response_json["error"] is not None

@@ -4,7 +4,6 @@ from flask import current_app, request, Blueprint
 
 from services import playlist_service
 from schemas.ShufflePlaylistRequestSchema import ShufflePlaylistRequestSchema
-from schemas.SpotifyAccessInfoRequestSchema import SpotifyAccessInfoRequestSchema
 from schemas.ShareLikedTracksRequestSchema import ShareLikedTracksRequestSchema
 from utils.utils import create_spotify_auth_object
 
