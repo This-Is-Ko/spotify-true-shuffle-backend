@@ -1,4 +1,5 @@
 from flask import current_app, request, Blueprint
+from flask_cors import cross_origin
 from marshmallow import ValidationError
 
 from services import spotify_auth_service

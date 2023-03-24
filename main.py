@@ -8,7 +8,7 @@ mongo = PyMongo()
 
 def create_app():
     app = Flask(__name__)
-    cors = CORS(app)
+    cors = CORS(app, supports_credentials=True)
 
     # Select env and set up config
     CONFIG_TYPE = os.getenv('CONFIG_TYPE', default='config.DevelopmentConfig')

@@ -1,3 +1,4 @@
+from flask import make_response
 from services.spotify_client import *
 from services.user_service import save_user
 
@@ -19,7 +20,24 @@ def get_spotify_tokens(current_app, code):
                 "status": "error",
                 "error": "Unable to save"
             }
-        return auth_response
+        response = make_response()
+        response.set_cookie(key="trueshuffle-spotifyAccessToken",
+                            value=auth_response["access_token"],
+                            # domain="127.0.0.1"
+                            )
+        response.set_cookie(key="trueshuffle-spotifyRefreshToken",
+                            value=auth_response["refresh_token"],
+                            # domain="127.0.0.1"
+                            )
+        response.set_cookie(key="trueshuffle-spotifyExpiresAt",
+                            value=str(auth_response["expires_at"]),
+                            # domain="127.0.0.1"
+                            )
+        response.set_cookie(key="trueshuffle-spotifyScope",
+                            value=auth_response["scope"],
+                            # domain="127.0.0.1"
+                            )
+        return response
     else:
         return {"status": "error",
                 "error": "Unable to obtain access token"}, 400

@@ -11,11 +11,11 @@ LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 
 
-def get_user_playlists(current_app, spotify_access_info):
+def get_user_playlists(current_app, spotify_auth):
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
     user = spotify.current_user()
 
@@ -189,15 +189,15 @@ def create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, pub
         }
 
 
-def create_playlist_from_liked_tracks(current_app, spotify_access_info, playlist_name=LIKED_TRACKS_PLAYLIST_ID):
+def create_playlist_from_liked_tracks(current_app, spotify_access_info, new_playlist_name):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_access_info)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     if not auth_manager.validate_token(spotify_access_info):
         return {"error": "Invalid token"}, 400
 
-    all_tracks = get_tracks_from_playlist(spotify, playlist_name)
+    all_tracks = get_tracks_from_playlist(spotify, LIKED_TRACKS_PLAYLIST_ID)
 
     today = date.today()
 
-    return create_new_playlist_with_tracks(current_app, spotify, "My Liked Tracks", True, "My Liked Tracks from " + today.strftime("%d/%m/%Y"), all_tracks)
+    return create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, True, "My Liked Tracks from " + today.strftime("%d/%m/%Y"), all_tracks)
