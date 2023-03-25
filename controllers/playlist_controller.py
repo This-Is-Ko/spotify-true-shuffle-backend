@@ -82,7 +82,7 @@ def liked_tracks_to_playlist():
         return {"error": "Invalid request"}, 400
 
     try:
-        if ("playlist_name" in request_body):
+        if "playlist_name" in request_body and request_body["playlist_name"] != "":
             return (playlist_service.create_playlist_from_liked_tracks(current_app, spotify_auth, request_body["playlist_name"]))
         else:
             return (playlist_service.create_playlist_from_liked_tracks(current_app, spotify_auth))

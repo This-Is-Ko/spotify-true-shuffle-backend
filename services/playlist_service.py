@@ -234,7 +234,7 @@ def create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, pub
         }
 
 
-def create_playlist_from_liked_tracks(current_app, spotify_auth, new_playlist_name):
+def create_playlist_from_liked_tracks(current_app, spotify_auth, new_playlist_name="My Liked Tracks"):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
@@ -245,4 +245,4 @@ def create_playlist_from_liked_tracks(current_app, spotify_auth, new_playlist_na
 
     today = date.today()
 
-    return create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, True, "My Liked Tracks from " + today.strftime("%d/%m/%Y"), all_tracks)
+    return create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, True, "True Shuffle | My Liked Tracks from " + today.strftime("%d/%m/%Y"), all_tracks)
