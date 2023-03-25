@@ -1,6 +1,8 @@
 import random
 import spotipy
 from datetime import date, datetime
+from bson import json_util
+import json
 
 from database import database
 from services.spotify_client import *
@@ -11,7 +13,7 @@ LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 
 
-def get_user_playlists(current_app, spotify_auth):
+def get_user_playlists(current_app, spotify_auth, include_stats):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
@@ -37,7 +39,22 @@ def get_user_playlists(current_app, spotify_auth):
     get_playlists_success_log = "User: {user_id} -- Retrieved {num_of_playlists:d} playlists"
     current_app.logger.info(get_playlists_success_log.format(
         user_id=spotify.me()["id"], num_of_playlists=len(all_playlists)))
-    return {"all_playlists": all_playlists}
+
+    response_body = dict()
+    response_body["all_playlists"] = all_playlists
+
+    # Include additional statistics if requested and enabled for user
+    if include_stats is not None:
+        if include_stats is True or include_stats.lower() == "true":
+            user = database.find_user(user["id"])
+            if user is not None and "user_attributes" in user and "trackers_enabled" in user["user_attributes"] and user["user_attributes"]["trackers_enabled"] == True:
+                user_shuffle_counter = database.find_shuffle_counter(
+                    user["user_id"])
+                if user_shuffle_counter is not None:
+                    response_body["user_shuffle_counter"] = json.loads(
+                        json_util.dumps(user_shuffle_counter))
+
+    return response_body
 
 
 def create_shuffled_playlist(current_app, spotify_auth, playlist_id, playlist_name):

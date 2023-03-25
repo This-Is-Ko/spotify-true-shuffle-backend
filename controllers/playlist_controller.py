@@ -15,12 +15,14 @@ playlist_controller = Blueprint(
 def get_playlists():
     try:
         spotify_auth = create_spotify_auth_object(request.cookies)
+        include_stats = request.args.get("include-stats")
+
     except Exception as e:
         current_app.logger.info("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
 
     try:
-        return (playlist_service.get_user_playlists(current_app, spotify_auth))
+        return (playlist_service.get_user_playlists(current_app, spotify_auth, include_stats))
     except Exception as e:
         return {"error": "Unable to retrieve user playlists"}, 400
 
