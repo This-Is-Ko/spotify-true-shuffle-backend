@@ -14,22 +14,22 @@ TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 ANALYSE_LIBRARY_ATTRIBUTE_NAME = "analyse_library"
 
 
-def save_user(current_app, spotify_access_info, user_attributes):
+def save_user(current_app, spotify_auth, user_attributes):
     """
     Check if user exists and update
     Otherwise create new user entry
     """
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
     user_entry = {
         "spotify": {
-            "expires_at": spotify_access_info["expires_at"],
-            "refresh_token": spotify_access_info["refresh_token"],
-            "scope": spotify_access_info["scope"]
+            "expires_at": spotify_auth["expires_at"],
+            "refresh_token": spotify_auth["refresh_token"],
+            "scope": spotify_auth["scope"]
         },
         "user_attributes": user_attributes
     }
@@ -47,15 +47,15 @@ def save_user(current_app, spotify_access_info, user_attributes):
     }, 400
 
 
-def get_user(current_app, spotify_access_info):
+def get_user(current_app, spotify_auth):
     """
     Check if user exists and update
     Otherwise create new user entry
     """
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
     user = database.find_user(user_id)
@@ -70,14 +70,14 @@ def get_user(current_app, spotify_access_info):
     }, 400
 
 
-def aggregate_user_data(current_app, spotify_access_info):
+def aggregate_user_data(current_app, spotify_auth):
     """
     Return user trackers and analysis in one call
     """
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
     user = database.find_user(user_id)
@@ -97,15 +97,15 @@ def aggregate_user_data(current_app, spotify_access_info):
         }, 400
 
 
-def handle_get_user_tracker_data(current_app, spotify_access_info, tracker_name):
+def handle_get_user_tracker_data(current_app, spotify_auth, tracker_name):
     """
     Check if trackers are enabled for user
     If enabled, retrieve all data points for user
     """
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
     user = database.find_user(user_id)
@@ -143,15 +143,15 @@ def get_user_tracker_data(user_id, user_json, tracker_name):
     }
 
 
-def handle_get_user_analysis(current_app, spotify_access_info):
+def handle_get_user_analysis(current_app, spotify_auth):
     """
     Get all liked tracks to analyse
     Calcuate most common tracks/artists/genres
     """
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
     try:
         return get_user_analysis(current_app, spotify)

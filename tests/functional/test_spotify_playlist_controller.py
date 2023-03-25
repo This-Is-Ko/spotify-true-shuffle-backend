@@ -54,8 +54,8 @@ user_playlists_sample = {
     "total": 1
 }
 
-spotify_access_info_sample = {
-    "spotify_access_info": {
+spotify_auth_sample = {
+    "spotify_auth": {
         "access_token": "spotify_access_token",
         "expires_at": 1668425997,
         "refresh_token": "spotify_refresh_token",

@@ -40,11 +40,11 @@ def get_user_playlists(current_app, spotify_auth):
     return {"all_playlists": all_playlists}
 
 
-def create_shuffled_playlist(current_app, spotify_access_info, playlist_id, playlist_name):
+def create_shuffled_playlist(current_app, spotify_auth, playlist_id, playlist_name):
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
 
     # Grab all tracks from playlist
@@ -84,11 +84,11 @@ def create_shuffled_playlist(current_app, spotify_access_info, playlist_id, play
     return create_new_playlist_with_tracks(current_app, spotify, SHUFFLED_PLAYLIST_PREFIX + playlist_name, False, "Shuffled by True Shuffle", all_tracks)
 
 
-def delete_all_shuffled_playlists(current_app, spotify_access_info):
+def delete_all_shuffled_playlists(current_app, spotify_auth):
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
 
     # Search all user playlists for shuffled playlists
@@ -189,11 +189,11 @@ def create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, pub
         }
 
 
-def create_playlist_from_liked_tracks(current_app, spotify_access_info, new_playlist_name):
+def create_playlist_from_liked_tracks(current_app, spotify_auth, new_playlist_name):
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
 
     all_tracks = get_tracks_from_playlist(spotify, LIKED_TRACKS_PLAYLIST_ID)

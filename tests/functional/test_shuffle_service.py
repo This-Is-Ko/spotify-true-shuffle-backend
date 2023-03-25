@@ -53,7 +53,7 @@ playlist_add_items_response = {
 
 def test_create_shuffled_playlist_success(mocker, client, env_patch):
     mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value=spotify_access_info_sample)
+                        return_value=spotify_auth_sample)
     mocker.patch.object(
         Spotify, "current_user_saved_tracks", return_value=mock_tracks_response)
     mocker.patch.object(
@@ -176,7 +176,7 @@ def test_create_shuffled_playlist_cookies_missing_failure(mocker, client, env_pa
 
 def test_delete_shuffled_playlists_success(mocker, client, env_patch):
     mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value=spotify_access_info_sample)
+                        return_value=spotify_auth_sample)
     mocker.patch.object(
         Spotify, "current_user_playlists", return_value=all_user_playlists_response_sample)
     mocker.patch.object(
@@ -231,7 +231,7 @@ def test_delete_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
     }
 
 
-def test_delete_shuffled_playlists_spotify_access_info_missing_failure(mocker, client, env_patch):
+def test_delete_shuffled_playlists_spotify_auth_missing_failure(mocker, client, env_patch):
     # Missing cookies
     response = client.delete('/api/playlist/delete')
     response_json = response.get_json()
