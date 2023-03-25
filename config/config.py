@@ -31,6 +31,12 @@ class Config:
     COOKIE_DOMAIN = os.getenv(
         'COOKIE_DOMAIN', default=None)
 
+    # JWT
+    JWT_SECRET = os.getenv(
+        'JWT_SECRET', default='JWT_SECRET')
+    JWT_ISSUER = os.getenv(
+        'JWT_ISSUER', default='JWT_ISSUER')
+
     # Database
     MONGO_URI = os.getenv(
         'MONGO_URI', default='mongodb+srv://dbUser:password@cluster0.aa.mongodb.net/database?retryWrites=true&w=majority')
