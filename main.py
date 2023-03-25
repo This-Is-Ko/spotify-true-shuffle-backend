@@ -8,12 +8,15 @@ mongo = PyMongo()
 
 def create_app():
     app = Flask(__name__)
-    cors = CORS(app, supports_credentials=True)
 
     # Select env and set up config
     CONFIG_TYPE = os.getenv('CONFIG_TYPE', default='config.DevelopmentConfig')
     app.config.from_object("config." + CONFIG_TYPE)
     app.logger.info("Config set up for " + CONFIG_TYPE)
+
+    # Enable CORS
+    cors = CORS(app, supports_credentials=True,
+                origins=app.config["CORS_ORIGIN"])
 
     # Register blueprints for app
     register_all_blueprints(app)

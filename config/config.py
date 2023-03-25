@@ -33,6 +33,10 @@ class Config:
     JWT_ISSUER = os.getenv(
         'JWT_ISSUER', default='JWT_ISSUER')
 
+    # CORS
+    CORS_ORIGIN = os.getenv(
+        'CORS_ORIGIN', default='localhost')
+
     # Database
     MONGO_URI = os.getenv(
         'MONGO_URI', default='mongodb+srv://dbUser:password@cluster0.aa.mongodb.net/database?retryWrites=true&w=majority')
