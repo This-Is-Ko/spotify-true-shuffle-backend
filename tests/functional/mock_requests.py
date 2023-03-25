@@ -1,6 +1,6 @@
 import time
 
-spotify_access_info_sample = {
+spotify_auth_sample = {
     "token_type": "Bearer",
     "access_token": "access token from spotify",
     "refresh_token": "access token from spotify",

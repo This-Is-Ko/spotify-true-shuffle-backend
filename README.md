@@ -4,6 +4,8 @@ Spotify's built-in shuffle pushes certain tracks rather than being randomly orde
 
 True Shuffle creates custom playlists with randomised order of tracks for a better shuffle experience.
 
+Also has functionality to generate statistics and analysis from Spotify library, create playlists to share Liked Songs and delete all shuffled playlists.
+
 Backend built on Flask in Python (Migrated from Spring Boot)
 
 Frontend can be found in [this](https://github.com/This-Is-Ko/spotify-true-shuffle-react) repository.
@@ -15,7 +17,9 @@ The following env variables are required to run. Add them into a .env file
     SPOTIPY_CLIENT_ID # retrieve from Spotify Dev Console
     SPOTIPY_CLIENT_SECRET # retrieve from Spotify Dev Console
     SPOTIPY_REDIRECT_URI # frontend uri
-    COUNTER_DIRECTORY # point to directory where counters are stored
+    COOKIE_DOMAIN # cookie domain value
+    JWT_SECRET # secret to sign jwt
+    JWT_ISSUER # issuer value for jwt
 
 To set the environment to the specific environment, set the following variable.
 
@@ -30,13 +34,17 @@ To set the environment to the specific environment, set the following variable.
 
 ## Run
 
+Install dependancies:
+    
+    pip install -r requirements.txt
+
 Run flask app:
 
     flask --app main.py run
 
 ## Deployment
 
-Current set up to automatically deploy commits to the "main" branch using PythonAnywhere
+Current set up to automatically deploy commits to the "main" branch using Railway
 
 ## Tests
 
@@ -50,12 +58,26 @@ Use pytest to run tests on the app:
 
 `POST /api/spotify/auth/code`: Authenticate user with Spotify auth code
 
-`POST /api/playlist/me`: Retrieve Playlists
+`POST /api/spotify/auth/logout`: Logout user and expire cookies
 
-`POST /api/playlist/shuffle`: Shuffle Playlist
+`GET /api/playlist/me`: Get playlists
 
-`POST /api/playlist/delete`: Shuffle Playlist
+`POST /api/playlist/shuffle`: Shuffle selected playlist
 
-`POST /api/playlist/share/liked-tracks`: Create playlist from Liked Songs
+`DELETE /api/playlist/delete`: Delete all shuffled playlists
 
-`GET /api/statistics/overall`: Get usage statistics
+`POST /api/playlist/share/liked-tracks`: Create playlist from Liked Songs to share
+
+`GET /api/user/`: Get user info
+
+`GET /api/user/save`: Create/update user entry
+
+`GET /api/user/tracker`: Get user tracker datapoints
+
+`GET /api/user/analysis`: Get analysis of user's Liked Songs
+
+`GET /api/user/aggregate`: Get analysis of user's Liked Songs and tracker datapoints in one call
+
+`GET /api/statistics/overall`: Get shuffle statistics
+
+`GET /api/trackers/update`: Update trackers for all enabled users

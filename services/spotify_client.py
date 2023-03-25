@@ -13,8 +13,8 @@ def create_auth_manager(current_app):
                         scope="playlist-modify-private playlist-modify-public playlist-read-private playlist-read-collaborative user-library-read")
 
 
-def create_auth_manager_with_token(current_app, spotify_access_info):
-    cache = MemoryCacheHandler(token_info=spotify_access_info)
+def create_auth_manager_with_token(current_app, spotify_auth):
+    cache = MemoryCacheHandler(token_info=spotify_auth)
 
     return SpotifyOAuth(requests_session=False,
                         client_id=current_app.config["SPOTIFY_CLIENT_ID"],

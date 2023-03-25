@@ -17,7 +17,6 @@ def client():
 
 
 @pytest.fixture
-@patch.dict(os.environ, {"COUNTER_DIRECTORY": "./counters"})
 @patch.dict(os.environ, {"SPOTIFY_CLIENT_ID": "1111111111111"})
 @patch.dict(os.environ, {"SPOTIFY_CLIENT_SECRET": "222222222222"})
 @patch.dict(os.environ, {"SPOTIFY_REDIRECT_URI": "http://localhost:3000"})

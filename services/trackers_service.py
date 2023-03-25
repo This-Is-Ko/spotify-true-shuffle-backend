@@ -14,7 +14,7 @@ SUCCESSFUL_UPDATES_LOG = "Tracker: {tracker} -- Successfully updated {success_co
 
 def update_trackers(current_app):
     """
-    For each user who has tracker enabled, check latest liked tracks count and store
+    For each user who has tracker enabled, check latest liked tracks count and store.
     Skip users who error
     """
     users = database.get_all_users_with_attribute(

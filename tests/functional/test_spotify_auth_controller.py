@@ -18,15 +18,29 @@ def test_handle_auth_code_success(mocker, client, env_patch):
     """
     mocker.patch.object(SpotifyOAuth, "get_access_token",
                         return_value={
-                            "access_token": "access token from spotify",
-                            "refresh_token": "access token from spotify"
+                            "access_token": "accesstokenfromspotify",
+                            "refresh_token": "refreshtokenfromspotify",
+                            "expires_at": 12345,
+                            "scope": "scopefromspotify"
                         }
                         )
     response = client.post('/api/spotify/auth/code', json={"code": "1234"})
-    response_json = response.get_json()
     assert response.status_code == 200
-    assert response_json["access_token"] is not None
-    assert response_json["refresh_token"] is not None
+    assert response.headers['Set-Cookie'] is not None
+
+    expected_cookies = [
+        'trueshuffle-spotifyAccessToken=accesstokenfromspotify',
+        'trueshuffle-spotifyRefreshToken=refreshtokenfromspotify',
+        'trueshuffle-spotifyExpiresAt=12345',
+        'trueshuffle-spotifyScope=scopefromspotify']
+    success_count = 0
+    for expected in expected_cookies:
+        for header in response.headers:
+            if expected in header[1]:
+                success_count += 1
+                break
+
+    assert success_count == 4
 
 
 def test_handle_auth_code_failure_missing_code(mocker, client, env_patch):

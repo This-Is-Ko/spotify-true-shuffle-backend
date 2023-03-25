@@ -1,8 +1,10 @@
 import random
 import spotipy
 from datetime import date, datetime
+from bson import json_util
+import json
 
-# from database import database
+from database import database
 from services.spotify_client import *
 from schemas.Playlist import Playlist
 
@@ -11,11 +13,11 @@ LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 
 
-def get_user_playlists(current_app, spotify_access_info):
+def get_user_playlists(current_app, spotify_auth, include_stats):
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
     user = spotify.current_user()
 
@@ -37,14 +39,33 @@ def get_user_playlists(current_app, spotify_access_info):
     get_playlists_success_log = "User: {user_id} -- Retrieved {num_of_playlists:d} playlists"
     current_app.logger.info(get_playlists_success_log.format(
         user_id=spotify.me()["id"], num_of_playlists=len(all_playlists)))
-    return {"all_playlists": all_playlists}
+
+    response_body = dict()
+    response_body["all_playlists"] = all_playlists
+
+    # Include additional statistics if requested and enabled for user
+    if include_stats is not None:
+        if include_stats is True or include_stats.lower() == "true":
+            user = database.find_user(user["id"])
+            if user is not None and "user_attributes" in user and "trackers_enabled" in user["user_attributes"] and user["user_attributes"]["trackers_enabled"] == True:
+                user_shuffle_counter = database.find_shuffle_counter(
+                    user["user_id"])
+                if user_shuffle_counter is not None:
+                    response_body["user_shuffle_counter"] = json.loads(
+                        json_util.dumps(user_shuffle_counter))
+        # TODO Get overall stats
+        # total_shuffle_counter = database.find_shuffle_counter("overall_counter")
+        # response_body["user_shuffle_counter"] = json.loads(
+        #     json_util.dumps(total_shuffle_counter))
+
+    return response_body
 
 
-def create_shuffled_playlist(current_app, spotify_access_info, playlist_id, playlist_name):
+def create_shuffled_playlist(current_app, spotify_auth, playlist_id, playlist_name):
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
 
     # Grab all tracks from playlist
@@ -53,24 +74,52 @@ def create_shuffled_playlist(current_app, spotify_access_info, playlist_id, play
     if len(all_tracks) == 0:
         return {"error": "No tracks found for playlist " + playlist_id}
 
-    # TODO Check if user exists and shuffle tracker settings
-    # user = database.find_user(spotify.me()["id"])
-    # if user is not None:
-    #     if user[TRACK_SHUFFLES_ATTRIBUTE_NAME] is True:
+    # Check if user exists and shuffle tracker settings
+    user = database.find_user(spotify.me()["id"])
 
+    # Increment user counters for playlists and tracks
+    if user is not None:
+        if user["user_attributes"]["trackers_enabled"] is True:
+            try:
+                user_shuffle_counter = database.find_shuffle_counter(
+                    user["user_id"])
+                if user_shuffle_counter == None:
+                    user_shuffle_counter = dict()
+                    user_shuffle_counter["playlist_count"] = 0
+                    user_shuffle_counter["track_count"] = 0
+                    current_app.logger.info(
+                        "Creating shuffle history entry for user: " + user["user_id"])
+
+                user_shuffle_counter["playlist_count"] = int(
+                    user_shuffle_counter["playlist_count"]) + 1
+                user_shuffle_counter["track_count"] = int(
+                    user_shuffle_counter["track_count"]) + len(all_tracks)
+
+                user_shuffle_counter_update = database.find_and_update_shuffle_counter(
+                    user["user_id"],
+                    user_shuffle_counter)
+            except Exception as e:
+                current_app.logger.error(
+                    "Error updating user shuffle count: " + str(e))
+
+    # Increment overall counters for playlists and tracks
     try:
-        # Increment counters for playlists and tracks
-        with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'r') as f:
-            t = f.read()
-        with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'w') as f:
-            f.write(str(int(t)+1))
+        total_shuffle_counter = database.find_shuffle_counter(
+            "overall_counter")
+        if total_shuffle_counter == None:
+            raise Exception("Couldn't find total shuffle counter")
 
-        with open(current_app.config["COUNTER_DIRECTORY"] + '/track_counter.txt', 'r') as f:
-            t = f.read()
-        with open(current_app.config["COUNTER_DIRECTORY"] + '/track_counter.txt', 'w') as f:
-            f.write(str(int(t)+len(all_tracks)))
+        total_shuffle_counter["playlist_count"] = int(
+            total_shuffle_counter["playlist_count"]) + 1
+        total_shuffle_counter["track_count"] = int(
+            total_shuffle_counter["track_count"]) + len(all_tracks)
+
+        total_shuffle_counter_update = database.find_and_update_shuffle_counter(
+            "overall_counter",
+            total_shuffle_counter)
     except Exception as e:
-        current_app.logger.error("Error updating trackers: " + str(e))
+        current_app.logger.error(
+            "Error updating overall shuffle count: " + str(e))
 
     random.shuffle(all_tracks)
 
@@ -84,11 +133,11 @@ def create_shuffled_playlist(current_app, spotify_access_info, playlist_id, play
     return create_new_playlist_with_tracks(current_app, spotify, SHUFFLED_PLAYLIST_PREFIX + playlist_name, False, "Shuffled by True Shuffle", all_tracks)
 
 
-def delete_all_shuffled_playlists(current_app, spotify_access_info):
+def delete_all_shuffled_playlists(current_app, spotify_auth):
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
 
     # Search all user playlists for shuffled playlists
@@ -189,15 +238,15 @@ def create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, pub
         }
 
 
-def create_playlist_from_liked_tracks(current_app, spotify_access_info, playlist_name=LIKED_TRACKS_PLAYLIST_ID):
+def create_playlist_from_liked_tracks(current_app, spotify_auth, new_playlist_name="My Liked Tracks"):
     auth_manager = create_auth_manager_with_token(
-        current_app, spotify_access_info)
+        current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_access_info):
+    if not auth_manager.validate_token(spotify_auth):
         return {"error": "Invalid token"}, 400
 
-    all_tracks = get_tracks_from_playlist(spotify, playlist_name)
+    all_tracks = get_tracks_from_playlist(spotify, LIKED_TRACKS_PLAYLIST_ID)
 
     today = date.today()
 
-    return create_new_playlist_with_tracks(current_app, spotify, "My Liked Tracks", True, "My Liked Tracks from " + today.strftime("%d/%m/%Y"), all_tracks)
+    return create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, True, "True Shuffle | My Liked Tracks from " + today.strftime("%d/%m/%Y"), all_tracks)

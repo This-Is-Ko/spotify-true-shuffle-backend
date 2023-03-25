@@ -23,9 +23,15 @@ class Config:
     SPOTIFY_REDIRECT_URI = os.getenv(
         'SPOTIFY_REDIRECT_URI', default='SPOTIFY_REDIRECT_URI')
 
-    # Counters
-    COUNTER_DIRECTORY = os.getenv(
-        'COUNTER_DIRECTORY', default='./counters')
+    # Cookies
+    COOKIE_DOMAIN = os.getenv(
+        'COOKIE_DOMAIN', default=None)
+
+    # JWT
+    JWT_SECRET = os.getenv(
+        'JWT_SECRET', default='JWT_SECRET')
+    JWT_ISSUER = os.getenv(
+        'JWT_ISSUER', default='JWT_ISSUER')
 
     # Database
     MONGO_URI = os.getenv(

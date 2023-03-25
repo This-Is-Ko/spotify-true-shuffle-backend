@@ -1,3 +1,4 @@
+from flask import make_response
 from services.spotify_client import *
 from services.user_service import save_user
 
@@ -19,7 +20,58 @@ def get_spotify_tokens(current_app, code):
                 "status": "error",
                 "error": "Unable to save"
             }
-        return auth_response
+        response = make_response()
+        response.set_cookie(key="trueshuffle-spotifyAccessToken",
+                            value=auth_response["access_token"],
+                            httponly=True,
+                            domain=current_app.config["COOKIE_DOMAIN"]
+                            )
+        response.set_cookie(key="trueshuffle-spotifyRefreshToken",
+                            value=auth_response["refresh_token"],
+                            httponly=True,
+                            domain=current_app.config["COOKIE_DOMAIN"]
+                            )
+        response.set_cookie(key="trueshuffle-spotifyExpiresAt",
+                            value=str(auth_response["expires_at"]),
+                            httponly=True,
+                            domain=current_app.config["COOKIE_DOMAIN"]
+                            )
+        response.set_cookie(key="trueshuffle-spotifyScope",
+                            value=auth_response["scope"],
+                            httponly=True,
+                            domain=current_app.config["COOKIE_DOMAIN"]
+                            )
+        response.set_cookie(key="trueshuffle-auth",
+                            value="true",
+                            domain=current_app.config["COOKIE_DOMAIN"]
+                            )
+        return response
     else:
         return {"status": "error",
                 "error": "Unable to obtain access token"}, 400
+
+
+def handle_logout(current_app):
+    response = make_response()
+    response.set_cookie(key="trueshuffle-spotifyAccessToken",
+                            value="",
+                            expires=0
+                        )
+    response.set_cookie(key="trueshuffle-spotifyRefreshToken",
+                            value="",
+                            expires=0
+                        )
+    response.set_cookie(key="trueshuffle-spotifyExpiresAt",
+                            value="",
+                            expires=0
+                        )
+    response.set_cookie(key="trueshuffle-spotifyScope",
+                            value="",
+                            expires=0
+                        )
+    response.set_cookie(key="trueshuffle-auth",
+                            value="",
+                            expires=0
+                        )
+    current_app.logger.debug("Logging out user")
+    return response

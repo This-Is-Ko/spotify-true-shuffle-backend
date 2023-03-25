@@ -3,6 +3,7 @@ Flask_Cors==3.0.10
 pytest==7.2.1
 python-dotenv==0.21.1
 spotipy==2.22.0
+pyjwt==2.6.0
 pytest-cov==4.0.0
 pytest-mock==3.10.0
 pytest-flask==1.2.0
