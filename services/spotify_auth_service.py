@@ -25,30 +25,35 @@ def get_spotify_tokens(current_app, code):
                             value=auth_response["access_token"],
                             httponly=True,
                             domain=current_app.config["COOKIE_DOMAIN"],
-                            samesite='None'
+                            samesite='None',
+                            secure=True
                             )
         response.set_cookie(key="trueshuffle-spotifyRefreshToken",
                             value=auth_response["refresh_token"],
                             httponly=True,
                             domain=current_app.config["COOKIE_DOMAIN"],
-                            samesite='None'
+                            samesite='None',
+                            secure=True
                             )
         response.set_cookie(key="trueshuffle-spotifyExpiresAt",
                             value=str(auth_response["expires_at"]),
                             httponly=True,
                             domain=current_app.config["COOKIE_DOMAIN"],
-                            samesite='None'
+                            samesite='None',
+                            secure=True
                             )
         response.set_cookie(key="trueshuffle-spotifyScope",
                             value=auth_response["scope"],
                             httponly=True,
                             domain=current_app.config["COOKIE_DOMAIN"],
-                            samesite='None'
+                            samesite='None',
+                            secure=True
                             )
         response.set_cookie(key="trueshuffle-auth",
                             value="true",
                             domain=current_app.config["COOKIE_DOMAIN"],
-                            samesite='None'
+                            samesite='None',
+                            secure=True
                             )
         return response
     else:
