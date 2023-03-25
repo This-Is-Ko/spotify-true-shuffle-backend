@@ -53,6 +53,10 @@ def get_user_playlists(current_app, spotify_auth, include_stats):
                 if user_shuffle_counter is not None:
                     response_body["user_shuffle_counter"] = json.loads(
                         json_util.dumps(user_shuffle_counter))
+        # TODO Get overall stats
+        # total_shuffle_counter = database.find_shuffle_counter("overall_counter")
+        # response_body["user_shuffle_counter"] = json.loads(
+        #     json_util.dumps(total_shuffle_counter))
 
     return response_body
 
