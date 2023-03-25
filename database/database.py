@@ -25,15 +25,40 @@ def get_all_user_liked_tracks_history_data(user_id):
         sort=[('_id', pymongo.DESCENDING)]
     )
 
+
 # Shuffled history functions
+# Schema
+# {
+#    "user_id": user_id,
+#    "count": current_count,
+#    "difference": difference,
+# }
 
 
-def get_all_user_shuffles_history_data(user_id):
-    return mongo.db.shuffles_history.find(
+def get_all_user_shuffle_history_data(user_id):
+    return mongo.db.shuffle_history.find(
         {"user_id": user_id},
         {"user_id": 0, "_id": 0},
         sort=[('_id', pymongo.DESCENDING)]
     )
+
+# Shuffled history total shuffle counters functions
+
+
+def find_shuffle_counter(user_id):
+    return mongo.db.shuffle_history.find_one(
+        {"user_id": user_id}
+    )
+
+
+def find_and_update_shuffle_counter(user_id, shuffle_history_counter):
+    return mongo.db.shuffle_history.find_one_and_update(
+        {"user_id": user_id},
+        {"$set": shuffle_history_counter},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+
 
 # User functions
 

@@ -2,7 +2,7 @@ import random
 import spotipy
 from datetime import date, datetime
 
-# from database import database
+from database import database
 from services.spotify_client import *
 from schemas.Playlist import Playlist
 
@@ -53,24 +53,52 @@ def create_shuffled_playlist(current_app, spotify_auth, playlist_id, playlist_na
     if len(all_tracks) == 0:
         return {"error": "No tracks found for playlist " + playlist_id}
 
-    # TODO Check if user exists and shuffle tracker settings
-    # user = database.find_user(spotify.me()["id"])
-    # if user is not None:
-    #     if user[TRACK_SHUFFLES_ATTRIBUTE_NAME] is True:
+    # Check if user exists and shuffle tracker settings
+    user = database.find_user(spotify.me()["id"])
 
+    # Increment user counters for playlists and tracks
+    if user is not None:
+        if user["user_attributes"]["trackers_enabled"] is True:
+            try:
+                user_shuffle_counter = database.find_shuffle_counter(
+                    user["user_id"])
+                if user_shuffle_counter == None:
+                    user_shuffle_counter = dict()
+                    user_shuffle_counter["playlist_count"] = 0
+                    user_shuffle_counter["track_count"] = 0
+                    current_app.logger.info(
+                        "Creating shuffle history entry for user: " + user["user_id"])
+
+                user_shuffle_counter["playlist_count"] = int(
+                    user_shuffle_counter["playlist_count"]) + 1
+                user_shuffle_counter["track_count"] = int(
+                    user_shuffle_counter["track_count"]) + len(all_tracks)
+
+                user_shuffle_counter_update = database.find_and_update_shuffle_counter(
+                    user["user_id"],
+                    user_shuffle_counter)
+            except Exception as e:
+                current_app.logger.error(
+                    "Error updating user shuffle count: " + str(e))
+
+    # Increment overall counters for playlists and tracks
     try:
-        # Increment counters for playlists and tracks
-        with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'r') as f:
-            t = f.read()
-        with open(current_app.config["COUNTER_DIRECTORY"] + '/playlist_counter.txt', 'w') as f:
-            f.write(str(int(t)+1))
+        total_shuffle_counter = database.find_shuffle_counter(
+            "overall_counter")
+        if total_shuffle_counter == None:
+            raise Exception("Couldn't find total shuffle counter")
 
-        with open(current_app.config["COUNTER_DIRECTORY"] + '/track_counter.txt', 'r') as f:
-            t = f.read()
-        with open(current_app.config["COUNTER_DIRECTORY"] + '/track_counter.txt', 'w') as f:
-            f.write(str(int(t)+len(all_tracks)))
+        total_shuffle_counter["playlist_count"] = int(
+            total_shuffle_counter["playlist_count"]) + 1
+        total_shuffle_counter["track_count"] = int(
+            total_shuffle_counter["track_count"]) + len(all_tracks)
+
+        total_shuffle_counter_update = database.find_and_update_shuffle_counter(
+            "overall_counter",
+            total_shuffle_counter)
     except Exception as e:
-        current_app.logger.error("Error updating trackers: " + str(e))
+        current_app.logger.error(
+            "Error updating overall shuffle count: " + str(e))
 
     random.shuffle(all_tracks)
 
