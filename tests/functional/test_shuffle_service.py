@@ -4,6 +4,7 @@ import datetime
 
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
+from database import database
 from mock_responses import *
 from mock_requests import *
 
@@ -68,8 +69,20 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
         Spotify, "user_playlist_create", return_value=create_user_playlist_response)
     mocker.patch.object(
         Spotify, "playlist_add_items", return_value=playlist_add_items_response)
-    mocker.patch("builtins.open", mocker.mock_open(read_data="99"))
-
+    mocker.patch.object(database, "find_shuffle_counter",
+                        return_value={
+                            "user_id": "overall_counter",
+                            "playlist_count": 0,
+                            "track_count": 0,
+                        }
+                        )
+    mocker.patch.object(database, "find_shuffle_counter",
+                        return_value={
+                            "user_id": "user_id",
+                            "playlist_count": 0,
+                            "track_count": 0,
+                        }
+                        )
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
                       'accesstokenfromspotify')
