@@ -4,6 +4,8 @@ Spotify's built-in shuffle pushes certain tracks rather than being randomly orde
 
 True Shuffle creates custom playlists with randomised order of tracks for a better shuffle experience.
 
+Also has functionality to generate statistics and analysis from Spotify library, create playlists to share Liked Songs and delete all shuffled playlists.
+
 Backend built on Flask in Python (Migrated from Spring Boot)
 
 Frontend can be found in [this](https://github.com/This-Is-Ko/spotify-true-shuffle-react) repository.
