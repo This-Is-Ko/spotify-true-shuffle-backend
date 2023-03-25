@@ -69,6 +69,14 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
         Spotify, "user_playlist_create", return_value=create_user_playlist_response)
     mocker.patch.object(
         Spotify, "playlist_add_items", return_value=playlist_add_items_response)
+    mocker.patch.object(database, "find_user",
+                        return_value={
+                            "user_id": "user_id",
+                            "user_attributes": {
+                                "trackers_enabled": True
+                            }
+                        }
+                        )
     mocker.patch.object(database, "find_shuffle_counter",
                         return_value={
                             "user_id": "overall_counter",
@@ -76,9 +84,9 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
                             "track_count": 0,
                         }
                         )
-    mocker.patch.object(database, "find_shuffle_counter",
+    mocker.patch.object(database, "find_and_update_shuffle_counter",
                         return_value={
-                            "user_id": "user_id",
+                            "user_id": "overall_counter",
                             "playlist_count": 0,
                             "track_count": 0,
                         }
