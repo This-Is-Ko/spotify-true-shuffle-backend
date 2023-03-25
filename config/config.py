@@ -23,10 +23,6 @@ class Config:
     SPOTIFY_REDIRECT_URI = os.getenv(
         'SPOTIFY_REDIRECT_URI', default='SPOTIFY_REDIRECT_URI')
 
-    # Counters
-    COUNTER_DIRECTORY = os.getenv(
-        'COUNTER_DIRECTORY', default='./counters')
-
     # Cookies
     COOKIE_DOMAIN = os.getenv(
         'COOKIE_DOMAIN', default=None)
