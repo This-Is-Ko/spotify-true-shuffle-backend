@@ -26,6 +26,8 @@ class Config:
     # Cookies
     COOKIE_DOMAIN = os.getenv(
         'COOKIE_DOMAIN', default=None)
+    COOKIE_DOMAIN_AUTH_STATUS = os.getenv(
+        'COOKIE_DOMAIN_AUTH_STATUS', default=None)
 
     # JWT
     JWT_SECRET = os.getenv(
