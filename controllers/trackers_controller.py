@@ -17,7 +17,7 @@ def update_trackers():
     try:
         auth_token = auth_header.split(" ")[1]
     except IndexError as e:
-        current_app.logger.info("Invalid credentials: " + str(e.messages))
+        current_app.logger.error("Invalid credentials: " + str(e.messages))
         return {"error": "Invalid credentials"}, 401
 
     try:
@@ -30,19 +30,19 @@ def update_trackers():
 
         # Check sub
         if "sub" not in decoded_token or decoded_token["sub"] != "cron":
-            current_app.logger.info(
+            current_app.logger.error(
                 "Error decoding token: " + "sub claim missing or invalid in token")
             return {"error": "Invalid credentials"}, 403
         # Check admin
         if "admin" not in decoded_token or decoded_token["admin"] != True:
-            current_app.logger.info(
+            current_app.logger.error(
                 "Error decoding token: " + "admin claim missing or invalid in token")
             return {"error": "Invalid credentials"}, 403
     except jwt.InvalidIssuerError as e:
-        current_app.logger.info("Error decoding token: " + str(e))
+        current_app.logger.error("Error decoding token: " + str(e))
         return {"error": "Invalid credentials"}, 403
     except jwt.DecodeError as e:
-        current_app.logger.info(
+        current_app.logger.error(
             "Error decoding token: " + str(e))
         return {"error": "Invalid credentials"}, 403
 

@@ -93,6 +93,6 @@ def handle_logout(current_app, cookies):
         database.delete_session(generate_hashed_session_id(session_id))
     except Exception as e:
         current_app.logger.error(
-            "Error decoding access token/deleting session: " + str(e))
+            "Error validating session id/deleting session: " + str(e))
 
     return response

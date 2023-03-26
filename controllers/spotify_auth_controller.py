@@ -22,17 +22,17 @@ def handle_auth_code():
         schema = AuthCodeRequestSchema()
         request_body = schema.load(request_data)
     except ValidationError as e:
-        current_app.logger.info("Invalid request: " + str(e.messages))
+        current_app.logger.error("Invalid request: " + str(e.messages))
         return {"error": "Invalid request"}, 400
     except Exception as e:
-        current_app.logger.info("Invalid request: " + str(e))
+        current_app.logger.error("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
 
     try:
         code = str(request_body["code"])
         return spotify_auth_service.get_spotify_tokens(current_app, code)
     except Exception as e:
-        current_app.logger.info(
+        current_app.logger.error(
             "Unable to authenticate with Spotify: " + str(e))
         return {"error": "Unable to authenticate with Spotify"}, 400
 

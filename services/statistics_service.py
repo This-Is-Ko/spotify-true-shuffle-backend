@@ -19,4 +19,5 @@ def get_overall_statistics(current_app):
             "track_counter": total_shuffle_counter["track_count"]
         }
     except Exception as e:
+        current_app.logger.error("Unable to retrieve statistics: " + str(e))
         return {"error": "Unable to retrieve statistics"}, 400
