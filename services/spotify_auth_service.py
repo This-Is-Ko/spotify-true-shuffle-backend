@@ -70,7 +70,7 @@ def get_spotify_tokens(current_app, code):
         return response
     else:
         return {"status": "error",
-                "error": "Unable to obtain access token"}, 400
+                "error": "Unable to create session"}, 400
 
 
 def handle_logout(current_app, cookies):

@@ -4,6 +4,7 @@ from spotipy import Spotify
 
 from mock_responses import *
 from mock_requests import *
+from database import database
 
 
 def test_get_user_analysis_success(mocker, client, env_patch):
@@ -25,14 +26,20 @@ def test_get_user_analysis_success(mocker, client, env_patch):
     mocker.patch.object(
         Spotify, "audio_features", return_value=mock_audio_features_response)
 
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
-                      'accesstokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
-                      'refreshtokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
-    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
-                      'scopefromspotify')
+    client.set_cookie('localhost', 'trueshuffle-sessionId',
+                      'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth',
+                      'true')
 
     response = client.get('/api/user/analysis')
     response_json = response.get_json()
@@ -63,14 +70,20 @@ def test_get_user_analysis_empty_liked_songs_success(mocker, client, env_patch):
     mocker.patch.object(
         Spotify, "current_user_saved_tracks", return_value=mock_no_liked_songs_tracks_response)
 
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
-                      'accesstokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
-                      'refreshtokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
-    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
-                      'scopefromspotify')
+    client.set_cookie('localhost', 'trueshuffle-sessionId',
+                      'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth',
+                      'true')
 
     response = client.get('/api/user/analysis')
     response_json = response.get_json()
@@ -99,14 +112,20 @@ def test_get_user_analysis_spotify_auth_error_failure(mocker, client, env_patch)
     mocker.patch.object(
         Spotify, "current_user_saved_tracks", return_value=mock_tracks_response)
 
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
-                      'accesstokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
-                      'refreshtokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
-    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
-                      'scopefromspotify')
+    client.set_cookie('localhost', 'trueshuffle-sessionId',
+                      'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth',
+                      'true')
 
     response = client.get('/api/user/analysis')
     response_json = response.get_json()

@@ -69,6 +69,15 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
         Spotify, "user_playlist_create", return_value=create_user_playlist_response)
     mocker.patch.object(
         Spotify, "playlist_add_items", return_value=playlist_add_items_response)
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
     mocker.patch.object(database, "find_user",
                         return_value={
                             "user_id": "user_id",
@@ -91,14 +100,20 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
                             "track_count": 0,
                         }
                         )
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
-                      'accesstokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
-                      'refreshtokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
-    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
-                      'scopefromspotify')
+    client.set_cookie('localhost', 'trueshuffle-sessionId',
+                      'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth',
+                      'true')
 
     response = client.post('/api/playlist/shuffle', json=shuffle_request)
     response_json = response.get_json()
@@ -110,18 +125,32 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
     assert response_json["creation_time"] is not None
 
 
-def test_create_shuffled_spotify_auth_error_success(mocker, client, env_patch):
+def test_create_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
     mocker.patch.object(SpotifyOAuth, "validate_token",
                         return_value=None)
-
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
-                      'accesstokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
-                      'refreshtokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
-    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
-                      'scopefromspotify')
+    client.set_cookie('localhost', 'trueshuffle-sessionId',
+                      'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth',
+                      'true')
 
     response = client.post('/api/playlist/shuffle', json=shuffle_request)
     response_json = response.get_json()
@@ -133,14 +162,20 @@ def test_create_shuffled_spotify_auth_error_success(mocker, client, env_patch):
 
 
 def test_create_shuffled_playlist_playlist_name_missing_failure(mocker, client, env_patch):
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
-                      'accesstokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
-                      'refreshtokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
-    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
-                      'scopefromspotify')
+    client.set_cookie('localhost', 'trueshuffle-sessionId',
+                      'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth',
+                      'true')
 
     invalid_shuffle_request = {
         "playlist_id": "playlist_id0"
@@ -156,14 +191,20 @@ def test_create_shuffled_playlist_playlist_name_missing_failure(mocker, client, 
 
 
 def test_create_shuffled_playlist_playlist_id_missing_failure(mocker, client, env_patch):
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
-                      'accesstokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
-                      'refreshtokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
-    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
-                      'scopefromspotify')
+    client.set_cookie('localhost', 'trueshuffle-sessionId',
+                      'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth',
+                      'true')
 
     invalid_shuffle_request = {
         "playlist_name": "playlist_name0"
@@ -205,14 +246,20 @@ def test_delete_shuffled_playlists_success(mocker, client, env_patch):
     mocker.patch.object(
         Spotify, "me", return_value=mock_user_details_response)
 
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
-                      'accesstokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
-                      'refreshtokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
-    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
-                      'scopefromspotify')
+    client.set_cookie('localhost', 'trueshuffle-sessionId',
+                      'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth',
+                      'true')
 
     response = client.delete('/api/playlist/delete')
     response_json = response.get_json()
@@ -234,14 +281,20 @@ def test_delete_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
     mocker.patch.object(
         Spotify, "me", return_value=mock_user_details_response)
 
+    mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope"
+                        }
+                        )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-spotifyAccessToken',
-                      'accesstokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyRefreshToken',
-                      'refreshtokenfromspotify')
-    client.set_cookie('localhost', 'trueshuffle-spotifyExpiresAt', '12345')
-    client.set_cookie('localhost', 'trueshuffle-spotifyScope',
-                      'scopefromspotify')
+    client.set_cookie('localhost', 'trueshuffle-sessionId',
+                      'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth',
+                      'true')
 
     response = client.delete('/api/playlist/delete')
     response_json = response.get_json()
