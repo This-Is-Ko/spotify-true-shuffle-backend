@@ -1,6 +1,10 @@
 from flask import make_response
+import jwt
+
 from services.spotify_client import *
 from services.user_service import save_user
+from database import database
+from utils.auth_utils import generate_hashed_session_id, generate_session_id
 
 
 def generate_spotify_auth_uri(current_app):
@@ -21,29 +25,36 @@ def get_spotify_tokens(current_app, code):
                 "error": "Unable to save"
             }
         response = make_response()
-        response.set_cookie(key="trueshuffle-spotifyAccessToken",
-                            value=auth_response["access_token"],
-                            httponly=True,
-                            domain=current_app.config["COOKIE_DOMAIN"],
-                            samesite='None',
-                            secure=True
-                            )
-        response.set_cookie(key="trueshuffle-spotifyRefreshToken",
-                            value=auth_response["refresh_token"],
-                            httponly=True,
-                            domain=current_app.config["COOKIE_DOMAIN"],
-                            samesite='None',
-                            secure=True
-                            )
-        response.set_cookie(key="trueshuffle-spotifyExpiresAt",
-                            value=str(auth_response["expires_at"]),
-                            httponly=True,
-                            domain=current_app.config["COOKIE_DOMAIN"],
-                            samesite='None',
-                            secure=True
-                            )
-        response.set_cookie(key="trueshuffle-spotifyScope",
-                            value=auth_response["scope"],
+
+        # Prepare session entry
+        # Schema:
+        #    user_id
+        #    session_id
+        #    access_token
+        #    refresh_token
+        #    expires_at
+        #    scope
+        try:
+            user_id = save_user_result["user"]["user_id"]
+            spotify_auth = dict()
+            session_id = generate_session_id()
+            spotify_auth["session_id"] = generate_hashed_session_id(session_id)
+            spotify_auth["access_token"] = auth_response["access_token"]
+            spotify_auth["refresh_token"] = auth_response["refresh_token"]
+            spotify_auth["expires_at"] = auth_response["expires_at"]
+            spotify_auth["scope"] = auth_response["scope"]
+            session = database.find_and_update_session(
+                user_id, spotify_auth)
+            if session is None:
+                raise Exception("Unable to save session in database")
+        except Exception as e:
+            current_app.logger.error(
+                "Failed to create session: " + str(e))
+            return {"status": "error",
+                    "error": "Unable to create session"}, 400
+
+        response.set_cookie(key="trueshuffle-sessionId",
+                            value=session_id,
                             httponly=True,
                             domain=current_app.config["COOKIE_DOMAIN"],
                             samesite='None',
@@ -55,27 +66,19 @@ def get_spotify_tokens(current_app, code):
                             samesite='None',
                             secure=True
                             )
+
         return response
     else:
         return {"status": "error",
                 "error": "Unable to obtain access token"}, 400
 
 
-def handle_logout(current_app):
+def handle_logout(current_app, cookies):
     response = make_response()
-    response.set_cookie(key="trueshuffle-spotifyAccessToken",
-                            value="",
-                            expires=0
-                        )
-    response.set_cookie(key="trueshuffle-spotifyRefreshToken",
-                            value="",
-                            expires=0
-                        )
-    response.set_cookie(key="trueshuffle-spotifyExpiresAt",
-                            value="",
-                            expires=0
-                        )
-    response.set_cookie(key="trueshuffle-spotifyScope",
+    current_app.logger.debug("Logging out user")
+
+    # Set cookies to expired
+    response.set_cookie(key="trueshuffle-sessionId",
                             value="",
                             expires=0
                         )
@@ -83,5 +86,13 @@ def handle_logout(current_app):
                             value="",
                             expires=0
                         )
-    current_app.logger.debug("Logging out user")
+
+    try:
+        session_id = cookies.get("trueshuffle-sessionId")
+        # Remove session from db
+        database.delete_session(generate_hashed_session_id(session_id))
+    except Exception as e:
+        current_app.logger.error(
+            "Error decoding access token/deleting session: " + str(e))
+
     return response

@@ -3,7 +3,7 @@ from marshmallow import ValidationError
 
 from schemas.SaveUserRequestSchema import SaveUserRequestSchema
 from services import user_service
-from utils.utils import create_spotify_auth_object
+from utils.auth_utils import validate_session
 
 user_controller = Blueprint(
     'user_controller', __name__, url_prefix='/api/user')
@@ -17,7 +17,7 @@ def save_user():
     Get user_id from token
     """
     try:
-        spotify_auth = create_spotify_auth_object(request.cookies)
+        spotify_auth = validate_session(request.cookies)
 
         request_data = request.get_json()
         schema = SaveUserRequestSchema()
@@ -40,7 +40,7 @@ def get_user():
     Get user_id from token
     """
     try:
-        spotify_auth = create_spotify_auth_object(request.cookies)
+        spotify_auth = validate_session(request.cookies)
     except Exception as e:
         current_app.logger.info("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
@@ -59,7 +59,7 @@ def get_user_tracker_data():
         tracker_name = request.args.get("tracker-name")
         if (tracker_name is None):
             raise Exception("Missing tracker-name")
-        spotify_auth = create_spotify_auth_object(request.cookies)
+        spotify_auth = validate_session(request.cookies)
     except Exception as e:
         current_app.logger.info("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
@@ -74,7 +74,7 @@ def get_user_analysis():
     Get user_id from token
     """
     try:
-        spotify_auth = create_spotify_auth_object(request.cookies)
+        spotify_auth = validate_session(request.cookies)
     except Exception as e:
         current_app.logger.info("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
@@ -88,7 +88,7 @@ def get_user_aggregated_data():
     Get user trackers and analysis
     """
     try:
-        spotify_auth = create_spotify_auth_object(request.cookies)
+        spotify_auth = validate_session(request.cookies)
     except Exception as e:
         current_app.logger.info("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400

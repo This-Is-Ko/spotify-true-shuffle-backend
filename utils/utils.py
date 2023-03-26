@@ -9,19 +9,6 @@ SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 
 
-def create_spotify_auth_object(cookies):
-    """
-    Create object which contains spotify auth credentials from cookies
-    """
-    return {
-        "access_token": cookies.get("trueshuffle-spotifyAccessToken"),
-        "refresh_token": cookies.get("trueshuffle-spotifyRefreshToken"),
-        "expires_at": int(cookies.get("trueshuffle-spotifyExpiresAt")),
-        "scope": cookies.get("trueshuffle-spotifyScope"),
-        "token_type": "Bearer"
-    }
-
-
 def get_all_tracks_with_data_from_playlist(spotify, playlist_id):
     """
     Get tracks from playlist based on playlist_id
