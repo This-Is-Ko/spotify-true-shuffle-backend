@@ -38,7 +38,6 @@ def update_trackers():
             current_app.logger.info(
                 "Error decoding token: " + "admin claim missing or invalid in token")
             return {"error": "Invalid credentials"}, 403
-
     except jwt.InvalidIssuerError as e:
         current_app.logger.info("Error decoding token: " + str(e))
         return {"error": "Invalid credentials"}, 403

@@ -3,7 +3,7 @@ from flask import current_app
 from main import mongo
 import pymongo
 from pymongo.collection import ReturnDocument
-
+from bson.objectid import ObjectId
 # Liked tracks history functions
 
 
@@ -80,3 +80,26 @@ def find_user(user_id):
 
 def get_all_users_with_attribute(attribute_name, attribute_value):
     return mongo.db.users.find({"user_attributes." + attribute_name: attribute_value})
+
+
+# Session functions
+
+def find_session(session_id):
+    return mongo.db.sessions.find_one(
+        {"session_id": session_id}
+    )
+
+
+def find_and_update_session(user_id, session_entry):
+    return mongo.db.sessions.find_one_and_update(
+        {"user_id": user_id},
+        {"$set": session_entry},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+
+
+def delete_session(session_id):
+    return mongo.db.sessions.delete_one(
+        {"session_id": session_id},
+    )

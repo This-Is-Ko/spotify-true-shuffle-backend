@@ -5,7 +5,7 @@ from flask import current_app, request, Blueprint
 from services import playlist_service
 from schemas.ShufflePlaylistRequestSchema import ShufflePlaylistRequestSchema
 from schemas.ShareLikedTracksRequestSchema import ShareLikedTracksRequestSchema
-from utils.utils import create_spotify_auth_object
+from utils.auth_utils import validate_session
 
 playlist_controller = Blueprint(
     'playlist_controller', __name__, url_prefix='/api/playlist')
@@ -14,7 +14,7 @@ playlist_controller = Blueprint(
 @playlist_controller.route('/me', methods=['GET'])
 def get_playlists():
     try:
-        spotify_auth = create_spotify_auth_object(request.cookies)
+        spotify_auth = validate_session(request.cookies)
         include_stats = request.args.get("include-stats")
 
     except Exception as e:
@@ -30,7 +30,7 @@ def get_playlists():
 @playlist_controller.route('/shuffle', methods=['POST'])
 def shuffle_playlist():
     try:
-        spotify_auth = create_spotify_auth_object(request.cookies)
+        spotify_auth = validate_session(request.cookies)
 
         request_data = request.get_json()
         schema = ShufflePlaylistRequestSchema()
@@ -53,7 +53,7 @@ def shuffle_playlist():
 @playlist_controller.route('/delete', methods=['DELETE'])
 def delete_shuffled_playlists():
     try:
-        spotify_auth = create_spotify_auth_object(request.cookies)
+        spotify_auth = validate_session(request.cookies)
     except Exception as e:
         current_app.logger.info("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
@@ -69,7 +69,7 @@ def delete_shuffled_playlists():
 @playlist_controller.route('/share/liked-tracks', methods=['POST'])
 def liked_tracks_to_playlist():
     try:
-        spotify_auth = create_spotify_auth_object(request.cookies)
+        spotify_auth = validate_session(request.cookies)
 
         request_data = request.get_json()
         schema = ShareLikedTracksRequestSchema()

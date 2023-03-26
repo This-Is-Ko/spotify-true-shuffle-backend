@@ -18,6 +18,7 @@ The following env variables are required to run. Add them into a .env file
     SPOTIPY_CLIENT_SECRET # retrieve from Spotify Dev Console
     SPOTIPY_REDIRECT_URI # frontend uri
     COOKIE_DOMAIN # cookie domain value
+    CORS_ORIGIN # cors origin value
     JWT_SECRET # secret to sign jwt
     JWT_ISSUER # issuer value for jwt
 
