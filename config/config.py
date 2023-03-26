@@ -34,8 +34,10 @@ class Config:
         'JWT_ISSUER', default='JWT_ISSUER')
 
     # CORS
-    CORS_ORIGIN = os.getenv(
-        'CORS_ORIGIN', default='localhost')
+    CORS_ORIGIN0 = os.getenv(
+        'CORS_ORIGIN0', default='localhost')
+    CORS_ORIGIN1 = os.getenv(
+        'CORS_ORIGIN1', default='localhost')
 
     # Database
     MONGO_URI = os.getenv(
