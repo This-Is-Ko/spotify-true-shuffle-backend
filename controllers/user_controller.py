@@ -23,10 +23,10 @@ def save_user():
         schema = SaveUserRequestSchema()
         request_body = schema.load(request_data)
     except ValidationError as e:
-        current_app.logger.info("Invalid request: " + str(e.messages))
+        current_app.logger.error("Invalid request: " + str(e.messages))
         return {"error": "Invalid request"}, 400
     except Exception as e:
-        current_app.logger.info("Invalid request: " + str(e))
+        current_app.logger.error("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
 
     return user_service.save_user(current_app, spotify_auth, request_body["user_attributes"])
@@ -42,7 +42,7 @@ def get_user():
     try:
         spotify_auth = validate_session(request.cookies)
     except Exception as e:
-        current_app.logger.info("Invalid request: " + str(e))
+        current_app.logger.error("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
 
     return user_service.get_user(current_app, spotify_auth)
@@ -61,7 +61,7 @@ def get_user_tracker_data():
             raise Exception("Missing tracker-name")
         spotify_auth = validate_session(request.cookies)
     except Exception as e:
-        current_app.logger.info("Invalid request: " + str(e))
+        current_app.logger.error("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
 
     return user_service.handle_get_user_tracker_data(current_app, spotify_auth, tracker_name)
@@ -76,7 +76,7 @@ def get_user_analysis():
     try:
         spotify_auth = validate_session(request.cookies)
     except Exception as e:
-        current_app.logger.info("Invalid request: " + str(e))
+        current_app.logger.error("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
 
     return user_service.handle_get_user_analysis(current_app, spotify_auth)
@@ -90,7 +90,7 @@ def get_user_aggregated_data():
     try:
         spotify_auth = validate_session(request.cookies)
     except Exception as e:
-        current_app.logger.info("Invalid request: " + str(e))
+        current_app.logger.error("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
 
     return user_service.aggregate_user_data(current_app, spotify_auth)
