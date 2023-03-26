@@ -82,3 +82,9 @@ Use pytest to run tests on the app:
 `GET /api/statistics/overall`: Get shuffle statistics
 
 `GET /api/trackers/update`: Update trackers for all enabled users
+
+## Authentication
+
+Authentication is handled by Spotify and the access-token/refresh-token are stored for each user. 
+
+Sessions are created and send in cookies to the user which are revoked once logged out.
