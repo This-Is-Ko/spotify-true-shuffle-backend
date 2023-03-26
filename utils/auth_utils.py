@@ -17,6 +17,9 @@ def generate_hashed_session_id(session_id):
     """
     Create hash from session id
     """
+    if session_id == None:
+        raise Exception(
+            "Cannot generate hashed session id - session_id is None")
     return hashlib.sha256(session_id.encode('utf-8')).hexdigest()
 
 
@@ -34,11 +37,11 @@ def validate_session(cookies):
 
     # Check session entry contains expected attributes
     if ("user_id" not in session_entry
-        or "access_token" not in session_entry
-        or "refresh_token" not in session_entry
-        or "expires_at" not in session_entry
-        or "scope" not in session_entry
-        ):
+            or "access_token" not in session_entry
+            or "refresh_token" not in session_entry
+            or "expires_at" not in session_entry
+            or "scope" not in session_entry
+            ):
         raise Exception("Session entry is invalid")
 
     # Return spotify auth attributes
