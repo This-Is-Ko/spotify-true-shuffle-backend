@@ -16,7 +16,7 @@ def create_app():
 
     # Enable CORS
     cors = CORS(app, supports_credentials=True,
-                origins=[app.config["CORS_ORIGIN0"], app.config["CORS_ORIGIN1"]])
+                origins=[app.config["CORS_ORIGIN"]])
 
     # Register blueprints for app
     register_all_blueprints(app)

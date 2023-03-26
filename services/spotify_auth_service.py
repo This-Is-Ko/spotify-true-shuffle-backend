@@ -62,7 +62,7 @@ def get_spotify_tokens(current_app, code):
                             )
         response.set_cookie(key="trueshuffle-auth",
                             value="true",
-                            domain=current_app.config["COOKIE_DOMAIN_AUTH_STATUS"],
+                            domain=current_app.config["COOKIE_DOMAIN"],
                             samesite='None',
                             secure=True
                             )
