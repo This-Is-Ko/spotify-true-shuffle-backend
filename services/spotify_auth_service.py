@@ -82,10 +82,16 @@ def handle_logout(current_app, cookies):
     # Set cookies to expired
     response.set_cookie(key="trueshuffle-sessionId",
                             value="",
+                            domain=current_app.config["COOKIE_DOMAIN"],
+                            samesite='None',
+                            secure=True,
                             expires=0
                         )
     response.set_cookie(key="trueshuffle-auth",
                             value="",
+                            domain=current_app.config["COOKIE_DOMAIN"],
+                            samesite='None',
+                            secure=True,
                             expires=0
                         )
 
