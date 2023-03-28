@@ -17,3 +17,10 @@ class SessionExpired(Exception):
     session has expired
     """
     pass
+
+
+class AccessTokenInvalid(Exception):
+    """
+    access token is invalid
+    """
+    pass
