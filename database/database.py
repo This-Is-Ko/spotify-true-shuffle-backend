@@ -90,9 +90,9 @@ def find_session(session_id):
     )
 
 
-def find_and_update_session(user_id, session_entry):
+def find_and_update_session(hashed_session_id, session_entry):
     return mongo.db.sessions.find_one_and_update(
-        {"user_id": user_id},
+        {"session_id": hashed_session_id},
         {"$set": session_entry},
         upsert=True,
         return_document=ReturnDocument.AFTER
