@@ -1,7 +1,7 @@
 from flask_cors import cross_origin
 from marshmallow import ValidationError
 from flask import current_app, request, Blueprint
-from exceptions.custom_exceptions import SessionIdNone
+from exceptions.custom_exceptions import SessionIdNone, SessionIdNotFound
 
 from services import playlist_service
 from schemas.ShufflePlaylistRequestSchema import ShufflePlaylistRequestSchema
@@ -18,7 +18,7 @@ def get_playlists():
         spotify_auth = validate_session(request.cookies)
         include_stats = request.args.get("include-stats")
 
-    except SessionIdNone as e:
+    except (SessionIdNone, SessionIdNotFound) as e:
         current_app.logger.error("Invalid credentials: " + str(e))
         return {"error": "Invalid credentials"}, 401
     except Exception as e:
@@ -40,7 +40,7 @@ def shuffle_playlist():
         request_data = request.get_json()
         schema = ShufflePlaylistRequestSchema()
         request_body = schema.load(request_data)
-    except SessionIdNone as e:
+    except (SessionIdNone, SessionIdNotFound) as e:
         current_app.logger.error("Invalid credentials: " + str(e))
         return {"error": "Invalid credentials"}, 401
     except ValidationError as e:
@@ -62,7 +62,7 @@ def shuffle_playlist():
 def delete_shuffled_playlists():
     try:
         spotify_auth = validate_session(request.cookies)
-    except SessionIdNone as e:
+    except (SessionIdNone, SessionIdNotFound) as e:
         current_app.logger.error("Invalid credentials: " + str(e))
         return {"error": "Invalid credentials"}, 401
     except Exception as e:
@@ -85,7 +85,7 @@ def liked_tracks_to_playlist():
         request_data = request.get_json()
         schema = ShareLikedTracksRequestSchema()
         request_body = schema.load(request_data)
-    except SessionIdNone as e:
+    except (SessionIdNone, SessionIdNotFound) as e:
         current_app.logger.error("Invalid credentials: " + str(e))
         return {"error": "Invalid credentials"}, 401
     except ValidationError as e:
