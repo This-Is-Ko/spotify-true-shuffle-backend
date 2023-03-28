@@ -7,6 +7,8 @@ from database import database
 
 from mock_responses import *
 
+test_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+
 
 def test_get_playlists_success(mocker, client, env_patch):
     """
@@ -34,7 +36,7 @@ def test_get_playlists_success(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -86,7 +88,6 @@ def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, e
                             "track_count": 2,
                         }
                         )
-
     mocker.patch.object(database, "find_session",
                         return_value={
                             "user_id": "user_id",
@@ -94,7 +95,7 @@ def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, e
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -149,7 +150,7 @@ def test_get_playlists_with_stats_user_tracker_disabled_success(mocker, client, 
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -189,7 +190,7 @@ def test_get_playlists_failure_cookies_invalid(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -255,7 +256,7 @@ def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch)
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
