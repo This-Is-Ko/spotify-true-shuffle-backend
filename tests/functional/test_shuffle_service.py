@@ -230,9 +230,9 @@ def test_create_shuffled_playlist_cookies_missing_failure(mocker, client, env_pa
                            json=invalid_shuffle_request)
     response_json = response.get_json()
 
-    assert response.status_code == 400
+    assert response.status_code == 401
     assert response_json == {
-        "error": "Invalid request"
+        "error": "Invalid credentials"
     }
 
 
@@ -305,12 +305,12 @@ def test_delete_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
     }
 
 
-def test_delete_shuffled_playlists_spotify_auth_missing_failure(mocker, client, env_patch):
+def test_delete_shuffled_playlists_cookies_missing_failure(mocker, client, env_patch):
     # Missing cookies
     response = client.delete('/api/playlist/delete')
     response_json = response.get_json()
 
-    assert response.status_code == 400
+    assert response.status_code == 401
     assert response_json == {
-        "error": "Invalid request"
+        "error": "Invalid credentials"
     }

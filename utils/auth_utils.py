@@ -4,6 +4,7 @@ import uuid
 import hashlib
 
 from database import database
+from exceptions.custom_exceptions import SessionIdNone, SessionIdNotFound
 
 
 def generate_session_id():
@@ -18,7 +19,7 @@ def generate_hashed_session_id(session_id):
     Create hash from session id
     """
     if session_id == None:
-        raise Exception(
+        raise SessionIdNone(
             "Cannot generate hashed session id - session_id is None")
     return hashlib.sha256(session_id.encode('utf-8')).hexdigest()
 
@@ -33,7 +34,7 @@ def validate_session(cookies):
     session_entry = database.find_session(
         generate_hashed_session_id(session_id))
     if session_entry is None:
-        raise Exception("Unable to find session")
+        raise SessionIdNotFound("Unable to find session")
 
     # Check session entry contains expected attributes
     if ("user_id" not in session_entry

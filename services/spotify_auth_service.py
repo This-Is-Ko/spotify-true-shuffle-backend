@@ -37,14 +37,16 @@ def get_spotify_tokens(current_app, code):
         try:
             user_id = save_user_result["user"]["user_id"]
             spotify_auth = dict()
+            spotify_auth["user_id"] = user_id
             session_id = generate_session_id()
-            spotify_auth["session_id"] = generate_hashed_session_id(session_id)
+            hashed_session_id = generate_hashed_session_id(session_id)
+            # spotify_auth["session_id"] = hashed_session_id
             spotify_auth["access_token"] = auth_response["access_token"]
             spotify_auth["refresh_token"] = auth_response["refresh_token"]
             spotify_auth["expires_at"] = auth_response["expires_at"]
             spotify_auth["scope"] = auth_response["scope"]
             session = database.find_and_update_session(
-                user_id, spotify_auth)
+                hashed_session_id, spotify_auth)
             if session is None:
                 raise Exception("Unable to save session in database")
         except Exception as e:
