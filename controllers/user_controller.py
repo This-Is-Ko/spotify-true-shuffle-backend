@@ -1,5 +1,6 @@
 from flask import current_app, request, Blueprint
 from marshmallow import ValidationError
+from exceptions.custom_exceptions import SessionIdNone
 
 from schemas.SaveUserRequestSchema import SaveUserRequestSchema
 from services import user_service
@@ -22,6 +23,9 @@ def save_user():
         request_data = request.get_json()
         schema = SaveUserRequestSchema()
         request_body = schema.load(request_data)
+    except SessionIdNone as e:
+        current_app.logger.error("Invalid credentials: " + str(e))
+        return {"error": "Invalid credentials"}, 401
     except ValidationError as e:
         current_app.logger.error("Invalid request: " + str(e.messages))
         return {"error": "Invalid request"}, 400
@@ -41,6 +45,9 @@ def get_user():
     """
     try:
         spotify_auth = validate_session(request.cookies)
+    except SessionIdNone as e:
+        current_app.logger.error("Invalid credentials: " + str(e))
+        return {"error": "Invalid credentials"}, 401
     except Exception as e:
         current_app.logger.error("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
@@ -60,6 +67,9 @@ def get_user_tracker_data():
         if (tracker_name is None):
             raise Exception("Missing tracker-name")
         spotify_auth = validate_session(request.cookies)
+    except SessionIdNone as e:
+        current_app.logger.error("Invalid credentials: " + str(e))
+        return {"error": "Invalid credentials"}, 401
     except Exception as e:
         current_app.logger.error("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
@@ -75,6 +85,9 @@ def get_user_analysis():
     """
     try:
         spotify_auth = validate_session(request.cookies)
+    except SessionIdNone as e:
+        current_app.logger.error("Invalid credentials: " + str(e))
+        return {"error": "Invalid credentials"}, 401
     except Exception as e:
         current_app.logger.error("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
@@ -89,6 +102,9 @@ def get_user_aggregated_data():
     """
     try:
         spotify_auth = validate_session(request.cookies)
+    except SessionIdNone as e:
+        current_app.logger.error("Invalid credentials: " + str(e))
+        return {"error": "Invalid credentials"}, 401
     except Exception as e:
         current_app.logger.error("Invalid request: " + str(e))
         return {"error": "Invalid request"}, 400
