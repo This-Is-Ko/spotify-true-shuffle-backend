@@ -1,10 +1,10 @@
 from flask import make_response
-import jwt
+from datetime import datetime, timedelta, timezone
 
 from services.spotify_client import *
 from services.user_service import save_user
 from database import database
-from utils.auth_utils import generate_hashed_session_id, generate_session_id
+from utils.auth_utils import generate_hashed_session_id, generate_session_id, remove_session_entry
 
 
 def generate_spotify_auth_uri(current_app):
@@ -38,13 +38,17 @@ def get_spotify_tokens(current_app, code):
             user_id = save_user_result["user"]["user_id"]
             spotify_auth = dict()
             spotify_auth["user_id"] = user_id
+            # Generate and hash session id
             session_id = generate_session_id()
             hashed_session_id = generate_hashed_session_id(session_id)
-            # spotify_auth["session_id"] = hashed_session_id
+            # Store spotify auth values
             spotify_auth["access_token"] = auth_response["access_token"]
             spotify_auth["refresh_token"] = auth_response["refresh_token"]
             spotify_auth["expires_at"] = auth_response["expires_at"]
             spotify_auth["scope"] = auth_response["scope"]
+            # Calculate expiry 1 hour from UTC now time
+            session_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+            spotify_auth["expiry"] = session_expiry
             session = database.find_and_update_session(
                 hashed_session_id, spotify_auth)
             if session is None:
@@ -60,13 +64,15 @@ def get_spotify_tokens(current_app, code):
                             httponly=True,
                             domain=current_app.config["COOKIE_DOMAIN"],
                             samesite='None',
-                            secure=True
+                            secure=True,
+                            expires=session_expiry
                             )
         response.set_cookie(key="trueshuffle-auth",
                             value="true",
                             domain=current_app.config["COOKIE_DOMAIN"],
                             samesite='None',
-                            secure=True
+                            secure=True,
+                            expires=session_expiry
                             )
 
         return response
@@ -98,7 +104,7 @@ def handle_logout(current_app, cookies):
     try:
         session_id = cookies.get("trueshuffle-sessionId")
         # Remove session from db
-        database.delete_session(generate_hashed_session_id(session_id))
+        remove_session_entry(session_id)
     except Exception as e:
         current_app.logger.error(
             "Error validating session id/deleting session: " + str(e))
