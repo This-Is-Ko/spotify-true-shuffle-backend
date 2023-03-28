@@ -264,10 +264,10 @@ def test_get_playlists_failure_cookies_invalid(mocker, client, env_patch):
     assert response_json["error"] is not None
 
 
-def test_get_playlists_failure_missing_cookies(mocker, client, env_patch):
+def test_get_playlists_failure_missing_cookies_failure(mocker, client, env_patch):
     """
     Failure GET Playlists
-    Request missing body
+    Request missing cookies
     """
     mocker.patch.object(SpotifyOAuth, "validate_token",
                         return_value={
@@ -284,8 +284,10 @@ def test_get_playlists_failure_missing_cookies(mocker, client, env_patch):
 
     response = client.get('/api/playlist/me')
     response_json = response.get_json()
-    assert response.status_code == 400
-    assert response_json["error"] is not None
+    assert response.status_code == 401
+    assert response_json == {
+        "error": "Invalid credentials"
+    }
 
 
 def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch):
