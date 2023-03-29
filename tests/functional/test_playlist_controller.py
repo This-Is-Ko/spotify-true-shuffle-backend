@@ -39,6 +39,16 @@ def test_get_playlists_success(mocker, client, env_patch):
                             "expiry": test_expiry
                         }
                         )
+    mocker.patch.object(database, "find_and_update_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
+                        }
+                        )
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-sessionId',
                       'sessionId')
@@ -98,6 +108,16 @@ def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, e
                             "expiry": test_expiry
                         }
                         )
+    mocker.patch.object(database, "find_and_update_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
+                        }
+                        )
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-sessionId',
                       'sessionId')
@@ -144,6 +164,16 @@ def test_get_playlists_with_stats_user_tracker_disabled_success(mocker, client, 
                         )
 
     mocker.patch.object(database, "find_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
+                        }
+                        )
+    mocker.patch.object(database, "find_and_update_session",
                         return_value={
                             "user_id": "user_id",
                             "access_token": "access_token",
