@@ -10,5 +10,6 @@ def handle_clean_up_expired_sesions(current_app):
     current_app.logger.info(
         "Cleanup successfully completed. Deleted expired sessions: " + str(delete_response.deleted_count))
     return {
-        "status": "success"
+        "status": "success",
+        "deleted_count": str(delete_response.deleted_count)
     }
