@@ -1,12 +1,12 @@
 from flask_cors import cross_origin
 from marshmallow import ValidationError
-from flask import current_app, request, Blueprint
-from exceptions.custom_exceptions import SessionIdNone, SessionIdNotFound
+from flask import current_app, request, Blueprint, make_response
+from exceptions.custom_exceptions import SessionExpired, SessionIdNone, SessionIdNotFound
 
 from services import playlist_service
 from schemas.ShufflePlaylistRequestSchema import ShufflePlaylistRequestSchema
 from schemas.ShareLikedTracksRequestSchema import ShareLikedTracksRequestSchema
-from utils.auth_utils import validate_session
+from utils.auth_utils import extend_session_expiry, validate_session
 
 playlist_controller = Blueprint(
     'playlist_controller', __name__, url_prefix='/api/playlist')
@@ -18,7 +18,7 @@ def get_playlists():
         spotify_auth = validate_session(request.cookies)
         include_stats = request.args.get("include-stats")
 
-    except (SessionIdNone, SessionIdNotFound) as e:
+    except (SessionIdNone, SessionIdNotFound, SessionExpired) as e:
         current_app.logger.error("Invalid credentials: " + str(e))
         return {"error": "Invalid credentials"}, 401
     except Exception as e:
@@ -26,7 +26,10 @@ def get_playlists():
         return {"error": "Invalid request"}, 400
 
     try:
-        return (playlist_service.get_user_playlists(current_app, spotify_auth, include_stats))
+        response = make_response(playlist_service.get_user_playlists(
+            current_app, spotify_auth, include_stats))
+        extend_session_expiry(current_app, response, request.cookies)
+        return response
     except Exception as e:
         current_app.logger.error("Unable to retrieve user playlists" + str(e))
         return {"error": "Unable to retrieve user playlists"}, 400
@@ -40,7 +43,7 @@ def shuffle_playlist():
         request_data = request.get_json()
         schema = ShufflePlaylistRequestSchema()
         request_body = schema.load(request_data)
-    except (SessionIdNone, SessionIdNotFound) as e:
+    except (SessionIdNone, SessionIdNotFound, SessionExpired) as e:
         current_app.logger.error("Invalid credentials: " + str(e))
         return {"error": "Invalid credentials"}, 401
     except ValidationError as e:
@@ -51,7 +54,10 @@ def shuffle_playlist():
         return {"error": "Invalid request"}, 400
 
     try:
-        return (playlist_service.create_shuffled_playlist(current_app, spotify_auth, request_body["playlist_id"], request_body["playlist_name"]))
+        response = make_response(playlist_service.create_shuffled_playlist(
+            current_app, spotify_auth, request_body["playlist_id"], request_body["playlist_name"]))
+        extend_session_expiry(current_app, response, request.cookies)
+        return response
     except Exception as e:
         current_app.logger.error(
             "Unable to create shuffled playlist: " + str(e))
@@ -62,7 +68,7 @@ def shuffle_playlist():
 def delete_shuffled_playlists():
     try:
         spotify_auth = validate_session(request.cookies)
-    except (SessionIdNone, SessionIdNotFound) as e:
+    except (SessionIdNone, SessionIdNotFound, SessionExpired) as e:
         current_app.logger.error("Invalid credentials: " + str(e))
         return {"error": "Invalid credentials"}, 401
     except Exception as e:
@@ -70,7 +76,10 @@ def delete_shuffled_playlists():
         return {"error": "Invalid request"}, 400
 
     try:
-        return (playlist_service.delete_all_shuffled_playlists(current_app, spotify_auth))
+        response = make_response(
+            playlist_service.delete_all_shuffled_playlists(current_app, spotify_auth))
+        extend_session_expiry(current_app, response, request.cookies)
+        return response
     except Exception as e:
         current_app.logger.error(
             "Unable to delete shuffled playlists: " + str(e))
@@ -85,7 +94,7 @@ def liked_tracks_to_playlist():
         request_data = request.get_json()
         schema = ShareLikedTracksRequestSchema()
         request_body = schema.load(request_data)
-    except (SessionIdNone, SessionIdNotFound) as e:
+    except (SessionIdNone, SessionIdNotFound, SessionExpired) as e:
         current_app.logger.error("Invalid credentials: " + str(e))
         return {"error": "Invalid credentials"}, 401
     except ValidationError as e:
@@ -97,9 +106,15 @@ def liked_tracks_to_playlist():
 
     try:
         if "playlist_name" in request_body and request_body["playlist_name"] != "":
-            return (playlist_service.create_playlist_from_liked_tracks(current_app, spotify_auth, request_body["playlist_name"]))
+            response = make_response(playlist_service.create_playlist_from_liked_tracks(
+                current_app, spotify_auth, request_body["playlist_name"]))
+            extend_session_expiry(current_app, response, request.cookies)
+            return response
         else:
-            return (playlist_service.create_playlist_from_liked_tracks(current_app, spotify_auth))
+            response = make_response(
+                playlist_service.create_playlist_from_liked_tracks(current_app, spotify_auth))
+            extend_session_expiry(current_app, response, request.cookies)
+            return response
     except Exception as e:
         current_app.logger.error(
             "Unable to create share playlist: " + str(e))

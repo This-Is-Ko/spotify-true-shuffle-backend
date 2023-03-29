@@ -207,8 +207,6 @@ def get_user_analysis(current_app, spotify):
     for track in all_tracks:
         track_data = track["track"]
         all_tracks_ids.append(track_data["id"])
-        current_app.logger.debug(
-            "Adding track data for: " + track_data["name"])
         # Most common artist
         for artist in track_data["artists"]:
             if artist["name"] in most_common_artists:

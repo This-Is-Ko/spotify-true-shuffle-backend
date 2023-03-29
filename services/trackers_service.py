@@ -31,6 +31,12 @@ def update_trackers(current_app):
         auth_manager = create_auth_manager_with_token(
             current_app, user["spotify"])
         spotify = spotipy.Spotify(auth_manager=auth_manager)
+        # Force refresh_token
+        if not auth_manager.validate_token(user["spotify"]) or not auth_manager.refresh_access_token(
+                user["spotify"]["refresh_token"]):
+            tracker_logger(current_app, USER_LIKED_TRACKS_TRACKER_LOG, TRACK_SHUFFLES_ATTRIBUTE_NAME,
+                           user["user_id"], "Failed to validate user token", level="error")
+            continue
         current_count = utils.get_liked_tracks_count(current_app, spotify)
         if current_count is None:
             tracker_logger(current_app, USER_LIKED_TRACKS_TRACKER_LOG, TRACK_SHUFFLES_ATTRIBUTE_NAME,

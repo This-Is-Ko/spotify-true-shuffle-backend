@@ -40,6 +40,7 @@ def register_all_blueprints(app):
     from controllers.trackers_controller import trackers_controller
     from controllers.user_controller import user_controller
     from controllers.auth_controller import auth_controller
+    from controllers.session_controller import session_controller
 
     app.register_blueprint(spotify_auth_controller)
     app.register_blueprint(playlist_controller)
@@ -47,6 +48,7 @@ def register_all_blueprints(app):
     app.register_blueprint(trackers_controller)
     app.register_blueprint(user_controller)
     app.register_blueprint(auth_controller)
+    app.register_blueprint(session_controller)
 
 
 app = create_app()

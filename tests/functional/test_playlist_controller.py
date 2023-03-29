@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from tests import client, env_patch
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
@@ -6,70 +7,7 @@ from database import database
 
 from mock_responses import *
 
-user_playlists_sample = {
-    "items": [
-        {
-            "collaborative": True,
-            "description": "string",
-            "external_urls": {
-                "spotify": "string"
-            },
-            "href": "string",
-            "id": "string",
-            "images": [
-                {
-                  "url": "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228\n",
-                  "height": 300,
-                  "width": 300
-                }
-            ],
-            "name": "string",
-            "owner": {
-                "external_urls": {
-                    "spotify": "string"
-                },
-                "followers": {
-                    "href": "string",
-                    "total": 0
-                },
-                "href": "string",
-                "id": "string",
-                "type": "user",
-                "uri": "string",
-                "display_name": "string"
-            },
-            "public": True,
-            "snapshot_id": "string",
-            "tracks": {
-                "href": "string",
-                "total": 0
-            },
-            "type": "string",
-            "uri": "string"
-        }
-    ],
-    "href": "https://api.spotify.com/v1/me/shows?offset=0&limit=20\n",
-    "limit": 20,
-    "next": "https://api.spotify.com/v1/me/shows?offset=1&limit=1",
-    "offset": 0,
-    "previous": "https://api.spotify.com/v1/me/shows?offset=1&limit=1",
-    "total": 1
-}
-
-spotify_auth_sample = {
-    "spotify_auth": {
-        "access_token": "spotify_access_token",
-        "expires_at": 1668425997,
-        "refresh_token": "spotify_refresh_token",
-        "scope": "playlist-modify-private playlist-modify-public"
-        + "playlist-read-collaborative playlist-read-private user-library-read",
-        "token_type": "Bearer"
-    }
-}
-
-mock_user_details_response = {
-    "id": "user_id"
-}
+test_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
 
 
 def test_get_playlists_success(mocker, client, env_patch):
@@ -86,7 +24,7 @@ def test_get_playlists_success(mocker, client, env_patch):
                         return_value=mock_user_response
                         )
     mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value=user_playlists_sample
+                        return_value=mock_user_playlists_sample
                         )
     mocker.patch.object(
         Spotify, "me", return_value=mock_user_details_response)
@@ -97,7 +35,18 @@ def test_get_playlists_success(mocker, client, env_patch):
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": test_expiry
+                        }
+                        )
+    mocker.patch.object(database, "find_and_update_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -129,7 +78,7 @@ def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, e
                         return_value=mock_user_response
                         )
     mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value=user_playlists_sample
+                        return_value=mock_user_playlists_sample
                         )
     mocker.patch.object(
         Spotify, "me", return_value=mock_user_details_response)
@@ -149,14 +98,24 @@ def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, e
                             "track_count": 2,
                         }
                         )
-
     mocker.patch.object(database, "find_session",
                         return_value={
                             "user_id": "user_id",
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": test_expiry
+                        }
+                        )
+    mocker.patch.object(database, "find_and_update_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -190,7 +149,7 @@ def test_get_playlists_with_stats_user_tracker_disabled_success(mocker, client, 
                         return_value=mock_user_response
                         )
     mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value=user_playlists_sample
+                        return_value=mock_user_playlists_sample
                         )
     mocker.patch.object(
         Spotify, "me", return_value=mock_user_details_response)
@@ -210,7 +169,18 @@ def test_get_playlists_with_stats_user_tracker_disabled_success(mocker, client, 
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": test_expiry
+                        }
+                        )
+    mocker.patch.object(database, "find_and_update_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -240,7 +210,7 @@ def test_get_playlists_failure_cookies_invalid(mocker, client, env_patch):
                         return_value=mock_user_response
                         )
     mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value=user_playlists_sample
+                        return_value=mock_user_playlists_sample
                         )
 
     mocker.patch.object(database, "find_session",
@@ -249,7 +219,8 @@ def test_get_playlists_failure_cookies_invalid(mocker, client, env_patch):
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -279,7 +250,7 @@ def test_get_playlists_failure_missing_cookies_failure(mocker, client, env_patch
                         return_value=mock_user_response
                         )
     mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value=user_playlists_sample
+                        return_value=mock_user_playlists_sample
                         )
 
     response = client.get('/api/playlist/me')
@@ -314,7 +285,8 @@ def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch)
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies

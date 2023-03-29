@@ -1,6 +1,6 @@
 from tests import client, env_patch
 import time
-import datetime
+from datetime import datetime, timedelta, timezone
 
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
@@ -51,6 +51,8 @@ playlist_add_items_response = {
     "snapshot_id": "snapshot_id_0"
 }
 
+test_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+
 
 def test_create_shuffled_playlist_success(mocker, client, env_patch):
     mocker.patch.object(SpotifyOAuth, "validate_token",
@@ -75,7 +77,8 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
                         }
                         )
     mocker.patch.object(database, "find_user",
@@ -100,13 +103,14 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
                             "track_count": 0,
                         }
                         )
-    mocker.patch.object(database, "find_session",
+    mocker.patch.object(database, "find_and_update_session",
                         return_value={
                             "user_id": "user_id",
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -134,16 +138,8 @@ def test_create_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
-                        }
-                        )
-    mocker.patch.object(database, "find_session",
-                        return_value={
-                            "user_id": "user_id",
-                            "access_token": "access_token",
-                            "refresh_token": "refresh_token",
-                            "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
                         }
                         )
     # Init cookies
@@ -157,7 +153,7 @@ def test_create_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
 
     assert response.status_code == 400
     assert response_json == {
-        "error": "Invalid token"
+        "error": "Unable to create shuffled playlist"
     }
 
 
@@ -168,7 +164,8 @@ def test_create_shuffled_playlist_playlist_name_missing_failure(mocker, client, 
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
                         }
                         )
     # Init cookies
@@ -197,7 +194,8 @@ def test_create_shuffled_playlist_playlist_id_missing_failure(mocker, client, en
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
                         }
                         )
     # Init cookies
@@ -252,7 +250,18 @@ def test_delete_shuffled_playlists_success(mocker, client, env_patch):
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                        }
+                        )
+    mocker.patch.object(database, "find_and_update_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -287,7 +296,8 @@ def test_delete_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
                             "access_token": "access_token",
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
-                            "scope": "scope"
+                            "scope": "scope",
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
                         }
                         )
     # Init cookies
@@ -301,7 +311,7 @@ def test_delete_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
 
     assert response.status_code == 400
     assert response_json == {
-        "error": "Invalid token"
+        "error": "Unable to delete shuffled playlists"
     }
 
 
