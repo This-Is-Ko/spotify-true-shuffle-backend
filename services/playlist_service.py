@@ -5,6 +5,7 @@ from bson import json_util
 import json
 
 from database import database
+from exceptions.custom_exceptions import SpotifyAuthInvalid
 from services.spotify_client import *
 from schemas.Playlist import Playlist
 
@@ -18,7 +19,7 @@ def get_user_playlists(current_app, spotify_auth, include_stats):
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     if not auth_manager.validate_token(spotify_auth):
-        return {"error": "Invalid token"}, 400
+        raise SpotifyAuthInvalid("Invalid token")
     user = spotify.current_user()
 
     playlists = spotify.current_user_playlists()
@@ -66,7 +67,7 @@ def create_shuffled_playlist(current_app, spotify_auth, playlist_id, playlist_na
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     if not auth_manager.validate_token(spotify_auth):
-        return {"error": "Invalid token"}, 400
+        raise SpotifyAuthInvalid("Invalid token")
 
     # Grab all tracks from playlist
     all_tracks = get_tracks_from_playlist(spotify, playlist_id)
@@ -138,7 +139,7 @@ def delete_all_shuffled_playlists(current_app, spotify_auth):
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     if not auth_manager.validate_token(spotify_auth):
-        return {"error": "Invalid token"}, 400
+        raise SpotifyAuthInvalid("Invalid token")
 
     # Search all user playlists for shuffled playlists
     user_playlists = spotify.current_user_playlists()
@@ -243,7 +244,7 @@ def create_playlist_from_liked_tracks(current_app, spotify_auth, new_playlist_na
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     if not auth_manager.validate_token(spotify_auth):
-        return {"error": "Invalid token"}, 400
+        raise SpotifyAuthInvalid("Invalid token")
 
     all_tracks = get_tracks_from_playlist(spotify, LIKED_TRACKS_PLAYLIST_ID)
 

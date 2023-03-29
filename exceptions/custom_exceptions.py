@@ -1,26 +1,33 @@
 class SessionIdNotFound(Exception):
     """
-    session_id doesn't exist in database
+    Session_id doesn't exist in database
     """
     pass
 
 
 class SessionIdNone(Exception):
     """
-    session_id value is None
+    Session_id value is None
     """
     pass
 
 
 class SessionExpired(Exception):
     """
-    session has expired
+    Session has expired
     """
     pass
 
 
 class AccessTokenInvalid(Exception):
     """
-    access token is invalid
+    Access token is invalid
+    """
+    pass
+
+
+class SpotifyAuthInvalid(Exception):
+    """
+    Spotify auth info is invalid
     """
     pass
