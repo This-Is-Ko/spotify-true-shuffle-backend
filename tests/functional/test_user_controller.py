@@ -7,10 +7,12 @@ from mock_responses import *
 from mock_requests import *
 from database import database
 
+test_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+
 
 def test_get_user_analysis_success(mocker, client, env_patch):
     """
-    Successful GET Playlists
+    Successful GET User Analysis
     """
     mocker.patch.object(SpotifyOAuth, "validate_token",
                         return_value={
@@ -34,7 +36,17 @@ def test_get_user_analysis_success(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": test_expiry
+                        }
+                        )
+    mocker.patch.object(database, "find_and_update_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -57,7 +69,7 @@ def test_get_user_analysis_success(mocker, client, env_patch):
 
 def test_get_user_analysis_empty_liked_songs_success(mocker, client, env_patch):
     """
-    Successful GET Playlists
+    Successful GET User Analysis - empty 
     """
     mocker.patch.object(SpotifyOAuth, "validate_token",
                         return_value={
@@ -79,7 +91,17 @@ def test_get_user_analysis_empty_liked_songs_success(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": test_expiry
+                        }
+                        )
+    mocker.patch.object(database, "find_and_update_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies

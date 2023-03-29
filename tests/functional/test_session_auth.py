@@ -9,6 +9,8 @@ from database import database
 
 from mock_responses import *
 
+test_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+
 
 def test_session_cookie_valid_success(mocker, client, env_patch):
     """
@@ -36,7 +38,17 @@ def test_session_cookie_valid_success(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": test_expiry
+                        }
+                        )
+    mocker.patch.object(database, "find_and_update_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies

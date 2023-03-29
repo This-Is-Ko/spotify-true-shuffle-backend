@@ -51,6 +51,8 @@ playlist_add_items_response = {
     "snapshot_id": "snapshot_id_0"
 }
 
+test_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+
 
 def test_create_shuffled_playlist_success(mocker, client, env_patch):
     mocker.patch.object(SpotifyOAuth, "validate_token",
@@ -99,6 +101,16 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
                             "user_id": "overall_counter",
                             "playlist_count": 0,
                             "track_count": 0,
+                        }
+                        )
+    mocker.patch.object(database, "find_and_update_session",
+                        return_value={
+                            "user_id": "user_id",
+                            "access_token": "access_token",
+                            "refresh_token": "refresh_token",
+                            "expires_at": "expires_at",
+                            "scope": "scope",
+                            "expiry": test_expiry
                         }
                         )
     # Init cookies
