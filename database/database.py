@@ -22,7 +22,7 @@ def get_all_user_liked_tracks_history_data(user_id):
     return mongo.db.liked_tracks_history.find(
         {"user_id": user_id},
         # {"user_id": 0, "_id": 0},
-        sort=[('_id', pymongo.DESCENDING)]
+        sort=[('_id', pymongo.ASCENDING)]
     )
 
 

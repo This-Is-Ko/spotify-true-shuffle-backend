@@ -11,6 +11,7 @@ def test_get_statistics_success(mocker, client, env_patch):
                             "user_id": "overall_counter",
                             "playlist_count": 99,
                             "track_count": 99,
+                            "analysis_count": 99,
                         }
                         )
     response = client.get('/api/statistics/overall')
@@ -19,6 +20,7 @@ def test_get_statistics_success(mocker, client, env_patch):
     assert response.status_code == 200
     assert response_json["playlist_counter"] == 99
     assert response_json["track_counter"] == 99
+    assert response_json["analysis_counter"] == 99
 
 
 def test_get_statistics_missing_counter_failure(mocker, client, env_patch):

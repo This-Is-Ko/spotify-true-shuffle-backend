@@ -7,16 +7,17 @@ TRACK_COUNTER_FILE = "/track_counter.txt"
 def get_overall_statistics(current_app):
     try:
         # Retrieve counters for playlists and tracks
-        total_shuffle_counter = database.find_shuffle_counter(
+        overall_counter = database.find_shuffle_counter(
             "overall_counter")
-        if total_shuffle_counter == None:
+        if overall_counter == None:
             current_app.logger.error(
-                "Error finding overall shuffle count")
-            raise Exception("Couldn't find overall shuffle counter")
+                "Error finding overall counter")
+            raise Exception("Couldn't find overall counter")
         return {
             "status": "success",
-            "playlist_counter": total_shuffle_counter["playlist_count"],
-            "track_counter": total_shuffle_counter["track_count"]
+            "playlist_counter": overall_counter["playlist_count"],
+            "track_counter": overall_counter["track_count"],
+            "analysis_counter": overall_counter["analysis_count"]
         }
     except Exception as e:
         current_app.logger.error("Unable to retrieve statistics: " + str(e))
