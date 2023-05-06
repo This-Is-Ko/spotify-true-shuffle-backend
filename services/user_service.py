@@ -83,6 +83,23 @@ def aggregate_user_data(current_app, spotify_auth):
     user = database.find_user(user_id)
     user_json = json.loads(json_util.dumps(user))
 
+     # Increment counter for analysis count
+    try:
+        overall_counter = database.find_shuffle_counter(
+            "overall_counter")
+        if overall_counter == None:
+            raise Exception("Couldn't find total shuffle counter")
+
+        overall_counter["analysis_count"] = int(
+            overall_counter["analysis_count"]) + 1
+
+        overall_counter_update = database.find_and_update_shuffle_counter(
+            "overall_counter",
+            overall_counter)
+    except Exception as e:
+        current_app.logger.error(
+            "Error updating overall shuffle count: " + str(e))
+
     try:
         return {
             TRACK_LIKED_TRACKS_ATTRIBUTE_NAME: get_user_tracker_data(user_id, user_json,

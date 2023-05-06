@@ -14,13 +14,14 @@ Frontend can be found in [this](https://github.com/This-Is-Ko/spotify-true-shuff
 
 The following env variables are required to run. Add them into a .env file
 
-    SPOTIPY_CLIENT_ID # retrieve from Spotify Dev Console
-    SPOTIPY_CLIENT_SECRET # retrieve from Spotify Dev Console
-    SPOTIPY_REDIRECT_URI # frontend uri
-    COOKIE_DOMAIN # cookie domain value
-    CORS_ORIGIN # cors origin value
+    SPOTIFY_CLIENT_ID # retrieve from Spotify Dev Console
+    SPOTIFY_CLIENT_SECRET # retrieve from Spotify Dev Console
+    SPOTIFY_REDIRECT_URI # frontend uri
+    COOKIE_DOMAIN # cookie domain value (Leave empty for localhost)
+    CORS_ORIGIN # cors origin value (http://localhost:3000)
     JWT_SECRET # secret to sign jwt
     JWT_ISSUER # issuer value for jwt
+    MONGO_URI # database uri
 
 To set the environment to the specific environment, set the following variable.
 
