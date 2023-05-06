@@ -216,6 +216,12 @@ def get_user_analysis(current_app, spotify):
     most_common_genre = {}
     total_length = 0
     average_track_length = 0
+    longest_track_data = {
+        "duration_ms": 0
+    }
+    shortest_track_data = {
+        "duration_ms": 0
+    }
     # TODO Find oldest and newest tracks
     # oldest_release_date_track = {}
     # latest_release_date_track = {}
@@ -267,6 +273,11 @@ def get_user_analysis(current_app, spotify):
                     most_common_genre[genre] = 1
         # Average track length
         total_length += int(track_data["duration_ms"])
+        # Longest/shortest tracks
+        if longest_track_data["duration_ms"] == 0 or int(track_data["duration_ms"]) > longest_track_data["duration_ms"]:
+            longest_track_data = track_data
+        if shortest_track_data["duration_ms"] == 0 or int(track_data["duration_ms"]) < shortest_track_data["duration_ms"]:
+            shortest_track_data = track_data
 
     average_track_length = total_length / num_tracks
     average_track_length_seconds, average_track_length_minutes, average_track_length_hours, average_track_length_days = calcFromMillis(
@@ -318,50 +329,62 @@ def get_user_analysis(current_app, spotify):
             "minutes": average_track_length_minutes,
             "seconds": average_track_length_seconds,
         },
+        "shortest_track": prep_essential_track_data(shortest_track_data),
+        "longest_track": prep_essential_track_data(longest_track_data),
         "audio_features": audio_features
         # "all_time_top_artists": all_time_top_artists,
         # "all_time_top_tracks": all_time_top_tracks
     }
 
+class TrackFeatureScoreData:
+    def __init__(self, feature_name):
+        self.feature_name = feature_name
+        self.total_score = 0
+        self.highest_feature_score = prep_audio_feature_track("", 0)
+        self.lowest_feature_score = prep_audio_feature_track("", 0)
+
+    def update_scores(self, track):
+        if self.highest_feature_score["id"] == "" or track[self.feature_name] > self.highest_feature_score["value"]:
+            self.highest_feature_score = prep_audio_feature_track(track["id"], track[self.feature_name])
+        if self.lowest_feature_score["id"] == "" or track[self.feature_name] < self.lowest_feature_score["value"]:
+            self.lowest_feature_score = prep_audio_feature_track(track["id"], track[self.feature_name])
+
 
 def average_audio_features(current_app, spotify, tracks_ids):
     all_audio_features = get_all_track_audio_features(
         current_app, spotify, tracks_ids)
-    acousticness = 0
-    danceability = 0
-    energy = 0
-    instrumentalness = 0
-    liveness = 0
-    loudness = 0
-    speechiness = 0
-    tempo = 0
+    acousticness_scores = TrackFeatureScoreData("acousticness")
+    danceability_scores = TrackFeatureScoreData("danceability")
+    energy_scores = TrackFeatureScoreData("energy")
+    instrumentalness_scores = TrackFeatureScoreData("instrumentalness")
+    liveness_scores = TrackFeatureScoreData("liveness")
+    loudness_scores = TrackFeatureScoreData("loudness")
+    speechiness_scores = TrackFeatureScoreData("speechiness")
+    tempo_scores = TrackFeatureScoreData("tempo")
+    valence_scores = TrackFeatureScoreData("valence")
+
     for track in all_audio_features:
         if track is not None:
-            if "acousticness" in track and track["acousticness"] is not None:
-                acousticness += track["acousticness"]
-            if "danceability" in track and track["danceability"] is not None:
-                danceability += track["danceability"]
-            if "energy" in track and track["energy"] is not None:
-                energy += track["energy"]
-            if "instrumentalness" in track and track["instrumentalness"] is not None:
-                instrumentalness += track["instrumentalness"]
-            if "liveness" in track and track["liveness"] is not None:
-                liveness += track["liveness"]
-            if "loudness" in track and track["loudness"] is not None:
-                loudness += track["loudness"]
-            if "speechiness" in track and track["speechiness"] is not None:
-                speechiness += track["speechiness"]
-            if "tempo" in track and track["tempo"] is not None:
-                tempo += track["tempo"]
+            process_track_feature(track, "acousticness", acousticness_scores)
+            process_track_feature(track, "danceability", danceability_scores)
+            process_track_feature(track, "energy", energy_scores)
+            process_track_feature(track, "instrumentalness", instrumentalness_scores)
+            process_track_feature(track, "liveness", liveness_scores)
+            process_track_feature(track, "loudness", loudness_scores)
+            process_track_feature(track, "speechiness", speechiness_scores)
+            process_track_feature(track, "tempo", tempo_scores)
+            process_track_feature(track, "valence", valence_scores)
+
     num_tracks = len(tracks_ids)
-    average_acousticness = acousticness / num_tracks
-    average_danceability = danceability / num_tracks
-    average_energy = energy / num_tracks
-    average_instrumentalness = instrumentalness / num_tracks
-    average_liveness = liveness / num_tracks
-    average_loudness = loudness / num_tracks
-    average_speechiness = speechiness / num_tracks
-    average_tempo = tempo / num_tracks
+    average_acousticness = acousticness_scores.total_score / num_tracks
+    average_danceability = danceability_scores.total_score / num_tracks
+    average_energy = energy_scores.total_score / num_tracks
+    average_instrumentalness = instrumentalness_scores.total_score / num_tracks
+    average_liveness = liveness_scores.total_score / num_tracks
+    average_loudness = loudness_scores.total_score / num_tracks
+    average_speechiness = speechiness_scores.total_score / num_tracks
+    average_tempo = tempo_scores.total_score / num_tracks
+    average_valence = valence_scores.total_score / num_tracks
     return {
         "average_acousticness": average_acousticness,
         "average_danceability": average_danceability,
@@ -370,5 +393,37 @@ def average_audio_features(current_app, spotify, tracks_ids):
         "average_liveness": average_liveness,
         "average_loudness": average_loudness,
         "average_speechiness": average_speechiness,
-        "average_tempo": average_tempo
+        "average_tempo": average_tempo,
+        "average_valence": average_valence,
+        "acousticness_scores": acousticness_scores,
+        "danceability_scores": danceability_scores,
+        "energy_scores": energy_scores,
+        "instrumentalness_scores": instrumentalness_scores,
+        "liveness_scores": liveness_scores,
+        "loudness_scores": loudness_scores,
+        "speechiness_scores": speechiness_scores,
+        "tempo_scores": tempo_scores,
+        "valence_scores": valence_scores
     }
+
+def prep_audio_feature_track(id, value):
+    return {
+        "id": id,
+        "value": value
+    }
+
+def process_track_feature(track, feature_name, feature_score_data):
+    if feature_name in track and track[feature_name] is not None:
+        feature_score_data.total_score += track[feature_name]
+        feature_score_data.update_scores(track)
+        
+
+def prep_essential_track_data(track_data):
+    if track_data != None:
+        return {
+            "title": track_data["name"],
+            "external_url": track_data["external_urls"]["spotify"],
+            "artists": track_data["artists"],
+            "length": track_data["duration_ms"],
+        }
+    return None
