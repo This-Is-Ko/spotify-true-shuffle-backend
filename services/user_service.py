@@ -337,9 +337,11 @@ def get_user_analysis(current_app, spotify):
     }
 
 class TrackFeatureScoreData:
-    def __init__(self, feature_name):
+    def __init__(self, feature_name, feature_description):
         self.feature_name = feature_name
+        self.feature_description = feature_description
         self.total_score = 0
+        self.average_score = 0
         self.highest_feature_score = prep_audio_feature_track("", 0)
         self.lowest_feature_score = prep_audio_feature_track("", 0)
 
@@ -349,19 +351,28 @@ class TrackFeatureScoreData:
         if self.lowest_feature_score["id"] == "" or track[self.feature_name] < self.lowest_feature_score["value"]:
             self.lowest_feature_score = prep_audio_feature_track(track["id"], track[self.feature_name])
 
+    def to_dict(self):
+        return {
+            'feature_name': self.feature_name,
+            'feature_description': self.feature_description,
+            'total_score': self.total_score,
+            'average_score': self.average_score,
+            'highest_feature_score': self.highest_feature_score,
+            'lowest_feature_score': self.lowest_feature_score
+        }
 
 def average_audio_features(current_app, spotify, tracks_ids):
     all_audio_features = get_all_track_audio_features(
         current_app, spotify, tracks_ids)
-    acousticness_scores = TrackFeatureScoreData("acousticness")
-    danceability_scores = TrackFeatureScoreData("danceability")
-    energy_scores = TrackFeatureScoreData("energy")
-    instrumentalness_scores = TrackFeatureScoreData("instrumentalness")
-    liveness_scores = TrackFeatureScoreData("liveness")
-    loudness_scores = TrackFeatureScoreData("loudness")
-    speechiness_scores = TrackFeatureScoreData("speechiness")
-    tempo_scores = TrackFeatureScoreData("tempo")
-    valence_scores = TrackFeatureScoreData("valence")
+    acousticness_scores = TrackFeatureScoreData("acousticness", """A confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.""")
+    danceability_scores = TrackFeatureScoreData("danceability", """Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable.""")
+    energy_scores = TrackFeatureScoreData("energy", """Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy.""")
+    instrumentalness_scores = TrackFeatureScoreData("instrumentalness", """Predicts whether a track contains no vocals. "Ooh" and "aah" sounds are treated as instrumental in this context. Rap or spoken word tracks are clearly "vocal". The closer the instrumentalness value is to 1.0, the greater likelihood the track contains no vocal content. Values above 0.5 are intended to represent instrumental tracks, but confidence is higher as the value approaches 1.0.""")
+    liveness_scores = TrackFeatureScoreData("liveness", """Detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live.""")
+    loudness_scores = TrackFeatureScoreData("loudness", """The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track and are useful for comparing relative loudness of tracks. Loudness is the quality of a sound that is the primary psychological correlate of physical strength (amplitude). Values typically range between -60 and 0 db.""")
+    speechiness_scores = TrackFeatureScoreData("speechiness", """Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words. Values between 0.33 and 0.66 describe tracks that may contain both music and speech, either in sections or layered, including such cases as rap music. Values below 0.33 most likely represent music and other non-speech-like tracks.""")
+    tempo_scores = TrackFeatureScoreData("tempo", """The overall estimated tempo of a track in beats per minute (BPM). In musical terminology, tempo is the speed or pace of a given piece and derives directly from the average beat duration.""")
+    valence_scores = TrackFeatureScoreData("valence", """A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry).""")
 
     for track in all_audio_features:
         if track is not None:
@@ -375,36 +386,31 @@ def average_audio_features(current_app, spotify, tracks_ids):
             process_track_feature(track, "tempo", tempo_scores)
             process_track_feature(track, "valence", valence_scores)
 
+    # Update averages
     num_tracks = len(tracks_ids)
-    average_acousticness = acousticness_scores.total_score / num_tracks
-    average_danceability = danceability_scores.total_score / num_tracks
-    average_energy = energy_scores.total_score / num_tracks
-    average_instrumentalness = instrumentalness_scores.total_score / num_tracks
-    average_liveness = liveness_scores.total_score / num_tracks
-    average_loudness = loudness_scores.total_score / num_tracks
-    average_speechiness = speechiness_scores.total_score / num_tracks
-    average_tempo = tempo_scores.total_score / num_tracks
-    average_valence = valence_scores.total_score / num_tracks
-    return {
-        "average_acousticness": average_acousticness,
-        "average_danceability": average_danceability,
-        "average_energy": average_energy,
-        "average_instrumentalness": average_instrumentalness,
-        "average_liveness": average_liveness,
-        "average_loudness": average_loudness,
-        "average_speechiness": average_speechiness,
-        "average_tempo": average_tempo,
-        "average_valence": average_valence,
-        "acousticness_scores": acousticness_scores,
-        "danceability_scores": danceability_scores,
-        "energy_scores": energy_scores,
-        "instrumentalness_scores": instrumentalness_scores,
-        "liveness_scores": liveness_scores,
-        "loudness_scores": loudness_scores,
-        "speechiness_scores": speechiness_scores,
-        "tempo_scores": tempo_scores,
-        "valence_scores": valence_scores
-    }
+    acousticness_scores.average_score = acousticness_scores.total_score / num_tracks
+    danceability_scores.average_score = danceability_scores.total_score / num_tracks
+    energy_scores.average_score = energy_scores.total_score / num_tracks
+    instrumentalness_scores.average_score = instrumentalness_scores.total_score / num_tracks
+    liveness_scores.average_score = liveness_scores.total_score / num_tracks
+    loudness_scores.average_score = loudness_scores.total_score / num_tracks
+    speechiness_scores.average_score = speechiness_scores.total_score / num_tracks
+    tempo_scores.average_score = tempo_scores.total_score / num_tracks
+    valence_scores.average_score = valence_scores.total_score / num_tracks
+
+    all_features = [
+        acousticness_scores.to_dict(),
+        danceability_scores.to_dict(),
+        energy_scores.to_dict(),
+        instrumentalness_scores.to_dict(),
+        liveness_scores.to_dict(),
+        loudness_scores.to_dict(),
+        speechiness_scores.to_dict(),
+        tempo_scores.to_dict(),
+        valence_scores.to_dict()
+    ]
+
+    return all_features
 
 def prep_audio_feature_track(id, value):
     return {
@@ -420,10 +426,24 @@ def process_track_feature(track, feature_name, feature_score_data):
 
 def prep_essential_track_data(track_data):
     if track_data != None:
-        return {
-            "title": track_data["name"],
-            "external_url": track_data["external_urls"]["spotify"],
-            "artists": track_data["artists"],
-            "length": track_data["duration_ms"],
-        }
+        try:
+            track_length_seconds, track_length_minutes, track_length_hours, track_length_days = calcFromMillis(track_data["duration_ms"])
+            return {
+                "title": track_data["name"],
+                "external_url": track_data["external_urls"]["spotify"],
+                "artists": track_data["artists"],
+                "length": {
+                    "days": track_length_days,
+                    "hours": track_length_hours,
+                    "minutes": track_length_minutes,
+                    "seconds": track_length_seconds,
+                },
+                "preview_url": track_data["preview_url"],
+                "album": {
+                    "name": track_data["album"]["name"],
+                    "image_url": track_data["album"]["images"][1]["url"]
+                },
+            }
+        except Exception as e:
+            return None
     return None
