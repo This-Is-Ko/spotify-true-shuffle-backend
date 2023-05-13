@@ -216,18 +216,17 @@ def get_user_analysis(current_app, spotify):
     most_common_genre = {}
     total_length = 0
     average_track_length = 0
-    longest_track_data = {
-        "duration_ms": 0
-    }
-    shortest_track_data = {
-        "duration_ms": 0
-    }
+    sorted_tracks = sorted(all_tracks, key=lambda track: int(track["track"]["duration_ms"]), reverse=True)
+    top_10_longest_tracks = sorted_tracks[:10]
+    top_10_shortest_tracks = sorted(sorted_tracks[len(sorted_tracks)-10:], key=lambda track: int(track["track"]["duration_ms"]))
+    release_year_counts = {}
+
     # TODO Find oldest and newest tracks
     # oldest_release_date_track = {}
     # latest_release_date_track = {}
     all_tracks_ids = []
 
-    for track in all_tracks:
+    for track in all_tracks: 
         track_data = track["track"]
         all_tracks_ids.append(track_data["id"])
         # Most common artist
@@ -273,12 +272,29 @@ def get_user_analysis(current_app, spotify):
                     most_common_genre[genre] = 1
         # Average track length
         total_length += int(track_data["duration_ms"])
-        # Longest/shortest tracks
-        if longest_track_data["duration_ms"] == 0 or int(track_data["duration_ms"]) > longest_track_data["duration_ms"]:
-            longest_track_data = track_data
-        if shortest_track_data["duration_ms"] == 0 or int(track_data["duration_ms"]) < shortest_track_data["duration_ms"]:
-            shortest_track_data = track_data
+        # Release date
+        release_date = album["release_date"]
 
+        try:
+            release_date_object = datetime.strptime(release_date, '%Y-%m-%d').date()
+            if release_date_object.year in release_year_counts:
+                release_year_counts[release_date_object.year] += 1
+            else:
+                release_year_counts[release_date_object.year] = 1
+        except Exception as e:
+            try:
+                release_date_object = datetime.strptime(release_date, '%Y').date()
+                if release_date_object.year in release_year_counts:
+                    release_year_counts[release_date_object.year] += 1
+                else:
+                    release_year_counts[release_date_object.year] = 1
+            except Exception as e:
+                release_date_object = datetime.strptime(release_date, '%Y-%m').date()
+                if release_date_object.year in release_year_counts:
+                    release_year_counts[release_date_object.year] += 1
+                else:
+                    release_year_counts[release_date_object.year] = 1
+    
     average_track_length = total_length / num_tracks
     average_track_length_seconds, average_track_length_minutes, average_track_length_hours, average_track_length_days = calcFromMillis(
         average_track_length)
@@ -329,8 +345,9 @@ def get_user_analysis(current_app, spotify):
             "minutes": average_track_length_minutes,
             "seconds": average_track_length_seconds,
         },
-        "shortest_track": prep_essential_track_data(shortest_track_data),
-        "longest_track": prep_essential_track_data(longest_track_data),
+        "longest_tracks": process_multiple_tracks(top_10_longest_tracks),
+        "shortest_tracks": process_multiple_tracks(top_10_shortest_tracks),
+        "release_year_counts": release_year_counts,
         "audio_features": audio_features
         # "all_time_top_artists": all_time_top_artists,
         # "all_time_top_tracks": all_time_top_tracks
@@ -423,6 +440,13 @@ def process_track_feature(track, feature_name, feature_score_data):
         feature_score_data.total_score += track[feature_name]
         feature_score_data.update_scores(track)
         
+
+def process_multiple_tracks(tracks):
+    processed_tracks = []
+    for track_data in tracks:
+        processed_tracks.append(prep_essential_track_data(track_data["track"]))
+    return processed_tracks
+
 
 def prep_essential_track_data(track_data):
     if track_data != None:
