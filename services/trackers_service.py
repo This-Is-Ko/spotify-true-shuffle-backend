@@ -1,5 +1,6 @@
 import spotipy
 import datetime
+import time
 
 from database import database
 from services.spotify_client import *
@@ -23,6 +24,7 @@ def update_trackers(current_app):
     # Track total users as users object is cursor
     total_users = 0
     for user in users:
+        time.sleep(2)
         total_users += 1
         if is_user_entry_valid(user) == False:
             tracker_logger(current_app, USER_LIKED_TRACKS_TRACKER_LOG, TRACK_SHUFFLES_ATTRIBUTE_NAME,
