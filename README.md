@@ -48,6 +48,8 @@ Run flask app:
 
 Current set up to automatically deploy commits to the "main" branch using Railway
 
+Note: Due to changes in Railway's free plan, the backend is currently unavailable
+
 ## Tests
 
 Use pytest to run tests on the app:
