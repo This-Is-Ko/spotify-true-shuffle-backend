@@ -93,3 +93,7 @@ Use pytest to run tests on the app:
 Authentication is handled by Spotify and the access-token/refresh-token are stored for each user. 
 
 Sessions are created and send in cookies to the user which are revoked once logged out.
+
+## CRON job - Library tracker
+
+CRON job setup with https://console.cron-job.org/ to update library tracker
