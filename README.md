@@ -46,9 +46,11 @@ Run flask app:
 
 ## Deployment
 
-Current set up to automatically deploy commits to the "main" branch using Railway
+Current set up to deploy onto Fly.io
 
-Note: Due to changes in Railway's free plan, the backend is currently unavailable
+    .venv\Scripts\activate 
+    fly launch
+    fly deploy
 
 ## Tests
 
