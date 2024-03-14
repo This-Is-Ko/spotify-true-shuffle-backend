@@ -55,13 +55,32 @@ def shuffle_playlist():
 
     try:
         response = make_response(playlist_service.create_shuffled_playlist(
-            current_app, spotify_auth, request_body["playlist_id"], request_body["playlist_name"]))
+            spotify_auth, request_body["playlist_id"], request_body["playlist_name"]))
         extend_session_expiry(current_app, response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
             "Unable to create shuffled playlist: " + str(e))
         return {"error": "Unable to create shuffled playlist"}, 400
+    
+@playlist_controller.route('/shuffle/state/<id>', methods=['GET'])
+def shuffle_state(id):
+    try:
+        validate_session(request.cookies)
+    except (SessionIdNone, SessionIdNotFound, SessionExpired) as e:
+        current_app.logger.error("Invalid credentials: " + str(e))
+        return {"error": "Invalid credentials"}, 401
+    except Exception as e:
+        current_app.logger.error("Invalid request: " + str(e))
+        return {"error": "Invalid request"}, 400
+    
+    try:
+        response = make_response(playlist_service.get_shuffle_state(id))
+        return response
+    except Exception as e:
+        current_app.logger.error(
+            "Unable to retrieve shuffle state: " + str(e))
+        return {"error": "Unable to retrieve shuffle state"}, 400
 
 
 @playlist_controller.route('/delete', methods=['DELETE'])
