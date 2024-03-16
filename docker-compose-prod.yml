@@ -3,11 +3,12 @@ services:
     build:
       context: .
       dockerfile: ./docker/prod/flask.Dockerfile
-    image: true_shuffle_flask_web
+    image: kobo67/true-shuffle:true_shuffle_flask_web
     volumes:
-      - .:/app
+      - /etc/letsencrypt/live/api.trueshuffle.top:/ssl
     ports:
       - 5000:5000
+      - 443:443
     env_file:
       - .env
     depends_on:
@@ -34,14 +35,12 @@ services:
     build:
       context: .
       dockerfile: ./docker/prod/celery.Dockerfile
-    image: true_shuffle_celery_worker
-    volumes:
-      - .:/app
+    image: kobo67/true-shuffle:true_shuffle_celery_worker
     healthcheck:
-      test: ["CMD", "celery", "-A", "make_celery", "inspect", "ping"]
+      test: celery -A make_celery inspect ping
       interval: 1s
       timeout: 5s
-      retries: 10
+      retries: 20
     env_file:
       - .env
     depends_on:

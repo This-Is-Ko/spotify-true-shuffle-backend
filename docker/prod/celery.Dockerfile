@@ -11,9 +11,11 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # Requirements are installed here to ensure they will be cached.
-COPY ./requirements.txt /requirements.txt
+COPY ./app/requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
 WORKDIR /app
+
+COPY ./app .
 
 CMD celery -A make_celery worker --pool=gevent --loglevel INFO
