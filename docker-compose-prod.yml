@@ -1,0 +1,54 @@
+services:
+  flask:
+    build:
+      context: .
+      dockerfile: ./docker/prod/flask.Dockerfile
+    image: true_shuffle_flask_web
+    volumes:
+      - .:/app
+    ports:
+      - 5000:5000
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 10
+    networks:
+      - app-network
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ./docker/prod/celery.Dockerfile
+    image: true_shuffle_celery_worker
+    volumes:
+      - .:/app
+    healthcheck:
+      test: ["CMD", "celery", "-A", "make_celery", "inspect", "ping"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

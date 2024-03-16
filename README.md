@@ -89,3 +89,10 @@ Use pytest to run tests on the app:
 Authentication is handled by Spotify and the access-token/refresh-token are stored for each user. 
 
 Sessions are created and send in cookies to the user which are revoked once logged out.
+
+## Docker
+
+Run 
+
+    docker-compose build
+    docker-compose --env-file .env-prod  up -d
