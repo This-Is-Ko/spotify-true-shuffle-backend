@@ -36,7 +36,7 @@ def get_playlists():
 
 
 @playlist_controller.route('/shuffle', methods=['POST'])
-def shuffle_playlist():
+def queue_shuffle_playlist():
     try:
         spotify_auth = validate_session(request.cookies)
 
@@ -54,17 +54,18 @@ def shuffle_playlist():
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(playlist_service.create_shuffled_playlist(
+        response = make_response(playlist_service.queue_create_shuffled_playlist(
             spotify_auth, request_body["playlist_id"], request_body["playlist_name"]))
         extend_session_expiry(current_app, response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
-            "Unable to create shuffled playlist: " + str(e))
-        return {"error": "Unable to create shuffled playlist"}, 400
+            "Unable to queue to create shuffled playlist: " + str(e))
+        return {"error": "Unable to queue to create shuffled playlist"}, 400
     
+
 @playlist_controller.route('/shuffle/state/<id>', methods=['GET'])
-def shuffle_state(id):
+def get_shuffle_state(id):
     try:
         validate_session(request.cookies)
     except (SessionIdNone, SessionIdNotFound, SessionExpired) as e:
