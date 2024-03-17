@@ -24,20 +24,19 @@ def get_user_playlists(current_app, spotify_auth, include_stats):
         raise SpotifyAuthInvalid("Invalid token")
     user = spotify.current_user()
 
-    playlists = spotify.current_user_playlists()
-    if not "items" in playlists:
-        return {"error": "Unable to retrieve playlists"}, 400
-
     all_playlists = []
     # Add liked tracks as playlist option
     all_playlists.append(Playlist("Liked Tracks", user, LIKED_TRACKS_PLAYLIST_ID, {
                          "url": "https://misc.scdn.co/liked-songs/liked-songs-300.png"}))
-    for playlist_entry in playlists["items"]:
-        # Don't select playlists already shuffled
-        if playlist_entry["name"].startswith(SHUFFLED_PLAYLIST_PREFIX):
-            continue
-        all_playlists.append(Playlist(
-            playlist_entry["name"], playlist_entry["owner"], playlist_entry["id"], playlist_entry["images"][0]))
+
+    playlists = spotify.current_user_playlists()
+    if not "items" in playlists:
+        for playlist_entry in playlists["items"]:
+            # Don't select playlists already shuffled
+            if playlist_entry["name"].startswith(SHUFFLED_PLAYLIST_PREFIX):
+                continue
+            all_playlists.append(Playlist(
+                playlist_entry["name"], playlist_entry["owner"], playlist_entry["id"], playlist_entry["images"][0]))
 
     get_playlists_success_log = "User: {user_id} -- Retrieved {num_of_playlists:d} playlists"
     current_app.logger.info(get_playlists_success_log.format(
