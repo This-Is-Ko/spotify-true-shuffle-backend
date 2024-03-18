@@ -9,7 +9,7 @@ from database import database
 from exceptions.custom_exceptions import SpotifyAuthInvalid
 from services.spotify_client import *
 from schemas.Playlist import Playlist
-from tasks.playlist_tasks import shuffle_playlist
+from tasks.playlist_tasks import create_playlist_from_liked_tracks, shuffle_playlist
 
 SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
@@ -30,7 +30,7 @@ def get_user_playlists(current_app, spotify_auth, include_stats):
                          "url": "https://misc.scdn.co/liked-songs/liked-songs-300.png"}))
 
     playlists = spotify.current_user_playlists()
-    if not "items" in playlists:
+    if "items" in playlists:
         for playlist_entry in playlists["items"]:
             # Don't select playlists already shuffled
             if playlist_entry["name"].startswith(SHUFFLED_PLAYLIST_PREFIX):
@@ -67,6 +67,7 @@ def queue_create_shuffled_playlist(spotify_auth, playlist_id, playlist_name):
     result = shuffle_playlist.delay(spotify_auth, playlist_id, playlist_name)
     print("Shuffle id:" + result.id)
     return {"shuffle_task_id": result.id}
+
 
 def get_shuffle_state(id: str):
     result = AsyncResult(id)
@@ -113,76 +114,6 @@ def delete_all_shuffled_playlists(current_app, spotify_auth):
     }
 
 
-def get_tracks_from_playlist(spotify, playlist_id):
-    """
-    Get tracks from playlist based on playlist_id
-    Use separate spotify call for retrieving Liked Tracks
-    """
-    offset = 0
-    all_tracks = []
-    if playlist_id == LIKED_TRACKS_PLAYLIST_ID:
-        while True:
-            tracks_response = spotify.current_user_saved_tracks(
-                limit=50, offset=offset)
-            if "items" in tracks_response:
-                if len(tracks_response["items"]) == 0:
-                    break
-                for track in tracks_response["items"]:
-                    all_tracks.append(track["track"]["uri"])
-            offset += len(tracks_response["items"])
-    else:
-        while True:
-            tracks_response = spotify.playlist_items(
-                playlist_id, limit=50, offset=offset)
-            if "items" in tracks_response:
-                if len(tracks_response["items"]) == 0:
-                    break
-                for track in tracks_response["items"]:
-                    all_tracks.append(track["track"]["uri"])
-            offset += len(tracks_response["items"])
-    return all_tracks
-
-
-def get_tracks_from_playlist(task, spotify, playlist_id):
-    """
-    Get tracks from playlist based on playlist_id
-    Use separate spotify call for retrieving Liked Tracks
-    """
-    offset = 0
-    all_tracks = []
-    if playlist_id == LIKED_TRACKS_PLAYLIST_ID:
-        while True:
-            tracks_response = spotify.current_user_saved_tracks(
-                limit=50, offset=offset)
-            if "items" in tracks_response:
-                if len(tracks_response["items"]) == 0:
-                    break
-                for track in tracks_response["items"]:
-                    all_tracks.append(track["track"]["uri"])
-            offset += len(tracks_response["items"])
-            task.update_state(state='PROGRESS', meta={'tracks_retrieved': len(all_tracks)})
-    else:
-        while True:
-            tracks_response = spotify.playlist_items(
-                playlist_id, limit=50, offset=offset)
-            if "items" in tracks_response:
-                if len(tracks_response["items"]) == 0:
-                    break
-                for track in tracks_response["items"]:
-                    all_tracks.append(track["track"]["uri"])
-            offset += len(tracks_response["items"])
-            task.update_state(state='PROGRESS', meta={'tracks_retrieved': len(all_tracks)})
-    return all_tracks
-
-
-def get_liked_tracks_count(current_app, spotify):
-    liked_tracks = spotify.current_user_saved_tracks()
-    get_liked_tracks_log = "Liked tracks response: {response}"
-    current_app.logger.debug(
-        get_liked_tracks_log.format(response=liked_tracks))
-    return liked_tracks["total"]
-
-
 def create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, public_status, playlist_description, tracks_to_add):
     try:
         # Create new playlist
@@ -226,15 +157,28 @@ def create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, pub
         }
 
 
-def create_playlist_from_liked_tracks(current_app, spotify_auth, new_playlist_name="My Liked Tracks"):
-    auth_manager = create_auth_manager_with_token(
-        current_app, spotify_auth)
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
-        raise SpotifyAuthInvalid("Invalid token")
+def queue_create_playlist_from_liked_tracks(spotify_auth, new_playlist_name="My Liked Tracks"):
+    result = create_playlist_from_liked_tracks.delay(spotify_auth, new_playlist_name)
+    print("Create playlist id:" + result.id)
+    return {"create_liked_playlist_id": result.id}
 
-    all_tracks = get_tracks_from_playlist(spotify, LIKED_TRACKS_PLAYLIST_ID)
 
-    today = date.today()
-
-    return create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, True, "True Shuffle | My Liked Tracks from " + today.strftime("%d/%m/%Y"), all_tracks)
+def get_create_playlist_from_liked_tracks_state(id: str):
+    result = AsyncResult(id)
+    print("Create playlist state:" + result.state)
+    if result.state == "PROGRESS":
+        return {
+                    "state": result.state,
+                    "progress": result.info.get("progress", 0)
+                }
+    elif result.state == "SUCCESS":
+        return {
+                    "state": result.state,
+                    "result": result.get()
+                }
+    else:
+        return {
+            "ready": result.ready(),
+            "successful": result.successful(),
+            "state": result.state
+        }

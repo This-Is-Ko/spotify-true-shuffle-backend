@@ -85,7 +85,7 @@ def get_user_tracker_data(task, user_id, user_json, tracker_name):
 
 def get_user_analysis(task, current_app, spotify):
     # Get all tracks from library
-    all_tracks = get_all_tracks_with_data_from_playlist(task, 
+    all_tracks = get_tracks_from_playlist(task, 
         spotify, LIKED_TRACKS_PLAYLIST_ID)
     num_tracks = len(all_tracks)
 

@@ -1,3 +1,4 @@
+from datetime import date
 from celery import shared_task
 import random
 import spotipy
@@ -82,3 +83,18 @@ def shuffle_playlist(self, spotify_auth, playlist_id, playlist_name):
             break
 
     return create_new_playlist_with_tracks(self, spotify, SHUFFLED_PLAYLIST_PREFIX + playlist_name, False, "Shuffled by True Shuffle", all_tracks)
+
+
+@shared_task(bind=True, ignore_result=False)
+def create_playlist_from_liked_tracks(self, spotify_auth, new_playlist_name):
+    auth_manager = create_auth_manager_with_token(
+        current_app, spotify_auth)
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+    # if not auth_manager.validate_token(spotify_auth):
+    #     raise SpotifyAuthInvalid("Invalid token")
+
+    all_tracks = get_tracks_from_playlist(self, spotify, LIKED_TRACKS_PLAYLIST_ID)
+
+    today = date.today()
+
+    return create_new_playlist_with_tracks(self, spotify, new_playlist_name, True, "True Shuffle | My Liked Tracks from " + today.strftime("%d/%m/%Y"), all_tracks)

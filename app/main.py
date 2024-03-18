@@ -23,7 +23,6 @@ def create_app():
     register_all_blueprints(app)
 
     # Initialise mongodb client
-
     try:
         mongo.init_app(app)
     except:

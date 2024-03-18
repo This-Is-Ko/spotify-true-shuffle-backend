@@ -126,16 +126,35 @@ def liked_tracks_to_playlist():
 
     try:
         if "playlist_name" in request_body and request_body["playlist_name"] != "":
-            response = make_response(playlist_service.create_playlist_from_liked_tracks(
-                current_app, spotify_auth, request_body["playlist_name"]))
+            response = make_response(playlist_service.queue_create_playlist_from_liked_tracks(spotify_auth, request_body["playlist_name"]))
             extend_session_expiry(current_app, response, request.cookies)
             return response
         else:
-            response = make_response(
-                playlist_service.create_playlist_from_liked_tracks(current_app, spotify_auth))
+            response = make_response(playlist_service.queue_create_playlist_from_liked_tracks(spotify_auth))
             extend_session_expiry(current_app, response, request.cookies)
             return response
     except Exception as e:
         current_app.logger.error(
             "Unable to create share playlist: " + str(e))
         return {"error": "Unable to create share playlist"}, 400
+
+
+@playlist_controller.route('/share/liked-tracks/<id>', methods=['GET'])
+def get_liked_tracks_to_playlist_state(id):
+    try:
+        validate_session(request.cookies)
+    except (SessionIdNone, SessionIdNotFound, SessionExpired) as e:
+        current_app.logger.error("Invalid credentials: " + str(e))
+        return {"error": "Invalid credentials"}, 401
+    except Exception as e:
+        current_app.logger.error("Invalid request: " + str(e))
+        return {"error": "Invalid request"}, 400
+
+    try:
+        response = make_response(playlist_service.get_create_playlist_from_liked_tracks_state(id))
+        extend_session_expiry(current_app, response, request.cookies)
+        return response
+    except Exception as e:
+        current_app.logger.error(
+            "Unable to get create liked playlist state: " + str(e))
+        return {"error": "Unable to get create liked playlist state"}, 400
