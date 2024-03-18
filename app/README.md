@@ -46,11 +46,7 @@ Run flask app:
 
 ## Deployment
 
-Current set up to deploy onto Fly.io
-
-    .venv\Scripts\activate 
-    fly launch
-    fly deploy
+Current set up to automatically deploy commits to the "main" branch using Railway
 
 ## Tests
 
@@ -94,6 +90,9 @@ Authentication is handled by Spotify and the access-token/refresh-token are stor
 
 Sessions are created and send in cookies to the user which are revoked once logged out.
 
-## CRON job - Library tracker
+## Docker
 
-CRON job setup with https://console.cron-job.org/ to update library tracker
+Run 
+
+    docker-compose build
+    docker-compose --env-file .env-prod  up -d

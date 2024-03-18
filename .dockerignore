@@ -1,0 +1,3 @@
+fly.toml
+./app/.env
+./app/.env-prod

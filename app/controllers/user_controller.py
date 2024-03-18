@@ -120,9 +120,9 @@ def get_user_analysis():
 
 
 @user_controller.route('/aggregate', methods=['GET'])
-def get_user_aggregated_data():
+def queue_user_aggregated_data():
     """
-    Get user trackers and analysis
+    Queue aggregate data task
     """
     try:
         spotify_auth = validate_session(request.cookies)
@@ -135,10 +135,36 @@ def get_user_aggregated_data():
 
     try:
         response = make_response(
-            user_service.aggregate_user_data(current_app, spotify_auth))
+            user_service.queue_get_aggregate_user_data(spotify_auth))
+        extend_session_expiry(current_app, response, request.cookies)
+        return response
+    except Exception as e:
+        current_app.logger.error(
+            "Unable to get user aggregated data state: " + str(e))
+        return {"error": "Unable to get user aggregated data state"}, 400
+    
+    
+@user_controller.route('/aggregate/state/<id>', methods=['GET'])
+def get_user_aggregated_data_state(id):
+    """
+    Get state of aggregate data task
+    """
+    try:
+        spotify_auth = validate_session(request.cookies)
+    except (SessionIdNone, SessionIdNotFound, SessionExpired) as e:
+        current_app.logger.error("Invalid credentials: " + str(e))
+        return {"error": "Invalid credentials"}, 401
+    except Exception as e:
+        current_app.logger.error("Invalid request: " + str(e))
+        return {"error": "Invalid request"}, 400
+
+    try:
+        response = make_response(
+            user_service.get_aggregate_user_data_state(id))
         extend_session_expiry(current_app, response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
             "Unable to retrieve user aggregated data: " + str(e))
         return {"error": "Unable to retrieve user aggregated data"}, 400
+    

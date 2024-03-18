@@ -1,76 +1,20 @@
-from database import database
+from celery import shared_task
+from flask import current_app
 import spotipy
 from bson import json_util
 import json
 
-from services.spotify_client import *
-from utils.utils import *
-
-LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
+from database import database
+from services.spotify_client import create_auth_manager_with_token
+from utils.util import *
 
 TRACKERS_ENABLED_ATTRIBUTE_NAME = "trackers_enabled"
 TRACK_LIKED_TRACKS_ATTRIBUTE_NAME = "track_liked_tracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 ANALYSE_LIBRARY_ATTRIBUTE_NAME = "analyse_library"
 
-
-def save_user(current_app, spotify_auth, user_attributes):
-    """
-    Check if user exists and update
-    Otherwise create new user entry
-    """
-    auth_manager = create_auth_manager_with_token(
-        current_app, spotify_auth)
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
-        return {"error": "Invalid token"}, 400
-    user_id = spotify.me()["id"]
-    user_entry = {
-        "spotify": {
-            "expires_at": spotify_auth["expires_at"],
-            "refresh_token": spotify_auth["refresh_token"],
-            "scope": spotify_auth["scope"]
-        },
-        "user_attributes": user_attributes
-    }
-    user = database.find_and_update_user(
-        user_id, user_entry)
-
-    user_json = json.loads(json_util.dumps(user))
-    if (user != None):
-        return {
-            "status": "success",
-            "user": user_json
-        }
-    return {
-        "status": "error"
-    }, 400
-
-
-def get_user(current_app, spotify_auth):
-    """
-    Check if user exists and update
-    Otherwise create new user entry
-    """
-    auth_manager = create_auth_manager_with_token(
-        current_app, spotify_auth)
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
-        return {"error": "Invalid token"}, 400
-    user_id = spotify.me()["id"]
-    user = database.find_user(user_id)
-
-    user_json = json.loads(json_util.dumps(user))
-    if (user != None):
-        return {
-            "user": user_json
-        }
-    return {
-        "status": "error"
-    }, 400
-
-
-def aggregate_user_data(current_app, spotify_auth):
+@shared_task(bind=True, ignore_result=False)
+def aggregate_user_data(self, spotify_auth):
     """
     Return user trackers and analysis in one call
     """
@@ -102,9 +46,10 @@ def aggregate_user_data(current_app, spotify_auth):
 
     try:
         return {
-            TRACK_LIKED_TRACKS_ATTRIBUTE_NAME: get_user_tracker_data(user_id, user_json,
+            "status": "success",
+            TRACK_LIKED_TRACKS_ATTRIBUTE_NAME: get_user_tracker_data(self, user_id, user_json,
                                                                      TRACK_LIKED_TRACKS_ATTRIBUTE_NAME),
-            "analysis": get_user_analysis(current_app, spotify)
+            "analysis": get_user_analysis(self, current_app, spotify)
         }
     except Exception as e:
         current_app.logger.error(
@@ -114,30 +59,7 @@ def aggregate_user_data(current_app, spotify_auth):
         }, 400
 
 
-def handle_get_user_tracker_data(current_app, spotify_auth, tracker_name):
-    """
-    Check if trackers are enabled for user
-    If enabled, retrieve all data points for user
-    """
-    auth_manager = create_auth_manager_with_token(
-        current_app, spotify_auth)
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
-        return {"error": "Invalid token"}, 400
-    user_id = spotify.me()["id"]
-    user = database.find_user(user_id)
-    user_json = json.loads(json_util.dumps(user))
-    try:
-        return get_user_tracker_data(user_id, user_json, tracker_name)
-    except Exception as e:
-        current_app.logger.error(
-            "Error in handle_get_user_tracker_data: " + str(e))
-        return {
-            "status": "error"
-        }, 400
-
-
-def get_user_tracker_data(user_id, user_json, tracker_name):
+def get_user_tracker_data(task, user_id, user_json, tracker_name):
     # Check tracker status
     if (TRACKERS_ENABLED_ATTRIBUTE_NAME not in user_json["user_attributes"] or user_json["user_attributes"][TRACKERS_ENABLED_ATTRIBUTE_NAME] is not True):
         raise Exception("Trackers not enabled")
@@ -154,35 +76,16 @@ def get_user_tracker_data(user_id, user_json, tracker_name):
             "message": "track_name invalid"
         }, 400
     data = json.loads(json_util.dumps(list(data_cursor)))
+    task.update_state(state='PROGRESS', meta={'progress': {'state': "Getting history tracker data"}})
     return {
         "status": "success",
         "data": data
     }
 
 
-def handle_get_user_analysis(current_app, spotify_auth):
-    """
-    Get all liked tracks to analyse
-    Calcuate most common tracks/artists/genres
-    """
-    auth_manager = create_auth_manager_with_token(
-        current_app, spotify_auth)
-    spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
-        return {"error": "Invalid token"}, 400
-    try:
-        return get_user_analysis(current_app, spotify)
-    except Exception as e:
-        current_app.logger.error(
-            "Error in handle_get_user_analysis: " + str(e))
-        return {
-            "status": "error"
-        }, 400
-
-
-def get_user_analysis(current_app, spotify):
+def get_user_analysis(task, current_app, spotify):
     # Get all tracks from library
-    all_tracks = get_all_tracks_with_data_from_playlist(
+    all_tracks = get_all_tracks_with_data_from_playlist(task, 
         spotify, LIKED_TRACKS_PLAYLIST_ID)
     num_tracks = len(all_tracks)
 
@@ -225,6 +128,8 @@ def get_user_analysis(current_app, spotify):
     # oldest_release_date_track = {}
     # latest_release_date_track = {}
     all_tracks_ids = []
+
+    counter = 1
 
     for track in all_tracks: 
         track_data = track["track"]
@@ -294,6 +199,8 @@ def get_user_analysis(current_app, spotify):
                     release_year_counts[release_date_object.year] += 1
                 else:
                     release_year_counts[release_date_object.year] = 1
+        task.update_state(state='PROGRESS', meta={'progress': {'state': "Analysed " + str(counter) + " tracks so far..."}})
+        counter = counter + 1
     
     average_track_length = total_length / num_tracks
     average_track_length_seconds, average_track_length_minutes, average_track_length_hours, average_track_length_days = calcFromMillis(
@@ -318,8 +225,7 @@ def get_user_analysis(current_app, spotify):
         most_common_genre_array.append({"name": k, "count": v})
 
     try:
-        audio_features = average_audio_features(
-            current_app, spotify, all_tracks_ids)
+        audio_features = average_audio_features(task, current_app, spotify, all_tracks_ids)
     except Exception as e:
         current_app.logger.error(
             "Failed while retrieving/calculating audio features: " + str(e))
@@ -378,9 +284,8 @@ class TrackFeatureScoreData:
             'lowest_feature_score': self.lowest_feature_score
         }
 
-def average_audio_features(current_app, spotify, tracks_ids):
-    all_audio_features = get_all_track_audio_features(
-        current_app, spotify, tracks_ids)
+def average_audio_features(task, current_app, spotify, tracks_ids):
+    all_audio_features = get_all_track_audio_features(task, current_app, spotify, tracks_ids)
     acousticness_scores = TrackFeatureScoreData("acousticness", """A confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.""")
     danceability_scores = TrackFeatureScoreData("danceability", """Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable.""")
     energy_scores = TrackFeatureScoreData("energy", """Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy.""")
