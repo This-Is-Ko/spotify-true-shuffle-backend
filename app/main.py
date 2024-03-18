@@ -35,6 +35,7 @@ def create_app():
             broker_url="redis://localhost",
             result_backend="redis://localhost",
             task_ignore_result=True,
+            broker_connection_retry_on_startup = True
         ),
     )
     celery_init_app(app)

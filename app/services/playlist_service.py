@@ -3,8 +3,8 @@ import spotipy
 from datetime import date, datetime
 from bson import json_util
 import json
-from celery.result import AsyncResult
 
+from tasks.task_state import get_celery_task_state
 from database import database
 from exceptions.custom_exceptions import SpotifyAuthInvalid
 from services.spotify_client import *
@@ -70,24 +70,7 @@ def queue_create_shuffled_playlist(spotify_auth, playlist_id, playlist_name):
 
 
 def get_shuffle_state(id: str):
-    result = AsyncResult(id)
-    print("Shuffle state:" + result.state)
-    if result.state == "PROGRESS":
-        return {
-                    "state": result.state,
-                    "progress": result.info.get("progress", 0)
-                }
-    elif result.state == "SUCCESS":
-        return {
-                    "state": result.state,
-                    "result": result.get()
-                }
-    else:
-        return {
-            "ready": result.ready(),
-            "successful": result.successful(),
-            "state": result.state
-        }
+    return get_celery_task_state(id, "Shuffle playlist")
 
 
 def delete_all_shuffled_playlists(current_app, spotify_auth):
@@ -164,21 +147,4 @@ def queue_create_playlist_from_liked_tracks(spotify_auth, new_playlist_name="My 
 
 
 def get_create_playlist_from_liked_tracks_state(id: str):
-    result = AsyncResult(id)
-    print("Create playlist state:" + result.state)
-    if result.state == "PROGRESS":
-        return {
-                    "state": result.state,
-                    "progress": result.info.get("progress", 0)
-                }
-    elif result.state == "SUCCESS":
-        return {
-                    "state": result.state,
-                    "result": result.get()
-                }
-    else:
-        return {
-            "ready": result.ready(),
-            "successful": result.successful(),
-            "state": result.state
-        }
+    return get_celery_task_state(id, "Create liked playlist")

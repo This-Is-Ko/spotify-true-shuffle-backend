@@ -6,7 +6,7 @@ import json
 
 from database import database
 from services.spotify_client import create_auth_manager_with_token
-from utils.utils import *
+from utils.util import *
 
 TRACKERS_ENABLED_ATTRIBUTE_NAME = "trackers_enabled"
 TRACK_LIKED_TRACKS_ATTRIBUTE_NAME = "track_liked_tracks"
@@ -85,7 +85,7 @@ def get_user_tracker_data(task, user_id, user_json, tracker_name):
 
 def get_user_analysis(task, current_app, spotify):
     # Get all tracks from library
-    all_tracks = get_tracks_from_playlist(task, 
+    all_tracks = get_all_tracks_with_data_from_playlist(task, 
         spotify, LIKED_TRACKS_PLAYLIST_ID)
     num_tracks = len(all_tracks)
 

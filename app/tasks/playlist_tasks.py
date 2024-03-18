@@ -7,14 +7,14 @@ from flask import current_app
 
 from database import database
 from services.spotify_client import create_auth_manager_with_token
-from utils.utils import create_new_playlist_with_tracks, get_tracks_from_playlist
+from utils.util import create_new_playlist_with_tracks, get_tracks_from_playlist
 
 
 SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 
-@shared_task(bind=True, ignore_result=False)
+@shared_task(bind=True, ignore_result=False, expires=60)
 def shuffle_playlist(self, spotify_auth, playlist_id, playlist_name):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
@@ -85,7 +85,7 @@ def shuffle_playlist(self, spotify_auth, playlist_id, playlist_name):
     return create_new_playlist_with_tracks(self, spotify, SHUFFLED_PLAYLIST_PREFIX + playlist_name, False, "Shuffled by True Shuffle", all_tracks)
 
 
-@shared_task(bind=True, ignore_result=False)
+@shared_task(bind=True, ignore_result=False, expires=60)
 def create_playlist_from_liked_tracks(self, spotify_auth, new_playlist_name):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)

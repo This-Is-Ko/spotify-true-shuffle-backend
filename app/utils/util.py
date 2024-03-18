@@ -1,6 +1,4 @@
-import random
-import spotipy
-from datetime import date, datetime
+from datetime import datetime
 from flask import current_app
 
 from services.spotify_client import *
@@ -41,30 +39,20 @@ def get_all_tracks_with_data_from_playlist(task, spotify, playlist_id):
     """
     offset = 0
     all_tracks = []
-    if playlist_id == LIKED_TRACKS_PLAYLIST_ID:
-        while True:
-            tracks_response = spotify.current_user_saved_tracks(
-                limit=50, offset=offset)
-            if "items" in tracks_response:
-                if len(tracks_response["items"]) == 0:
-                    break
-                for track in tracks_response["items"]:
-                    all_tracks.append(track)
-            offset += len(tracks_response["items"])
-            task.update_state(state='PROGRESS', meta={'progress': {'state': "Retrieved " + str(len(all_tracks)) + " tracks so far..."}})
-            if offset >= tracks_response["total"]:
+    while True:
+        if playlist_id == LIKED_TRACKS_PLAYLIST_ID:
+            tracks_response = spotify.current_user_saved_tracks(limit=50, offset=offset)
+        else:
+            tracks_response = spotify.playlist_items(playlist_id, limit=50, offset=offset)
+        if "items" in tracks_response:
+            if len(tracks_response["items"]) == 0:
                 break
-    else:
-        while True:
-            tracks_response = spotify.playlist_items(
-                playlist_id, limit=50, offset=offset)
-            if "items" in tracks_response:
-                if len(tracks_response["items"]) == 0:
-                    break
-                for track in tracks_response["items"]:
-                    all_tracks.append(track)
-            offset += len(tracks_response["items"])
-            task.update_state(state='PROGRESS', meta={'progress': {'state': "Retrieved " + str(len(all_tracks)) + " tracks so far..."}})
+            for track in tracks_response["items"]:
+                all_tracks.append(track)
+        offset += len(tracks_response["items"])
+        task.update_state(state='PROGRESS', meta={'progress': {'state': "Retrieved " + str(len(all_tracks)) + " tracks so far..."}})
+        if offset >= tracks_response["total"]:
+            break
     return all_tracks
 
 

@@ -6,7 +6,8 @@ import json
 from celery.result import AsyncResult
 
 from services.spotify_client import *
-from utils.utils import *
+from utils.util import *
+from tasks.task_state import get_celery_task_state
 
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 
@@ -82,24 +83,7 @@ def queue_get_aggregate_user_data(spotify_auth):
 
 
 def get_aggregate_user_data_state(id: str):
-    result = AsyncResult(id)
-    print("Aggregate data state:" + result.state)
-    if result.state == "PROGRESS":
-        return {
-                    "state": result.state,
-                    "progress": result.info.get("progress", 0)
-                }
-    elif result.state == "SUCCESS":
-        return {
-                    "state": result.state,
-                    "result": result.get()
-                }
-    else:
-        return {
-            "ready": result.ready(),
-            "successful": result.successful(),
-            "state": result.state
-        }
+    return get_celery_task_state(id, "Aggregate user data")
 
 
 def handle_get_user_tracker_data(current_app, spotify_auth, tracker_name):
