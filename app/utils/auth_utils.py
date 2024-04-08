@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 import uuid
 import hashlib
-
+from flask import current_app
 from database import database
 from exceptions.custom_exceptions import SessionExpired, SessionIdNone, SessionIdNotFound
 
@@ -31,6 +31,7 @@ def validate_session(cookies):
     """
     Validate session and return spotify auth if valid
     """
+    current_app.logger.info("Validating session...")
     session_id = cookies.get("trueshuffle-sessionId")
 
     # Find session entry with hashed session id
@@ -64,10 +65,11 @@ def validate_session(cookies):
     }
 
 
-def extend_session_expiry(current_app, response, cookies):
+def extend_session_expiry(response, cookies):
     """
     Extend session expiry of cookies and database entry
     """
+    current_app.logger.info("Extending session expiry...")
     session_id = cookies.get("trueshuffle-sessionId")
     session_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
 

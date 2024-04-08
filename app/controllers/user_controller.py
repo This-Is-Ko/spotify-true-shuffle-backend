@@ -55,7 +55,7 @@ def get_user():
     try:
         response = make_response(
             user_service.get_user(current_app, spotify_auth))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
@@ -85,7 +85,7 @@ def get_user_tracker_data():
     try:
         response = make_response(user_service.handle_get_user_tracker_data(
             current_app, spotify_auth, tracker_name))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
@@ -111,7 +111,7 @@ def get_user_analysis():
     try:
         response = make_response(
             user_service.handle_get_user_analysis(current_app, spotify_auth))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
@@ -136,7 +136,7 @@ def queue_user_aggregated_data():
     try:
         response = make_response(
             user_service.queue_get_aggregate_user_data(spotify_auth))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
@@ -161,7 +161,7 @@ def get_user_aggregated_data_state(id):
     try:
         response = make_response(
             user_service.get_aggregate_user_data_state(id))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(

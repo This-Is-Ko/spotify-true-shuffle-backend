@@ -26,7 +26,11 @@ def get_tracks_from_playlist(task, spotify, playlist_id):
             if len(tracks_response["items"]) == 0:
                 break
             for track in tracks_response["items"]:
-                all_tracks.append(track["track"]["uri"])
+                if track["track"]["uri"] != None:
+                    all_tracks.append(track["track"]["uri"])
+                else:
+                    current_app.logger.info(
+                        "Track missing uri: " + str(track))
         offset += len(tracks_response["items"])
         task.update_state(state='PROGRESS', meta={'progress': {'state': "Retrieved " + str(len(all_tracks)) + " tracks so far..."}})
     return all_tracks

@@ -28,7 +28,7 @@ def get_playlists():
     try:
         response = make_response(playlist_service.get_user_playlists(
             current_app, spotify_auth, include_stats))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error("Unable to retrieve user playlists" + str(e))
@@ -56,7 +56,7 @@ def queue_shuffle_playlist():
     try:
         response = make_response(playlist_service.queue_create_shuffled_playlist(
             spotify_auth, request_body["playlist_id"], request_body["playlist_name"]))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
@@ -98,7 +98,7 @@ def delete_shuffled_playlists():
     try:
         response = make_response(
             playlist_service.delete_all_shuffled_playlists(current_app, spotify_auth))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
@@ -127,11 +127,11 @@ def liked_tracks_to_playlist():
     try:
         if "playlist_name" in request_body and request_body["playlist_name"] != "":
             response = make_response(playlist_service.queue_create_playlist_from_liked_tracks(spotify_auth, request_body["playlist_name"]))
-            extend_session_expiry(current_app, response, request.cookies)
+            extend_session_expiry(response, request.cookies)
             return response
         else:
             response = make_response(playlist_service.queue_create_playlist_from_liked_tracks(spotify_auth))
-            extend_session_expiry(current_app, response, request.cookies)
+            extend_session_expiry(response, request.cookies)
             return response
     except Exception as e:
         current_app.logger.error(
@@ -152,7 +152,7 @@ def get_liked_tracks_to_playlist_state(id):
 
     try:
         response = make_response(playlist_service.get_create_playlist_from_liked_tracks_state(id))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
