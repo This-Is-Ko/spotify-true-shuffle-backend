@@ -40,7 +40,12 @@ class Config:
     # Database
     MONGO_URI = os.getenv(
         'MONGO_URI', default='mongodb+srv://dbUser:password@cluster0.aa.mongodb.net/database?retryWrites=true&w=majority')
-
+    
+    # Celery
+    CELERY_BROKER_URL = os.getenv(
+        'CELERY_BROKER_URL', default='redis://localhost')
+    CELERY_RESULT_BACKEND_URL = os.getenv(
+        'CELERY_RESULT_BACKEND_URL', default='redis://localhost')
 
 class DevelopmentConfig(Config):
     FLASK_ENV = 'development'

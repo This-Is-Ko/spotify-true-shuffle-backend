@@ -26,8 +26,7 @@ def get_playlists():
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(playlist_service.get_user_playlists(
-            current_app, spotify_auth, include_stats))
+        response = make_response(playlist_service.get_user_playlists(spotify_auth, include_stats))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
@@ -97,7 +96,7 @@ def delete_shuffled_playlists():
 
     try:
         response = make_response(
-            playlist_service.delete_all_shuffled_playlists(current_app, spotify_auth))
+            playlist_service.delete_all_shuffled_playlists(spotify_auth))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:

@@ -153,7 +153,7 @@ def test_create_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
 
     assert response.status_code == 400
     assert response_json == {
-        "error": "Unable to create shuffled playlist"
+        "error": "Unable to queue to create shuffled playlist"
     }
 
 
