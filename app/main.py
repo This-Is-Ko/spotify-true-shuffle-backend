@@ -3,12 +3,21 @@ from flask_cors import CORS
 import os
 from flask_pymongo import PyMongo
 from celery import Celery, Task
+import logging
+import faulthandler
 
 mongo = PyMongo()
 
 
 def create_app():
     app = Flask(__name__)
+
+    # Configure logging level and format
+    logging.basicConfig(level=logging.INFO)
+    gunicorn_error_logger = logging.getLogger('gunicorn.error')
+    app.logger.handlers.extend(gunicorn_error_logger.handlers)
+    
+    faulthandler.enable()
 
     # Select env and set up config
     CONFIG_TYPE = os.getenv('CONFIG_TYPE', default='config.DevelopmentConfig')
@@ -32,8 +41,8 @@ def create_app():
 
     app.config.from_mapping(
         CELERY=dict(
-            broker_url="redis://localhost",
-            result_backend="redis://localhost",
+            broker_url=app.config["CELERY_BROKER_URL"],
+            result_backend=app.config["CELERY_RESULT_BACKEND_URL"],
             task_ignore_result=True,
             broker_connection_retry_on_startup = True
         ),
