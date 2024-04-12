@@ -10,4 +10,4 @@ keyfile = '/ssl/privkey.pem'
 # Number of Gunicorn worker processes
 workers = 3
 
-timeout = 30
+timeout = 60
