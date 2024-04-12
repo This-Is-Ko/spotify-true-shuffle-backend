@@ -83,7 +83,7 @@ def get_user_tracker_data(task, user_id, user_json, tracker_name):
     }
 
 
-def get_user_analysis(task, current_app, spotify):
+def get_user_analysis(task, current_app, spotify: spotipy.Spotify):
     # Get all tracks from library
     all_tracks = get_all_tracks_with_data_from_playlist(task, 
         spotify, LIKED_TRACKS_PLAYLIST_ID)
@@ -225,7 +225,7 @@ def get_user_analysis(task, current_app, spotify):
         most_common_genre_array.append({"name": k, "count": v})
 
     try:
-        audio_features = average_audio_features(task, current_app, spotify, all_tracks_ids)
+        audio_features = average_audio_features(task, spotify, all_tracks_ids)
     except Exception as e:
         current_app.logger.error(
             "Failed while retrieving/calculating audio features: " + str(e))
@@ -284,8 +284,8 @@ class TrackFeatureScoreData:
             'lowest_feature_score': self.lowest_feature_score
         }
 
-def average_audio_features(task, current_app, spotify, tracks_ids):
-    all_audio_features = get_all_track_audio_features(task, current_app, spotify, tracks_ids)
+def average_audio_features(task, spotify: spotipy.Spotify, tracks_ids):
+    all_audio_features = get_all_track_audio_features(task, spotify, tracks_ids)
     acousticness_scores = TrackFeatureScoreData("acousticness", """A confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.""")
     danceability_scores = TrackFeatureScoreData("danceability", """Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable.""")
     energy_scores = TrackFeatureScoreData("energy", """Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy.""")

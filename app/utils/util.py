@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import current_app
+import spotipy
 
 from services.spotify_client import *
 from schemas.Playlist import Playlist
@@ -8,7 +9,7 @@ SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 
 
-def get_tracks_from_playlist(task, spotify, playlist_id):
+def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str):
     """
     Get tracks from playlist based on playlist_id
     Use separate spotify call for retrieving Liked Tracks
@@ -36,7 +37,7 @@ def get_tracks_from_playlist(task, spotify, playlist_id):
     return all_tracks
 
 
-def get_all_tracks_with_data_from_playlist(task, spotify, playlist_id):
+def get_all_tracks_with_data_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str):
     """
     Get tracks from playlist based on playlist_id
     Use separate spotify call for retrieving Liked Tracks
@@ -60,7 +61,7 @@ def get_all_tracks_with_data_from_playlist(task, spotify, playlist_id):
     return all_tracks
 
 
-def get_liked_tracks_count(current_app, spotify):
+def get_liked_tracks_count(spotify: spotipy.Spotify):
     """
     Get number of songs in user library
     If error, return False
@@ -74,7 +75,7 @@ def get_liked_tracks_count(current_app, spotify):
     return None
 
 
-def get_all_track_audio_features(task, current_app, spotify, tracks):
+def get_all_track_audio_features(task, spotify: spotipy.Spotify, tracks: list):
     """
     Get audio features for all tracks
     If error, return False
@@ -111,13 +112,13 @@ def calcFromMillis(milliseconds):
     return seconds, minutes, hours, days
 
 
-def create_new_playlist_with_tracks(task, spotify, new_playlist_name, public_status, playlist_description, tracks_to_add):
+def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist_name: str, public_status: bool, playlist_description: str, tracks_to_add: list):
     try:
         # Create new playlist
         user_id = spotify.me()["id"]
         shuffled_playlist = spotify.user_playlist_create(
             user=user_id, name=new_playlist_name, public=public_status, description=playlist_description)
-
+        print(shuffled_playlist)
         # Add 100 tracks per call
         if len(tracks_to_add) <= 100:
             calls_required = 1
