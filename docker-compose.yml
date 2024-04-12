@@ -45,6 +45,21 @@ services:
     networks:
       - app-network
 
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/local/nginx.Dockerfile
+    volumes:
+      - ./ssl:/ssl
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - flask
+    networks:
+      - app-network
+    restart: unless-stopped
+
 networks:
   app-network:
     driver: bridge
