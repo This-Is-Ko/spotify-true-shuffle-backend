@@ -94,5 +94,12 @@ Sessions are created and send in cookies to the user which are revoked once logg
 
 Run 
 
-    docker-compose build
-    docker-compose --env-file .env-prod  up -d
+    docker compose -f .\docker-compose-prod.yml build
+    docker push [repository]:true_shuffle_flask_web
+    docker push [repository]:true_shuffle_celery_worker
+
+On machine running the server
+
+    docker pull [repository]:true_shuffle_flask_web
+    docker push [repository]:true_shuffle_celery_worker
+    docker compose up -d
