@@ -30,7 +30,9 @@ def get_playlists():
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
-        current_app.logger.error("Unable to retrieve user playlists" + str(e))
+        current_app.logger.error("Unable to retrieve user playlists: " + str(e))
+        if spotify_auth is not None and spotify_auth.user_id is not None:
+            current_app.logger.error("User: " + spotify_auth.user_id)
         return {"error": "Unable to retrieve user playlists"}, 400
 
 

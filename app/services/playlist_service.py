@@ -22,7 +22,9 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     spotify = spotipy.Spotify(auth_manager=auth_manager)
     if not auth_manager.validate_token(spotify_auth.to_dict()):
         raise SpotifyAuthInvalid("Invalid token")
-    user = spotify.current_user()
+    user = spotify.me()
+    if user is None:
+        raise Exception("User not found in Spotify")
 
     all_playlists = []
     # Add liked tracks as playlist option
