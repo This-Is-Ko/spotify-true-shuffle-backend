@@ -1,12 +1,10 @@
 # Spotify True Shuffle - Backend
 
-Spotify's built-in shuffle pushes certain tracks rather than being randomly ordered.
-
-True Shuffle creates custom playlists with randomised order of tracks for a better shuffle experience.
+True Shuffle attempts to allow random shuffling by creating shuffled playlists with randomised order of tracks for a better shuffle experience.
 
 Also has functionality to generate statistics and analysis from Spotify library, create playlists to share Liked Songs and delete all shuffled playlists.
 
-Backend built on Flask in Python (Migrated from Spring Boot)
+Backend built on Flask in Python (Migrated from Spring Boot), deployed using Docker with containers for Flask (Gunicorn), Celery, Redis and Nginx.
 
 Frontend can be found in [this](https://github.com/This-Is-Ko/spotify-true-shuffle-react) repository.
 
@@ -103,3 +101,19 @@ On machine running the server
     docker pull [repository]:true_shuffle_flask_web
     docker push [repository]:true_shuffle_celery_worker
     docker compose up -d
+
+Docker reference
+
+https://docs.docker.com/engine/install/ubuntu/
+
+https://stackoverflow.com/questions/41133455/docker-repository-does-not-have-a-release-file-on-running-apt-get-update-on-ubun
+
+Generate SSL Cert
+
+    sudo certbot certonly --standalone -d api.trueshuffle.top
+    sudo cp -r -L /etc/letsencrypt/live/api.trueshuffle.top/ ./
+    sudo mv api.trueshuffle.top ssl
+
+## Troubleshooting
+
+Potential cause of Gunicorn timeout due to Pymongo error. Add IP into DB network access "IP Access List"

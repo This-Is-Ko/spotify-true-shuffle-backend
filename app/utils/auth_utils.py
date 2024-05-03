@@ -71,7 +71,7 @@ def extend_session_expiry(response, cookies):
     """
     current_app.logger.info("Extending session expiry...")
     session_id = cookies.get("trueshuffle-sessionId")
-    session_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+    session_expiry = datetime.now(timezone.utc) + timedelta(hours=4)
 
     # Update cookie
     response.set_cookie(key="trueshuffle-sessionId",

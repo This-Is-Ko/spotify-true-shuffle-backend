@@ -7,7 +7,7 @@ from mock_responses import *
 from mock_requests import *
 from database import database
 
-test_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+test_expiry = datetime.now(timezone.utc) + timedelta(hours=4)
 
 
 def test_get_user_analysis_success(mocker, client, env_patch):
@@ -144,7 +144,7 @@ def test_get_user_analysis_spotify_auth_error_failure(mocker, client, env_patch)
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=4)
                         }
                         )
     # Init cookies

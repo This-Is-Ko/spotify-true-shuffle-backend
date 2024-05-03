@@ -46,8 +46,8 @@ def get_spotify_tokens(current_app, code):
             spotify_auth["refresh_token"] = auth_response["refresh_token"]
             spotify_auth["expires_at"] = auth_response["expires_at"]
             spotify_auth["scope"] = auth_response["scope"]
-            # Calculate expiry 1 hour from UTC now time
-            session_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+            # Calculate expiry 4 hour from UTC now time
+            session_expiry = datetime.now(timezone.utc) + timedelta(hours=4)
             spotify_auth["expiry"] = session_expiry
             session = database.find_and_update_session(
                 hashed_session_id, spotify_auth)

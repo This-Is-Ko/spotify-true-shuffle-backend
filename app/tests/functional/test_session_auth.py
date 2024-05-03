@@ -9,7 +9,7 @@ from database import database
 
 from mock_responses import *
 
-test_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+test_expiry = datetime.now(timezone.utc) + timedelta(hours=4)
 
 
 def test_session_cookie_valid_success(mocker, client, env_patch):
@@ -145,7 +145,7 @@ def test_session_expired_expired_failure(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) - timedelta(hours=1)
+                            "expiry": datetime.now(timezone.utc) - timedelta(hours=4)
                         }
                         )
     mocker.patch.object(database, "delete_session",

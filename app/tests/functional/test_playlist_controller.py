@@ -7,7 +7,7 @@ from database import database
 
 from mock_responses import *
 
-test_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+test_expiry = datetime.now(timezone.utc) + timedelta(hours=4)
 
 
 def test_get_playlists_success(mocker, client, env_patch):

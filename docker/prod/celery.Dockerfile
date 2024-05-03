@@ -18,4 +18,4 @@ WORKDIR /app
 
 COPY ./app .
 
-CMD celery -A make_celery worker --pool=gevent --loglevel INFO
+CMD celery -A make_celery worker --pool=prefork --loglevel INFO --max-tasks-per-child=6

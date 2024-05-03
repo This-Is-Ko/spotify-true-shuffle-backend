@@ -51,7 +51,7 @@ playlist_add_items_response = {
     "snapshot_id": "snapshot_id_0"
 }
 
-test_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+test_expiry = datetime.now(timezone.utc) + timedelta(hours=4)
 
 
 def test_create_shuffled_playlist_success(mocker, client, env_patch):
@@ -78,7 +78,7 @@ def test_create_shuffled_playlist_success(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=4)
                         }
                         )
     mocker.patch.object(database, "find_user",
@@ -139,7 +139,7 @@ def test_create_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=4)
                         }
                         )
     # Init cookies
@@ -165,7 +165,7 @@ def test_create_shuffled_playlist_playlist_name_missing_failure(mocker, client, 
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=4)
                         }
                         )
     # Init cookies
@@ -195,7 +195,7 @@ def test_create_shuffled_playlist_playlist_id_missing_failure(mocker, client, en
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=4)
                         }
                         )
     # Init cookies
@@ -251,7 +251,7 @@ def test_delete_shuffled_playlists_success(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=4)
                         }
                         )
     mocker.patch.object(database, "find_and_update_session",
@@ -297,7 +297,7 @@ def test_delete_shuffled_spotify_auth_error_failure(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) + timedelta(hours=1)
+                            "expiry": datetime.now(timezone.utc) + timedelta(hours=4)
                         }
                         )
     # Init cookies

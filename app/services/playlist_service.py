@@ -30,7 +30,7 @@ def get_user_playlists(spotify_auth, include_stats):
                          "url": "https://misc.scdn.co/liked-songs/liked-songs-300.png"}))
 
     playlists = spotify.current_user_playlists()
-    if "items" in playlists:
+    if playlists is not None and "items" in playlists:
         for playlist_entry in playlists["items"]:
             # Don't select playlists already shuffled
             if playlist_entry["name"].startswith(SHUFFLED_PLAYLIST_PREFIX):
