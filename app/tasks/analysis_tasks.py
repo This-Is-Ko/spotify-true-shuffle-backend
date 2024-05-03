@@ -5,7 +5,7 @@ from bson import json_util
 import json
 
 from database import database
-from services.spotify_client import create_auth_manager_with_token
+from services.spotify_client import create_auth_manager_with_token_dict
 from utils.util import *
 
 TRACKERS_ENABLED_ATTRIBUTE_NAME = "trackers_enabled"
@@ -14,14 +14,14 @@ TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 ANALYSE_LIBRARY_ATTRIBUTE_NAME = "analyse_library"
 
 @shared_task(bind=True, ignore_result=False)
-def aggregate_user_data(self, spotify_auth):
+def aggregate_user_data(self, spotify_auth_dict: dict):
     """
     Return user trackers and analysis in one call
     """
-    auth_manager = create_auth_manager_with_token(
-        current_app, spotify_auth)
+    auth_manager = create_auth_manager_with_token_dict(
+        current_app, spotify_auth_dict)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth.to_dict()):
+    if not auth_manager.validate_token(spotify_auth_dict):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
     user = database.find_user(user_id)

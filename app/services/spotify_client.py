@@ -14,9 +14,11 @@ def create_auth_manager(current_app):
                         redirect_uri=current_app.config["SPOTIFY_REDIRECT_URI"],
                         scope="playlist-modify-private playlist-modify-public playlist-read-private playlist-read-collaborative user-library-read")
 
-
 def create_auth_manager_with_token(current_app, spotify_auth: SpotifyAuth):
-    cache = MemoryCacheHandler(token_info=spotify_auth.to_dict())
+    return create_auth_manager_with_token_dict(current_app, spotify_auth.to_dict())
+
+def create_auth_manager_with_token_dict(current_app, spotify_auth_dict: dict):
+    cache = MemoryCacheHandler(token_info=spotify_auth_dict)
 
     return SpotifyOAuth(requests_session=False,
                         client_id=current_app.config["SPOTIFY_CLIENT_ID"],

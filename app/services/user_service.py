@@ -74,11 +74,11 @@ def get_user(current_app, spotify_auth):
     }, 400
 
 
-def queue_get_aggregate_user_data(spotify_auth):
+def queue_get_aggregate_user_data(spotify_auth: SpotifyAuth):
     """
     Return celery task id
     """
-    result = aggregate_user_data.delay(spotify_auth)
+    result = aggregate_user_data.delay(spotify_auth.to_dict())
     print("Aggregate data id:" + result.id)
     return {"aggregate_task_id": result.id}
 
