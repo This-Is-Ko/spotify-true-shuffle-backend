@@ -38,7 +38,7 @@ def test_session_cookie_valid_success(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": test_expiry
+                            "session_expiry": test_expiry
                         }
                         )
     mocker.patch.object(database, "find_and_update_session",
@@ -48,7 +48,7 @@ def test_session_cookie_valid_success(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": test_expiry
+                            "session_expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -145,7 +145,7 @@ def test_session_expired_expired_failure(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": datetime.now(timezone.utc) - timedelta(hours=4)
+                            "session_expiry": datetime.now(timezone.utc) - timedelta(hours=4)
                         }
                         )
     mocker.patch.object(database, "delete_session",

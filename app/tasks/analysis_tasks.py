@@ -21,7 +21,7 @@ def aggregate_user_data(self, spotify_auth):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
+    if not auth_manager.validate_token(spotify_auth.to_dict()):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
     user = database.find_user(user_id)

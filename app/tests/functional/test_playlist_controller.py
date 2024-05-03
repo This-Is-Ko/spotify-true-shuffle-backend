@@ -36,7 +36,7 @@ def test_get_playlists_success(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": test_expiry
+                            "session_expiry": test_expiry
                         }
                         )
     mocker.patch.object(database, "find_and_update_session",
@@ -46,7 +46,7 @@ def test_get_playlists_success(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": test_expiry
+                            "session_expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -105,7 +105,7 @@ def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, e
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": test_expiry
+                            "session_expiry": test_expiry
                         }
                         )
     mocker.patch.object(database, "find_and_update_session",
@@ -115,7 +115,7 @@ def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, e
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": test_expiry
+                            "session_expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -170,7 +170,7 @@ def test_get_playlists_with_stats_user_tracker_disabled_success(mocker, client, 
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": test_expiry
+                            "session_expiry": test_expiry
                         }
                         )
     mocker.patch.object(database, "find_and_update_session",
@@ -180,7 +180,7 @@ def test_get_playlists_with_stats_user_tracker_disabled_success(mocker, client, 
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": test_expiry
+                            "session_expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -220,7 +220,7 @@ def test_get_playlists_failure_cookies_invalid(mocker, client, env_patch):
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": test_expiry
+                            "session_expiry": test_expiry
                         }
                         )
     # Init cookies
@@ -286,7 +286,7 @@ def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch)
                             "refresh_token": "refresh_token",
                             "expires_at": "expires_at",
                             "scope": "scope",
-                            "expiry": test_expiry
+                            "session_expiry": test_expiry
                         }
                         )
     # Init cookies

@@ -93,32 +93,6 @@ def get_user_tracker_data():
         return {"error": "Unable to retrieve user tracker data"}, 400
 
 
-@user_controller.route('/analysis', methods=['GET'])
-def get_user_analysis():
-    """
-    Get user analysis including Liked Tracks data
-    Get user_id from token
-    """
-    try:
-        spotify_auth = validate_session(request.cookies)
-    except (SessionIdNone, SessionIdNotFound, SessionExpired) as e:
-        current_app.logger.error("Invalid credentials: " + str(e))
-        return {"error": "Invalid credentials"}, 401
-    except Exception as e:
-        current_app.logger.error("Invalid request: " + str(e))
-        return {"error": "Invalid request"}, 400
-
-    try:
-        response = make_response(
-            user_service.handle_get_user_analysis(current_app, spotify_auth))
-        extend_session_expiry(response, request.cookies)
-        return response
-    except Exception as e:
-        current_app.logger.error(
-            "Unable to retrieve user analysis: " + str(e))
-        return {"error": "Unable to retrieve user analysis"}, 400
-
-
 @user_controller.route('/aggregate', methods=['GET'])
 def queue_user_aggregated_data():
     """

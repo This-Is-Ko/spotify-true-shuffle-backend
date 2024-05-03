@@ -16,11 +16,11 @@ LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 
 
-def get_user_playlists(spotify_auth, include_stats):
+def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
+    if not auth_manager.validate_token(spotify_auth.to_dict()):
         raise SpotifyAuthInvalid("Invalid token")
     user = spotify.current_user()
 
@@ -63,7 +63,7 @@ def get_user_playlists(spotify_auth, include_stats):
     return response_body
 
 
-def queue_create_shuffled_playlist(spotify_auth, playlist_id, playlist_name):
+def queue_create_shuffled_playlist(spotify_auth: SpotifyAuth, playlist_id, playlist_name):
     result = shuffle_playlist.delay(spotify_auth, playlist_id, playlist_name)
     current_app.logger.info("Shuffle id:" + result.id)
     return {"shuffle_task_id": result.id}
@@ -73,11 +73,11 @@ def get_shuffle_state(id: str):
     return get_celery_task_state(id, "Shuffle playlist")
 
 
-def delete_all_shuffled_playlists(spotify_auth):
+def delete_all_shuffled_playlists(spotify_auth: SpotifyAuth):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
+    if not auth_manager.validate_token(spotify_auth.to_dict()):
         raise SpotifyAuthInvalid("Invalid token")
 
     # Search all user playlists for shuffled playlists
@@ -97,7 +97,7 @@ def delete_all_shuffled_playlists(spotify_auth):
     }
 
 
-def queue_create_playlist_from_liked_tracks(spotify_auth, new_playlist_name="My Liked Tracks"):
+def queue_create_playlist_from_liked_tracks(spotify_auth: SpotifyAuth, new_playlist_name="My Liked Tracks"):
     result = create_playlist_from_liked_tracks.delay(spotify_auth, new_playlist_name)
     print("Create playlist id:" + result.id)
     return {"create_liked_playlist_id": result.id}
