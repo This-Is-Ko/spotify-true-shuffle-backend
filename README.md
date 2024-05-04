@@ -106,14 +106,24 @@ Docker reference
 
 https://docs.docker.com/engine/install/ubuntu/
 
-https://stackoverflow.com/questions/41133455/docker-repository-does-not-have-a-release-file-on-running-apt-get-update-on-ubun
-
-Generate SSL Cert
+Generate SSL Cert (Ensure port 80 is free and instance firewall allows http and https)
 
     sudo certbot certonly --standalone -d api.trueshuffle.top
-    sudo cp -r -L /etc/letsencrypt/live/api.trueshuffle.top/ ./
-    sudo mv api.trueshuffle.top ssl
+    
+Mount the certificate directory in docker compose
+    
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - /etc/letsencrypt/live/api.trueshuffle.top:/etc/letsencrypt/live/api.trueshuffle.top
+      - /etc/letsencrypt/archive/api.trueshuffle.top:/etc/letsencrypt/archive/api.trueshuffle.top
+
+Update `./nginx/nginx.conf` to point to the certificate files
+
+    ssl_certificate /etc/letsencrypt/live/api.trueshuffle.top/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.trueshuffle.top/privkey.pem;
 
 ## Troubleshooting
 
 Potential cause of Gunicorn timeout due to Pymongo error. Add IP into DB network access "IP Access List"
+
+https://stackoverflow.com/questions/41133455/docker-repository-does-not-have-a-release-file-on-running-apt-get-update-on-ubun
