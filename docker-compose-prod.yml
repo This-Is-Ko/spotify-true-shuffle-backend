@@ -52,9 +52,10 @@ services:
   nginx:
     image: nginx
     volumes:
-      - ./ssl:/ssl
       # Ensure config file is added into /nginx/nginx.conf
       - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - /etc/letsencrypt/live/api.trueshuffle.top:/etc/letsencrypt/live/api.trueshuffle.top
+      - /etc/letsencrypt/archive/api.trueshuffle.top:/etc/letsencrypt/archive/api.trueshuffle.top
     ports:
       - 80:80
       - 443:443
