@@ -6,8 +6,7 @@ from schemas.SaveUserRequestSchema import SaveUserRequestSchema
 from services import user_service
 from utils.auth_utils import extend_session_expiry, validate_session
 
-user_controller = Blueprint(
-    'user_controller', __name__, url_prefix='/api/user')
+user_controller = Blueprint('user_controller', __name__, url_prefix='/api/user')
 
 
 @user_controller.route('/save', methods=['POST'])

@@ -5,8 +5,7 @@ from services.session_service import handle_clean_up_expired_sesions
 
 from utils.jwt_auth_utils import validate_auth_header_jwt
 
-session_controller = Blueprint(
-    'session_controller', __name__, url_prefix='/api/session')
+session_controller = Blueprint('session_controller', __name__, url_prefix='/api/session')
 
 
 @session_controller.route('/cleanup', methods=['GET'])

@@ -8,8 +8,7 @@ from schemas.ShufflePlaylistRequestSchema import ShufflePlaylistRequestSchema
 from schemas.ShareLikedTracksRequestSchema import ShareLikedTracksRequestSchema
 from utils.auth_utils import extend_session_expiry, validate_session
 
-playlist_controller = Blueprint(
-    'playlist_controller', __name__, url_prefix='/api/playlist')
+playlist_controller = Blueprint('playlist_controller', __name__, url_prefix='/api/playlist')
 
 
 @playlist_controller.route('/me', methods=['GET'])

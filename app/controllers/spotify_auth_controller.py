@@ -5,8 +5,7 @@ from marshmallow import ValidationError
 from services import spotify_auth_service
 from schemas.AuthCodeRequestSchema import AuthCodeRequestSchema
 
-spotify_auth_controller = Blueprint(
-    'spotify_auth_controller', __name__, url_prefix='/api/spotify/auth')
+spotify_auth_controller = Blueprint('spotify_auth_controller', __name__, url_prefix='/api/spotify/auth')
 
 
 @spotify_auth_controller.route('/login', methods=['GET'])

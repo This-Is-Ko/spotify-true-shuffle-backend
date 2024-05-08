@@ -1,7 +1,6 @@
 from flask import current_app, request, Blueprint
 
-auth_controller = Blueprint(
-    'auth_controller', __name__, url_prefix='/api/auth')
+auth_controller = Blueprint('auth_controller', __name__, url_prefix='/api/auth')
 
 # Disabled endpoint
 

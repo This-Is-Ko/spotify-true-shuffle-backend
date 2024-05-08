@@ -4,8 +4,7 @@ from exceptions.custom_exceptions import AccessTokenInvalid
 from services import trackers_service
 from utils.jwt_auth_utils import validate_auth_header_jwt
 
-trackers_controller = Blueprint(
-    'trackers_controller', __name__, url_prefix='/api/trackers')
+trackers_controller = Blueprint('trackers_controller', __name__, url_prefix='/api/trackers')
 
 
 @trackers_controller.route('/update', methods=['GET'])
