@@ -53,8 +53,7 @@ def get_user():
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(
-            user_service.get_user(current_app, spotify_auth))
+        response = make_response(user_service.get_user(current_app, spotify_auth))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
@@ -108,8 +107,7 @@ def queue_user_aggregated_data():
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(
-            user_service.queue_get_aggregate_user_data(spotify_auth))
+        response = make_response(user_service.queue_get_aggregate_user_data(spotify_auth))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
@@ -133,8 +131,7 @@ def get_user_aggregated_data_state(id):
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(
-            user_service.get_aggregate_user_data_state(id))
+        response = make_response(user_service.get_aggregate_user_data_state(id))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:

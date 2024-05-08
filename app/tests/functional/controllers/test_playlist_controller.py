@@ -4,8 +4,8 @@ from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
 
 from database import database
-
-from mock_responses import *
+from tests.functional.helpers.mock_requests import *
+from tests.functional.helpers.mock_responses import *
 
 test_expiry = datetime.now(timezone.utc) + timedelta(hours=4)
 
@@ -14,8 +14,7 @@ def test_get_playlists_success(mocker, client, env_patch):
     """
     Successful GET Playlists
     """
-    mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value={
+    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
                             "access_token": "accesstokenfromspotify",
                             "refresh_token": "refreshtokenfromspotify"
                         }
@@ -26,8 +25,7 @@ def test_get_playlists_success(mocker, client, env_patch):
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=mock_user_playlists_sample
                         )
-    mocker.patch.object(
-        Spotify, "me", return_value=mock_user_details_response)
+    mocker.patch.object(Spotify, "me", return_value=mock_user_details_response)
 
     mocker.patch.object(database, "find_session",
                         return_value={
@@ -50,10 +48,8 @@ def test_get_playlists_success(mocker, client, env_patch):
                         }
                         )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-sessionId',
-                      'sessionId')
-    client.set_cookie('localhost', 'trueshuffle-auth',
-                      'true')
+    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
 
     response = client.get('/api/playlist/me')
     response_json = response.get_json()
@@ -68,8 +64,7 @@ def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, e
     """
     Successful GET Playlists with include-stats=true and user tracker enabled
     """
-    mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value={
+    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
                             "access_token": "accesstokenfromspotify",
                             "refresh_token": "refreshtokenfromspotify"
                         }
@@ -80,8 +75,7 @@ def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, e
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=mock_user_playlists_sample
                         )
-    mocker.patch.object(
-        Spotify, "me", return_value=mock_user_details_response)
+    mocker.patch.object(Spotify, "me", return_value=mock_user_details_response)
 
     mocker.patch.object(database, "find_user",
                         return_value={
@@ -119,10 +113,8 @@ def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, e
                         }
                         )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-sessionId',
-                      'sessionId')
-    client.set_cookie('localhost', 'trueshuffle-auth',
-                      'true')
+    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
 
     response = client.get('/api/playlist/me?include-stats=true')
     response_json = response.get_json()
@@ -139,8 +131,7 @@ def test_get_playlists_with_stats_user_tracker_disabled_success(mocker, client, 
     """
     Successful GET Playlists with include-stats=true and user tracker disabled
     """
-    mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value={
+    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
                             "access_token": "accesstokenfromspotify",
                             "refresh_token": "refreshtokenfromspotify"
                         }
@@ -151,8 +142,7 @@ def test_get_playlists_with_stats_user_tracker_disabled_success(mocker, client, 
     mocker.patch.object(Spotify, "current_user_playlists",
                         return_value=mock_user_playlists_sample
                         )
-    mocker.patch.object(
-        Spotify, "me", return_value=mock_user_details_response)
+    mocker.patch.object(Spotify, "me", return_value=mock_user_details_response)
 
     mocker.patch.object(database, "find_user",
                         return_value={
@@ -184,10 +174,8 @@ def test_get_playlists_with_stats_user_tracker_disabled_success(mocker, client, 
                         }
                         )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-sessionId',
-                      'sessionId')
-    client.set_cookie('localhost', 'trueshuffle-auth',
-                      'true')
+    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
 
     response = client.get('/api/playlist/me?include-stats=true')
     response_json = response.get_json()
@@ -203,8 +191,7 @@ def test_get_playlists_failure_cookies_invalid(mocker, client, env_patch):
     Failure GET Playlists
     Request access token structure invalid
     """
-    mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value=None
+    mocker.patch.object(SpotifyOAuth, "validate_token", return_value=None
                         )
     mocker.patch.object(Spotify, "current_user",
                         return_value=mock_user_response
@@ -224,10 +211,8 @@ def test_get_playlists_failure_cookies_invalid(mocker, client, env_patch):
                         }
                         )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-sessionId',
-                      'sessionId')
-    client.set_cookie('localhost', 'trueshuffle-auth',
-                      'true')
+    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
 
     response = client.get('/api/playlist/me')
     response_json = response.get_json()
@@ -240,8 +225,7 @@ def test_get_playlists_failure_missing_cookies_failure(mocker, client, env_patch
     Failure GET Playlists
     Request missing cookies
     """
-    mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value={
+    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
                             "access_token": "access token from spotify",
                             "refresh_token": "access token from spotify"
                         }
@@ -266,8 +250,7 @@ def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch)
     Failure GET Playlists
     Error from upstream Spotify call
     """
-    mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value={
+    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
                             "access_token": "access token from spotify",
                             "refresh_token": "access token from spotify"
                         }
@@ -290,10 +273,8 @@ def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch)
                         }
                         )
     # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-sessionId',
-                      'sessionId')
-    client.set_cookie('localhost', 'trueshuffle-auth',
-                      'true')
+    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
 
     response = client.get('/api/playlist/me')
     response_json = response.get_json()

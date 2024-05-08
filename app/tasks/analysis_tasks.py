@@ -3,10 +3,11 @@ from flask import current_app
 import spotipy
 from bson import json_util
 import json
+from datetime import datetime
 
 from database import database
 from services.spotify_client import create_auth_manager_with_token_dict
-from utils.util import *
+from utils import util
 
 TRACKERS_ENABLED_ATTRIBUTE_NAME = "trackers_enabled"
 TRACK_LIKED_TRACKS_ATTRIBUTE_NAME = "track_liked_tracks"
@@ -76,7 +77,7 @@ def get_user_tracker_data(task, user_id, user_json, tracker_name):
             "message": "track_name invalid"
         }, 400
     data = json.loads(json_util.dumps(list(data_cursor)))
-    task.update_state(state='PROGRESS', meta={'progress': {'state': "Getting history tracker data"}})
+    util.update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Getting history tracker data"}})
     return {
         "status": "success",
         "data": data
@@ -85,8 +86,8 @@ def get_user_tracker_data(task, user_id, user_json, tracker_name):
 
 def get_user_analysis(task, current_app, spotify: spotipy.Spotify):
     # Get all tracks from library
-    all_tracks = get_all_tracks_with_data_from_playlist(task, 
-        spotify, LIKED_TRACKS_PLAYLIST_ID)
+    all_tracks = util.get_all_tracks_with_data_from_playlist(task, 
+        spotify, util.LIKED_TRACKS_PLAYLIST_ID)
     num_tracks = len(all_tracks)
 
     if num_tracks == 0:
@@ -199,13 +200,13 @@ def get_user_analysis(task, current_app, spotify: spotipy.Spotify):
                     release_year_counts[release_date_object.year] += 1
                 else:
                     release_year_counts[release_date_object.year] = 1
-        task.update_state(state='PROGRESS', meta={'progress': {'state': "Analysed " + str(counter) + " tracks so far..."}})
+        util.update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Analysed " + str(counter) + " tracks so far..."}})
         counter = counter + 1
     
     average_track_length = total_length / num_tracks
-    average_track_length_seconds, average_track_length_minutes, average_track_length_hours, average_track_length_days = calcFromMillis(
+    average_track_length_seconds, average_track_length_minutes, average_track_length_hours, average_track_length_days = util.calcFromMillis(
         average_track_length)
-    total_length_seconds, total_length_minutes, total_length_hours, total_length_days = calcFromMillis(
+    total_length_seconds, total_length_minutes, total_length_hours, total_length_days = util.calcFromMillis(
         total_length)
 
     # TODO Get top items from spotify (require scope extension)
@@ -285,7 +286,7 @@ class TrackFeatureScoreData:
         }
 
 def average_audio_features(task, spotify: spotipy.Spotify, tracks_ids):
-    all_audio_features = get_all_track_audio_features(task, spotify, tracks_ids)
+    all_audio_features = util.get_all_track_audio_features(task, spotify, tracks_ids)
     acousticness_scores = TrackFeatureScoreData("acousticness", """A confidence measure from 0.0 to 1.0 of whether the track is acoustic. 1.0 represents high confidence the track is acoustic.""")
     danceability_scores = TrackFeatureScoreData("danceability", """Danceability describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity. A value of 0.0 is least danceable and 1.0 is most danceable.""")
     energy_scores = TrackFeatureScoreData("energy", """Energy is a measure from 0.0 to 1.0 and represents a perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy.""")
@@ -356,7 +357,7 @@ def process_multiple_tracks(tracks):
 def prep_essential_track_data(track_data):
     if track_data != None:
         try:
-            track_length_seconds, track_length_minutes, track_length_hours, track_length_days = calcFromMillis(track_data["duration_ms"])
+            track_length_seconds, track_length_minutes, track_length_hours, track_length_days = util.calcFromMillis(track_data["duration_ms"])
             return {
                 "title": track_data["name"],
                 "external_url": track_data["external_urls"]["spotify"],

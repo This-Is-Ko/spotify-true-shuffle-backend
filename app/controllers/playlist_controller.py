@@ -97,8 +97,7 @@ def delete_shuffled_playlists():
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(
-            playlist_service.delete_all_shuffled_playlists(spotify_auth))
+        response = make_response(playlist_service.delete_all_shuffled_playlists(spotify_auth))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:

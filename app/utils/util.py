@@ -8,6 +8,11 @@ from schemas.Playlist import Playlist
 SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 
+def update_task_progress(task, state, meta):
+    if (task is None):
+        current_app.logger.error("Task is None - Unable to update task state")
+    else:
+        task.update_state(state=state, meta=meta)
 
 def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str):
     """
@@ -33,7 +38,7 @@ def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str):
                     current_app.logger.info(
                         "Track missing uri: " + str(track))
         offset += len(tracks_response["items"])
-        task.update_state(state='PROGRESS', meta={'progress': {'state': "Retrieved " + str(len(all_tracks)) + " tracks so far..."}})
+        update_task_progress(task=task, state='PROGRESS', meta={'progress': {'state': "Retrieved " + str(len(all_tracks)) + " tracks so far..."}})
     return all_tracks
 
 
@@ -55,7 +60,7 @@ def get_all_tracks_with_data_from_playlist(task, spotify: spotipy.Spotify, playl
             for track in tracks_response["items"]:
                 all_tracks.append(track)
         offset += len(tracks_response["items"])
-        task.update_state(state='PROGRESS', meta={'progress': {'state': "Retrieved " + str(len(all_tracks)) + " tracks so far..."}})
+        update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Retrieved " + str(len(all_tracks)) + " tracks so far..."}})
         if offset >= tracks_response["total"]:
             break
     return all_tracks
@@ -80,7 +85,7 @@ def get_all_track_audio_features(task, spotify: spotipy.Spotify, tracks: list):
     Get audio features for all tracks
     If error, return False
     """
-    task.update_state(state='PROGRESS', meta={'progress': {'state': "Getting audio features for each track"}})
+    update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Getting audio features for each track"}})
     tracks_left = len(tracks)
     index = 0
     all_track_features = []
@@ -96,7 +101,7 @@ def get_all_track_audio_features(task, spotify: spotipy.Spotify, tracks: list):
             index += 100
         response = spotify.audio_features(tracks_to_analyse)
         all_track_features += response
-        task.update_state(state='PROGRESS', meta={'progress': {'state': "Retrieved audio features for " + str(index) + " tracks so far..."}})
+        update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Retrieved audio features for " + str(index) + " tracks so far..."}})
     return all_track_features
 
 
@@ -116,8 +121,7 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
     try:
         # Create new playlist
         user_id = spotify.me()["id"]
-        shuffled_playlist = spotify.user_playlist_create(
-            user=user_id, name=new_playlist_name, public=public_status, description=playlist_description)
+        shuffled_playlist = spotify.user_playlist_create(user=user_id, name=new_playlist_name, public=public_status, description=playlist_description)
         print(shuffled_playlist)
         # Add 100 tracks per call
         if len(tracks_to_add) <= 100:
@@ -127,16 +131,13 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
         left_over = len(tracks_to_add) % 100
         for i in range(calls_required):
             if i == calls_required - 1:
-                add_items_response = spotify.playlist_add_items(
-                    shuffled_playlist["id"], tracks_to_add[i*100: i*100+left_over])
-                task.update_state(state='PROGRESS', meta={'progress': {'state': "Adding  " + str(i*100+left_over) + "/" + str(len(tracks_to_add)) + " tracks..."}})
+                add_items_response = spotify.playlist_add_items(shuffled_playlist["id"], tracks_to_add[i*100: i*100+left_over])
+                update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Adding  " + str(i*100+left_over) + "/" + str(len(tracks_to_add)) + " tracks..."}})
             else:
-                add_items_response = spotify.playlist_add_items(
-                    shuffled_playlist["id"], tracks_to_add[i*100: i*100+100])
-                task.update_state(state='PROGRESS', meta={'progress': {'state': "Added " + str(i*100+100) + "/" + str(len(tracks_to_add)) + " tracks"}})
+                add_items_response = spotify.playlist_add_items(shuffled_playlist["id"], tracks_to_add[i*100: i*100+100])
+                update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Added " + str(i*100+100) + "/" + str(len(tracks_to_add)) + " tracks"}})
             if not "snapshot_id" in add_items_response:
-                current_app.logger.error(
-                    "Error while adding tracks. Response: " + add_items_response)
+                current_app.logger.error("Error while adding tracks. Response: " + add_items_response)
                 return {
                     "error": "Unable to add tracks to playlist " + shuffled_playlist["id"]
                 }
@@ -150,8 +151,7 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
             "creation_time": datetime.now()
         }
     except Exception as e:
-        current_app.logger.error(
-            "Error while creating new playlist / adding tracks: " + str(e))
+        current_app.logger.error( "Error while creating new playlist / adding tracks: " + str(e))
         return {
             "error": "Unable to create new playlist / add tracks to playlist "
         }

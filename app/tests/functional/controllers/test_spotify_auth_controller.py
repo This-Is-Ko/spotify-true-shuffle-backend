@@ -4,8 +4,8 @@ from utils import auth_utils
 from database import database
 from spotipy import Spotify
 
-from mock_responses import *
-from mock_requests import *
+from tests.functional.helpers.mock_requests import *
+from tests.functional.helpers.mock_responses import *
 
 
 def test_get_spotify_uri_success(client, env_patch):
@@ -30,14 +30,12 @@ def test_handle_auth_code_success(mocker, client, env_patch):
                             "scope": "scopefromspotify"
                         }
                         )
-    mocker.patch.object(SpotifyOAuth, "validate_token",
-                        return_value={
+    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
                             "access_token": "accesstokenfromspotify",
                             "refresh_token": "refreshtokenfromspotify"
                         }
                         )
-    mocker.patch.object(
-        Spotify, "me", return_value=mock_user_details_response)
+    mocker.patch.object(Spotify, "me", return_value=mock_user_details_response)
     mocker.patch.object(auth_utils, "generate_session_id",
                         return_value="sessionId"
                         )

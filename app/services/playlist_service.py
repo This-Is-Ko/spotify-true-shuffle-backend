@@ -9,7 +9,7 @@ from database import database
 from exceptions.custom_exceptions import SpotifyAuthInvalid
 from services.spotify_client import *
 from schemas.Playlist import Playlist
-from tasks.playlist_tasks import create_playlist_from_liked_tracks, shuffle_playlist
+from tasks import playlist_tasks
 
 SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
@@ -66,7 +66,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
 
 
 def queue_create_shuffled_playlist(spotify_auth: SpotifyAuth, playlist_id, playlist_name):
-    result = shuffle_playlist.delay(spotify_auth.to_dict(), playlist_id, playlist_name)
+    result = playlist_tasks.shuffle_playlist.delay(spotify_auth.to_dict(), playlist_id, playlist_name)
     current_app.logger.info("Shuffle id:" + result.id)
     return {"shuffle_task_id": result.id}
 
@@ -100,7 +100,7 @@ def delete_all_shuffled_playlists(spotify_auth: SpotifyAuth):
 
 
 def queue_create_playlist_from_liked_tracks(spotify_auth: SpotifyAuth, new_playlist_name="My Liked Tracks"):
-    result = create_playlist_from_liked_tracks.delay(spotify_auth.to_dict(), new_playlist_name)
+    result = playlist_tasks.create_playlist_from_liked_tracks.delay(spotify_auth.to_dict(), new_playlist_name)
     print("Create playlist id:" + result.id)
     return {"create_liked_playlist_id": result.id}
 
