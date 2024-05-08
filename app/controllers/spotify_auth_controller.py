@@ -5,13 +5,12 @@ from marshmallow import ValidationError
 from services import spotify_auth_service
 from schemas.AuthCodeRequestSchema import AuthCodeRequestSchema
 
-spotify_auth_controller = Blueprint(
-    'spotify_auth_controller', __name__, url_prefix='/api/spotify/auth')
+spotify_auth_controller = Blueprint('spotify_auth_controller', __name__, url_prefix='/api/spotify/auth')
 
 
 @spotify_auth_controller.route('/login', methods=['GET'])
 def get_spotify_uri():
-    auth_uri = spotify_auth_service.generate_spotify_auth_uri(current_app)
+    auth_uri = spotify_auth_service.generate_spotify_auth_uri()
     return {"loginUri": auth_uri}
 
 
@@ -30,7 +29,7 @@ def handle_auth_code():
 
     try:
         code = str(request_body["code"])
-        return spotify_auth_service.get_spotify_tokens(current_app, code)
+        return spotify_auth_service.get_spotify_tokens(code)
     except Exception as e:
         current_app.logger.error(
             "Unable to authenticate with Spotify: " + str(e))
@@ -43,4 +42,4 @@ def logout_user():
     Update cookies to expired to logout user
     """
 
-    return spotify_auth_service.handle_logout(current_app, request.cookies)
+    return spotify_auth_service.handle_logout(request.cookies)

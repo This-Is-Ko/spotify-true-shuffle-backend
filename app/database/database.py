@@ -107,5 +107,5 @@ def delete_session(session_id):
 
 def delete_expired_session(current_datetime):
     return mongo.db.sessions.delete_many(
-        {"expiry": {"$lt": current_datetime}},
+        {"session_expiry": {"$lt": current_datetime}},
     )

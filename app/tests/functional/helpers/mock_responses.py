@@ -218,6 +218,10 @@ mock_tracks_response = {
     ]
 }
 
+empty_all_user_playlists_response_sample = {
+    "items": [
+    ]
+}
 
 mock_no_liked_songs_tracks_response = {
     'href': 'https://api.spotify.com/v1/me/tracks?offset=0&limit=50',

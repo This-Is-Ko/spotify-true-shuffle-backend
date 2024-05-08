@@ -6,8 +6,7 @@ from schemas.SaveUserRequestSchema import SaveUserRequestSchema
 from services import user_service
 from utils.auth_utils import extend_session_expiry, validate_session
 
-user_controller = Blueprint(
-    'user_controller', __name__, url_prefix='/api/user')
+user_controller = Blueprint('user_controller', __name__, url_prefix='/api/user')
 
 
 @user_controller.route('/save', methods=['POST'])
@@ -53,9 +52,8 @@ def get_user():
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(
-            user_service.get_user(current_app, spotify_auth))
-        extend_session_expiry(current_app, response, request.cookies)
+        response = make_response(user_service.get_user(current_app, spotify_auth))
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
@@ -85,38 +83,12 @@ def get_user_tracker_data():
     try:
         response = make_response(user_service.handle_get_user_tracker_data(
             current_app, spotify_auth, tracker_name))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
             "Unable to retrieve user tracker data: " + str(e))
         return {"error": "Unable to retrieve user tracker data"}, 400
-
-
-@user_controller.route('/analysis', methods=['GET'])
-def get_user_analysis():
-    """
-    Get user analysis including Liked Tracks data
-    Get user_id from token
-    """
-    try:
-        spotify_auth = validate_session(request.cookies)
-    except (SessionIdNone, SessionIdNotFound, SessionExpired) as e:
-        current_app.logger.error("Invalid credentials: " + str(e))
-        return {"error": "Invalid credentials"}, 401
-    except Exception as e:
-        current_app.logger.error("Invalid request: " + str(e))
-        return {"error": "Invalid request"}, 400
-
-    try:
-        response = make_response(
-            user_service.handle_get_user_analysis(current_app, spotify_auth))
-        extend_session_expiry(current_app, response, request.cookies)
-        return response
-    except Exception as e:
-        current_app.logger.error(
-            "Unable to retrieve user analysis: " + str(e))
-        return {"error": "Unable to retrieve user analysis"}, 400
 
 
 @user_controller.route('/aggregate', methods=['GET'])
@@ -134,9 +106,8 @@ def queue_user_aggregated_data():
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(
-            user_service.queue_get_aggregate_user_data(spotify_auth))
-        extend_session_expiry(current_app, response, request.cookies)
+        response = make_response(user_service.queue_get_aggregate_user_data(spotify_auth))
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
@@ -159,9 +130,8 @@ def get_user_aggregated_data_state(id):
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(
-            user_service.get_aggregate_user_data_state(id))
-        extend_session_expiry(current_app, response, request.cookies)
+        response = make_response(user_service.get_aggregate_user_data_state(id))
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(

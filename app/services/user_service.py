@@ -1,3 +1,4 @@
+from classes.spotify_auth import SpotifyAuth
 from tasks.analysis_tasks import aggregate_user_data, get_user_analysis, get_user_tracker_data
 from database import database
 import spotipy
@@ -17,7 +18,7 @@ TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 ANALYSE_LIBRARY_ATTRIBUTE_NAME = "analyse_library"
 
 
-def save_user(current_app, spotify_auth, user_attributes):
+def save_user(current_app, spotify_auth: SpotifyAuth, user_attributes):
     """
     Check if user exists and update
     Otherwise create new user entry
@@ -25,14 +26,14 @@ def save_user(current_app, spotify_auth, user_attributes):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
+    if not auth_manager.validate_token(spotify_auth.to_dict()):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
     user_entry = {
         "spotify": {
-            "expires_at": spotify_auth["expires_at"],
-            "refresh_token": spotify_auth["refresh_token"],
-            "scope": spotify_auth["scope"]
+            "expires_at": spotify_auth.expires_at,
+            "refresh_token": spotify_auth.refresh_token,
+            "scope": spotify_auth.scope
         },
         "user_attributes": user_attributes
     }
@@ -58,7 +59,7 @@ def get_user(current_app, spotify_auth):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
+    if not auth_manager.validate_token(spotify_auth.to_dict()):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
     user = database.find_user(user_id)
@@ -73,11 +74,11 @@ def get_user(current_app, spotify_auth):
     }, 400
 
 
-def queue_get_aggregate_user_data(spotify_auth):
+def queue_get_aggregate_user_data(spotify_auth: SpotifyAuth):
     """
     Return celery task id
     """
-    result = aggregate_user_data.delay(spotify_auth)
+    result = aggregate_user_data.delay(spotify_auth.to_dict())
     print("Aggregate data id:" + result.id)
     return {"aggregate_task_id": result.id}
 
@@ -86,7 +87,7 @@ def get_aggregate_user_data_state(id: str):
     return get_celery_task_state(id, "Aggregate user data")
 
 
-def handle_get_user_tracker_data(current_app, spotify_auth, tracker_name):
+def handle_get_user_tracker_data(current_app, spotify_auth: SpotifyAuth, tracker_name):
     """
     Check if trackers are enabled for user
     If enabled, retrieve all data points for user
@@ -94,7 +95,7 @@ def handle_get_user_tracker_data(current_app, spotify_auth, tracker_name):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
+    if not auth_manager.validate_token(spotify_auth.to_dict()):
         return {"error": "Invalid token"}, 400
     user_id = spotify.me()["id"]
     user = database.find_user(user_id)
@@ -117,7 +118,7 @@ def handle_get_user_analysis(current_app, spotify_auth):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
+    if not auth_manager.validate_token(spotify_auth.to_dict()):
         return {"error": "Invalid token"}, 400
     try:
         return get_user_analysis(current_app, spotify)

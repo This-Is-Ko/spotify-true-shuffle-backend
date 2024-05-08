@@ -5,31 +5,31 @@ services:
       dockerfile: ./docker/prod/flask.Dockerfile
     image: kobo67/true-shuffle:true_shuffle_flask_web
     volumes:
-      - /etc/letsencrypt/live/api.trueshuffle.top:/ssl
+      - ./ssl:/ssl
     ports:
       - 5000:5000
-      - 443:443
     env_file:
       - .env
     depends_on:
-      redis:
-        condition: service_healthy
       celery_worker:
         condition: service_healthy
     networks:
       - app-network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
     ports:
       - 6379:6379
+    command: redis-server --requirepass $REDIS_PASSWORD
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 1s
-      timeout: 3s
-      retries: 10
+      interval: 90s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
+    restart: unless-stopped
 
   celery_worker:
     build:
@@ -38,15 +38,32 @@ services:
     image: kobo67/true-shuffle:true_shuffle_celery_worker
     healthcheck:
       test: celery -A make_celery inspect ping
-      interval: 1s
+      interval: 90s
       timeout: 5s
-      retries: 20
+      retries: 5
     env_file:
       - .env
     depends_on:
       - redis
     networks:
       - app-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx
+    volumes:
+      # Ensure config file is added into /nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - /etc/letsencrypt/live/api.trueshuffle.top:/etc/letsencrypt/live/api.trueshuffle.top
+      - /etc/letsencrypt/archive/api.trueshuffle.top:/etc/letsencrypt/archive/api.trueshuffle.top
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - flask
+    networks:
+      - app-network
+    restart: unless-stopped
 
 networks:
   app-network:

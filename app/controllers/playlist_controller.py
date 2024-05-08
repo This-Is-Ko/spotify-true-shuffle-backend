@@ -8,8 +8,7 @@ from schemas.ShufflePlaylistRequestSchema import ShufflePlaylistRequestSchema
 from schemas.ShareLikedTracksRequestSchema import ShareLikedTracksRequestSchema
 from utils.auth_utils import extend_session_expiry, validate_session
 
-playlist_controller = Blueprint(
-    'playlist_controller', __name__, url_prefix='/api/playlist')
+playlist_controller = Blueprint('playlist_controller', __name__, url_prefix='/api/playlist')
 
 
 @playlist_controller.route('/me', methods=['GET'])
@@ -26,12 +25,13 @@ def get_playlists():
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(playlist_service.get_user_playlists(
-            current_app, spotify_auth, include_stats))
-        extend_session_expiry(current_app, response, request.cookies)
+        response = make_response(playlist_service.get_user_playlists(spotify_auth, include_stats))
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
-        current_app.logger.error("Unable to retrieve user playlists" + str(e))
+        current_app.logger.error("Unable to retrieve user playlists: " + str(e))
+        if spotify_auth is not None and spotify_auth.user_id is not None:
+            current_app.logger.error("User: " + spotify_auth.user_id)
         return {"error": "Unable to retrieve user playlists"}, 400
 
 
@@ -56,7 +56,7 @@ def queue_shuffle_playlist():
     try:
         response = make_response(playlist_service.queue_create_shuffled_playlist(
             spotify_auth, request_body["playlist_id"], request_body["playlist_name"]))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
@@ -96,9 +96,8 @@ def delete_shuffled_playlists():
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(
-            playlist_service.delete_all_shuffled_playlists(current_app, spotify_auth))
-        extend_session_expiry(current_app, response, request.cookies)
+        response = make_response(playlist_service.delete_all_shuffled_playlists(spotify_auth))
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(
@@ -127,11 +126,11 @@ def liked_tracks_to_playlist():
     try:
         if "playlist_name" in request_body and request_body["playlist_name"] != "":
             response = make_response(playlist_service.queue_create_playlist_from_liked_tracks(spotify_auth, request_body["playlist_name"]))
-            extend_session_expiry(current_app, response, request.cookies)
+            extend_session_expiry(response, request.cookies)
             return response
         else:
             response = make_response(playlist_service.queue_create_playlist_from_liked_tracks(spotify_auth))
-            extend_session_expiry(current_app, response, request.cookies)
+            extend_session_expiry(response, request.cookies)
             return response
     except Exception as e:
         current_app.logger.error(
@@ -152,7 +151,7 @@ def get_liked_tracks_to_playlist_state(id):
 
     try:
         response = make_response(playlist_service.get_create_playlist_from_liked_tracks_state(id))
-        extend_session_expiry(current_app, response, request.cookies)
+        extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
         current_app.logger.error(

@@ -3,8 +3,8 @@ import jwt
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
 
-from mock_responses import *
-from mock_requests import *
+from tests.functional.helpers.mock_requests import *
+from tests.functional.helpers.mock_responses import *
 
 # def test_update_trackers_success(mocker, client, env_patch):
 #     """

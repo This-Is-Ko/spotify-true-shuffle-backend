@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta, timezone
 import uuid
 import hashlib
-
+from flask import current_app
 from database import database
 from exceptions.custom_exceptions import SessionExpired, SessionIdNone, SessionIdNotFound
-
+from classes.spotify_auth import SpotifyAuth
 
 def generate_session_id():
     """
@@ -27,10 +27,11 @@ def remove_session_entry(session_id):
     database.delete_session(generate_hashed_session_id(session_id))
 
 
-def validate_session(cookies):
+def validate_session(cookies) -> SpotifyAuth :
     """
     Validate session and return spotify auth if valid
     """
+    current_app.logger.info("Validating session...")
     session_id = cookies.get("trueshuffle-sessionId")
 
     # Find session entry with hashed session id
@@ -45,31 +46,26 @@ def validate_session(cookies):
             or "refresh_token" not in session_entry
             or "expires_at" not in session_entry
             or "scope" not in session_entry
-            or "expiry" not in session_entry
+            or "session_expiry" not in session_entry
         ):
         raise Exception("Session entry is invalid")
 
     # Check session expiry
-    if session_entry["expiry"].replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+    if session_entry["session_expiry"].replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
         remove_session_entry(session_id)
         raise SessionExpired("Session expired")
 
     # Return spotify auth attributes
-    return {
-        "access_token": session_entry["access_token"],
-        "refresh_token": session_entry["refresh_token"],
-        "expires_at": session_entry["expires_at"],
-        "scope": session_entry["scope"],
-        "token_type": "Bearer"
-    }
+    return SpotifyAuth.from_session_entry(session_entry)
 
 
-def extend_session_expiry(current_app, response, cookies):
+def extend_session_expiry(response, cookies):
     """
     Extend session expiry of cookies and database entry
     """
+    current_app.logger.info("Extending session expiry...")
     session_id = cookies.get("trueshuffle-sessionId")
-    session_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+    session_expiry = datetime.now(timezone.utc) + timedelta(hours=4)
 
     # Update cookie
     response.set_cookie(key="trueshuffle-sessionId",
@@ -89,7 +85,6 @@ def extend_session_expiry(current_app, response, cookies):
                         )
 
     # Update database session entry
-    entry_expiry_update = dict()
-    entry_expiry_update["expiry"] = session_expiry
+    entry_expiry_update = SpotifyAuth(session_expiry = session_expiry)
     session_response = database.find_and_update_session(
-        generate_hashed_session_id(session_id), entry_expiry_update)
+        generate_hashed_session_id(session_id), entry_expiry_update.to_dict())

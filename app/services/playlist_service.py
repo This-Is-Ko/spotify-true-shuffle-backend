@@ -3,26 +3,28 @@ import spotipy
 from datetime import date, datetime
 from bson import json_util
 import json
-
+from flask import current_app
 from tasks.task_state import get_celery_task_state
 from database import database
 from exceptions.custom_exceptions import SpotifyAuthInvalid
 from services.spotify_client import *
 from schemas.Playlist import Playlist
-from tasks.playlist_tasks import create_playlist_from_liked_tracks, shuffle_playlist
+from tasks import playlist_tasks
 
 SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 
 
-def get_user_playlists(current_app, spotify_auth, include_stats):
+def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
+    if not auth_manager.validate_token(spotify_auth.to_dict()):
         raise SpotifyAuthInvalid("Invalid token")
-    user = spotify.current_user()
+    user = spotify.me()
+    if user is None:
+        raise Exception("User not found in Spotify")
 
     all_playlists = []
     # Add liked tracks as playlist option
@@ -30,7 +32,7 @@ def get_user_playlists(current_app, spotify_auth, include_stats):
                          "url": "https://misc.scdn.co/liked-songs/liked-songs-300.png"}))
 
     playlists = spotify.current_user_playlists()
-    if "items" in playlists:
+    if playlists is not None and "items" in playlists:
         for playlist_entry in playlists["items"]:
             # Don't select playlists already shuffled
             if playlist_entry["name"].startswith(SHUFFLED_PLAYLIST_PREFIX):
@@ -63,9 +65,9 @@ def get_user_playlists(current_app, spotify_auth, include_stats):
     return response_body
 
 
-def queue_create_shuffled_playlist(spotify_auth, playlist_id, playlist_name):
-    result = shuffle_playlist.delay(spotify_auth, playlist_id, playlist_name)
-    print("Shuffle id:" + result.id)
+def queue_create_shuffled_playlist(spotify_auth: SpotifyAuth, playlist_id, playlist_name):
+    result = playlist_tasks.shuffle_playlist.delay(spotify_auth.to_dict(), playlist_id, playlist_name)
+    current_app.logger.info("Shuffle id:" + result.id)
     return {"shuffle_task_id": result.id}
 
 
@@ -73,11 +75,11 @@ def get_shuffle_state(id: str):
     return get_celery_task_state(id, "Shuffle playlist")
 
 
-def delete_all_shuffled_playlists(current_app, spotify_auth):
+def delete_all_shuffled_playlists(spotify_auth: SpotifyAuth):
     auth_manager = create_auth_manager_with_token(
         current_app, spotify_auth)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
-    if not auth_manager.validate_token(spotify_auth):
+    if not auth_manager.validate_token(spotify_auth.to_dict()):
         raise SpotifyAuthInvalid("Invalid token")
 
     # Search all user playlists for shuffled playlists
@@ -97,51 +99,8 @@ def delete_all_shuffled_playlists(current_app, spotify_auth):
     }
 
 
-def create_new_playlist_with_tracks(current_app, spotify, new_playlist_name, public_status, playlist_description, tracks_to_add):
-    try:
-        # Create new playlist
-        user_id = spotify.me()["id"]
-        shuffled_playlist = spotify.user_playlist_create(
-            user=user_id, name=new_playlist_name, public=public_status, description=playlist_description)
-
-        # Add 100 tracks per call
-        if len(tracks_to_add) <= 100:
-            calls_required = 1
-        else:
-            calls_required = len(tracks_to_add) // 100 + 1
-        left_over = len(tracks_to_add) % 100
-        for i in range(calls_required):
-            if i == calls_required - 1:
-                add_items_response = spotify.playlist_add_items(
-                    shuffled_playlist["id"], tracks_to_add[i*100: i*100+left_over])
-            else:
-                add_items_response = spotify.playlist_add_items(
-                    shuffled_playlist["id"], tracks_to_add[i*100: i*100+100])
-            if not "snapshot_id" in add_items_response:
-                current_app.logger.error(
-                    "Error while adding tracks. Response: " + add_items_response)
-                return {
-                    "error": "Unable to add tracks to playlist " + shuffled_playlist["id"]
-                }
-        create_playlist_with_tracks_success_log = "User: {user_id} -- Created playlist: {playlist_id} -- Length: {length:d}"
-        current_app.logger.info(
-            create_playlist_with_tracks_success_log.format(user_id=user_id, playlist_id=shuffled_playlist["id"], length=len(tracks_to_add)))
-        return {
-            "status": "success",
-            "playlist_uri": shuffled_playlist["external_urls"]["spotify"],
-            "num_of_tracks": len(tracks_to_add),
-            "creation_time": datetime.now()
-        }
-    except Exception as e:
-        current_app.logger.error(
-            "Error while creating new playlist / adding tracks: " + str(e))
-        return {
-            "error": "Unable to create new playlist / add tracks to playlist "
-        }
-
-
-def queue_create_playlist_from_liked_tracks(spotify_auth, new_playlist_name="My Liked Tracks"):
-    result = create_playlist_from_liked_tracks.delay(spotify_auth, new_playlist_name)
+def queue_create_playlist_from_liked_tracks(spotify_auth: SpotifyAuth, new_playlist_name="My Liked Tracks"):
+    result = playlist_tasks.create_playlist_from_liked_tracks.delay(spotify_auth.to_dict(), new_playlist_name)
     print("Create playlist id:" + result.id)
     return {"create_liked_playlist_id": result.id}
 

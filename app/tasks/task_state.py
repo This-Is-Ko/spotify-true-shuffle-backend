@@ -1,8 +1,9 @@
 from celery.result import AsyncResult
+from flask import current_app
 
 def get_celery_task_state(id: str, type: str):
     result = AsyncResult(id)
-    print(type + " state:" + result.state)
+    current_app.logger.info(type + " state: " + id + " - " + result.state)
     if result.state == "PROGRESS":
         return {
                     "state": result.state,

@@ -39,7 +39,7 @@ def update_trackers(current_app):
             tracker_logger(current_app, USER_LIKED_TRACKS_TRACKER_LOG, TRACK_SHUFFLES_ATTRIBUTE_NAME,
                            user["user_id"], "Failed to validate user token", level="error")
             continue
-        current_count = util.get_liked_tracks_count(current_app, spotify)
+        current_count = util.get_liked_tracks_count(spotify)
         if current_count is None:
             tracker_logger(current_app, USER_LIKED_TRACKS_TRACKER_LOG, TRACK_SHUFFLES_ATTRIBUTE_NAME,
                            user["user_id"], "Failed to get new liked tracks count", level="error")
