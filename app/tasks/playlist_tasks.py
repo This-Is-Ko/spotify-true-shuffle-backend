@@ -30,7 +30,7 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
     tracker_utils.update_overall_trackers(len(all_tracks))
     
     random.shuffle(all_tracks)
-    util.update_task_progress(self, state='PROGRESS', meta={'progress': {'state': "Shuffling " + str(len(all_tracks)) + " tracks"}})
+    util.update_task_progress(self, state='PROGRESS', meta={'progress': {'state': "Shuffling " + str(len(all_tracks)) + " tracks..."}})
 
     # Check if shuffled playlist exists and remove
     user_playlists = spotify_client.current_user_playlists()
