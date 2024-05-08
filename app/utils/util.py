@@ -5,12 +5,11 @@ import spotipy
 from services.spotify_client import *
 from schemas.Playlist import Playlist
 
-SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 
 def update_task_progress(task, state, meta):
     if (task is None):
-        current_app.logger.error("Task is None - Unable to update task state")
+        current_app.logger.error("Task is missing - Unable to update task state")
     else:
         task.update_state(state=state, meta=meta)
 
@@ -23,11 +22,9 @@ def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str):
     all_tracks = []
     while True:
         if playlist_id == LIKED_TRACKS_PLAYLIST_ID:
-            tracks_response = spotify.current_user_saved_tracks(
-                limit=50, offset=offset)
+            tracks_response = spotify.current_user_saved_tracks(limit=50, offset=offset)
         else:
-            tracks_response = spotify.playlist_items(
-                playlist_id, limit=50, offset=offset)
+            tracks_response = spotify.playlist_items(playlist_id, limit=50, offset=offset)
         if tracks_response != None and "items" in tracks_response:
             if len(tracks_response["items"]) == 0:
                 break
@@ -35,9 +32,8 @@ def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str):
                 if track["track"]["uri"] != None:
                     all_tracks.append(track["track"]["uri"])
                 else:
-                    current_app.logger.info(
-                        "Track missing uri: " + str(track))
-        offset += len(tracks_response["items"])
+                    current_app.logger.info("Track missing uri: " + str(track))
+            offset += len(tracks_response["items"])
         update_task_progress(task=task, state='PROGRESS', meta={'progress': {'state': "Retrieved " + str(len(all_tracks)) + " tracks so far..."}})
     return all_tracks
 
@@ -119,10 +115,12 @@ def calcFromMillis(milliseconds):
 
 def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist_name: str, public_status: bool, playlist_description: str, tracks_to_add: list):
     try:
+        if tracks_to_add is None or len(tracks_to_add) == 0:
+            raise Exception("No tracks to add")
         # Create new playlist
         user_id = spotify.me()["id"]
-        shuffled_playlist = spotify.user_playlist_create(user=user_id, name=new_playlist_name, public=public_status, description=playlist_description)
-        print(shuffled_playlist)
+        new_playlist = spotify.user_playlist_create(user=user_id, name=new_playlist_name, public=public_status, description=playlist_description)
+        current_app.logger.info("User: {user_id} -- Initialised playlist: {playlist_id}".format(user_id=user_id,  playlist_id=new_playlist["id"]))
         # Add 100 tracks per call
         if len(tracks_to_add) <= 100:
             calls_required = 1
@@ -131,27 +129,27 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
         left_over = len(tracks_to_add) % 100
         for i in range(calls_required):
             if i == calls_required - 1:
-                add_items_response = spotify.playlist_add_items(shuffled_playlist["id"], tracks_to_add[i*100: i*100+left_over])
+                add_items_response = spotify.playlist_add_items(new_playlist["id"], tracks_to_add[i*100: i*100+left_over])
                 update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Adding  " + str(i*100+left_over) + "/" + str(len(tracks_to_add)) + " tracks..."}})
             else:
-                add_items_response = spotify.playlist_add_items(shuffled_playlist["id"], tracks_to_add[i*100: i*100+100])
+                add_items_response = spotify.playlist_add_items(new_playlist["id"], tracks_to_add[i*100: i*100+100])
                 update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Added " + str(i*100+100) + "/" + str(len(tracks_to_add)) + " tracks"}})
             if not "snapshot_id" in add_items_response:
                 current_app.logger.error("Error while adding tracks. Response: " + add_items_response)
                 return {
-                    "error": "Unable to add tracks to playlist " + shuffled_playlist["id"]
+                    "error": "Unable to add tracks to playlist " + new_playlist["id"]
                 }
         create_playlist_with_tracks_success_log = "User: {user_id} -- Created playlist: {playlist_id} -- Length: {length:d}"
         current_app.logger.info(
-            create_playlist_with_tracks_success_log.format(user_id=user_id, playlist_id=shuffled_playlist["id"], length=len(tracks_to_add)))
+            create_playlist_with_tracks_success_log.format(user_id=user_id, playlist_id=new_playlist["id"], length=len(tracks_to_add)))
         return {
             "status": "success",
-            "playlist_uri": shuffled_playlist["external_urls"]["spotify"],
+            "playlist_uri": new_playlist["external_urls"]["spotify"],
             "num_of_tracks": len(tracks_to_add),
             "creation_time": datetime.now()
         }
     except Exception as e:
         current_app.logger.error( "Error while creating new playlist / adding tracks: " + str(e))
         return {
-            "error": "Unable to create new playlist / add tracks to playlist "
+            "error": "Unable to create new playlist / add tracks to playlist"
         }
