@@ -117,7 +117,7 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
     try:
         if tracks_to_add is None or len(tracks_to_add) == 0:
             raise Exception("No tracks to add")
-        
+
         # Remove any invalid uris which have a whitespace
         tracks_to_add = [track for track in tracks_to_add if ' ' not in track]
 
@@ -144,7 +144,7 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
                 return {
                     "error": "Unable to add tracks to playlist " + new_playlist["id"]
                 }
-            
+
         create_playlist_with_tracks_success_log = "User: {user_id} -- Created playlist: {playlist_id} -- Length: {length:d}"
         current_app.logger.info(
             create_playlist_with_tracks_success_log.format(user_id=user_id, playlist_id=new_playlist["id"], length=len(tracks_to_add)))
