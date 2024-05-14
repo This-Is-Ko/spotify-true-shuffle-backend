@@ -124,7 +124,10 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
         # Create new playlist
         user_id = spotify.me()["id"]
         new_playlist = spotify.user_playlist_create(user=user_id, name=new_playlist_name, public=public_status, description=playlist_description)
-        current_app.logger.info("User: {user_id} -- Initialised playlist: {playlist_id}".format(user_id=user_id,  playlist_id=new_playlist["id"]))
+        new_playlist_id = new_playlist["id"]
+        if new_playlist_id is None:
+            raise Exception("Created playlist id is missing")
+        current_app.logger.info("User: {user_id} -- Initialised playlist: {playlist_id}".format(user_id=user_id,  playlist_id=new_playlist_id))
 
         # Add 100 tracks per call
         if len(tracks_to_add) <= 100:
@@ -134,20 +137,20 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
         left_over = len(tracks_to_add) % 100
         for i in range(calls_required):
             if i == calls_required - 1:
-                add_items_response = spotify.playlist_add_items(new_playlist["id"], tracks_to_add[i*100: i*100+left_over])
+                add_items_response = spotify.playlist_add_items(new_playlist_id, tracks_to_add[i*100: i*100+left_over])
                 update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Adding  " + str(i*100+left_over) + "/" + str(len(tracks_to_add)) + " tracks..."}})
             else:
-                add_items_response = spotify.playlist_add_items(new_playlist["id"], tracks_to_add[i*100: i*100+100])
+                add_items_response = spotify.playlist_add_items(new_playlist_id, tracks_to_add[i*100: i*100+100])
                 update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Added " + str(i*100+100) + "/" + str(len(tracks_to_add)) + " tracks"}})
             if not "snapshot_id" in add_items_response:
                 current_app.logger.error("Error while adding tracks. Response: " + add_items_response)
                 return {
-                    "error": "Unable to add tracks to playlist " + new_playlist["id"]
+                    "error": "Unable to add tracks to playlist " + new_playlist_id
                 }
 
         create_playlist_with_tracks_success_log = "User: {user_id} -- Created playlist: {playlist_id} -- Length: {length:d}"
         current_app.logger.info(
-            create_playlist_with_tracks_success_log.format(user_id=user_id, playlist_id=new_playlist["id"], length=len(tracks_to_add)))
+            create_playlist_with_tracks_success_log.format(user_id=user_id, playlist_id=new_playlist_id, length=len(tracks_to_add)))
         
         return {
             "status": "success",
