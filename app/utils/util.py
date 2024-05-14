@@ -29,7 +29,7 @@ def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str):
             if len(tracks_response["items"]) == 0:
                 break
             for track in tracks_response["items"]:
-                if track["track"]["uri"] != None:
+                if track["track"] is not None and track["track"]["uri"] is not None:
                     all_tracks.append(track["track"]["uri"])
                 else:
                     current_app.logger.info("Track missing uri: " + str(track))
@@ -117,10 +117,15 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
     try:
         if tracks_to_add is None or len(tracks_to_add) == 0:
             raise Exception("No tracks to add")
+        
+        # Remove any invalid uris which have a whitespace
+        tracks_to_add = [track for track in tracks_to_add if ' ' not in track]
+
         # Create new playlist
         user_id = spotify.me()["id"]
         new_playlist = spotify.user_playlist_create(user=user_id, name=new_playlist_name, public=public_status, description=playlist_description)
         current_app.logger.info("User: {user_id} -- Initialised playlist: {playlist_id}".format(user_id=user_id,  playlist_id=new_playlist["id"]))
+
         # Add 100 tracks per call
         if len(tracks_to_add) <= 100:
             calls_required = 1
@@ -139,9 +144,11 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
                 return {
                     "error": "Unable to add tracks to playlist " + new_playlist["id"]
                 }
+            
         create_playlist_with_tracks_success_log = "User: {user_id} -- Created playlist: {playlist_id} -- Length: {length:d}"
         current_app.logger.info(
             create_playlist_with_tracks_success_log.format(user_id=user_id, playlist_id=new_playlist["id"], length=len(tracks_to_add)))
+        
         return {
             "status": "success",
             "playlist_uri": new_playlist["external_urls"]["spotify"],
