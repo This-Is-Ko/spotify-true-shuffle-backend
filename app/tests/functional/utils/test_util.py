@@ -22,9 +22,9 @@ playlist_add_items_response = {
 }
 
 sample_tracks_list = [
-    "sometrack0",
-    "sometrack1",
-    "sometrack2"
+    "spotify:track:sometrack0",
+    "spotify:track:sometrack1",
+    "spotify:track:sometrack2"
 ]
 
 app = Flask('test')
@@ -121,10 +121,42 @@ def test_create_new_playlist_with_tracks_success(mocker, env_patch):
         assert response["num_of_tracks"] == 3
         assert response["creation_time"] is not None
 
+def test_create_new_playlist_with_tracks_track_list_contains_invalid_values_failure(mocker, env_patch):
+    with app.app_context():
+        # Prepare mocks
+        mocker.patch("utils.util.update_task_progress", return_value=None)
+        mocker.patch.object(Spotify, "me", return_value=mock_user_details_response)
+        mocker.patch.object(Spotify, "user_playlist_create", return_value=create_user_playlist_response)
+        mocker.patch.object(Spotify, "playlist_add_items", return_value=playlist_add_items_response)
+
+        tracks_list_with_invalid = [
+            "spotify:track:sometrack0",
+            "sometrack1"
+        ]
+
+        response = create_new_playlist_with_tracks(None, Spotify(), "new_playlist_name", False, "playlist_description", tracks_list_with_invalid)
+
+        assert response["status"] == "success"
+        assert response["playlist_uri"] == SPOTIFY_PLAYLIST_URL
+        assert response["num_of_tracks"] == 1
+        assert response["creation_time"] is not None
+
+
+def test_create_new_playlist_with_tracks_track_list_contains_all_invalid_values_failure(mocker, env_patch):
+    with app.app_context():
+
+        tracks_list_with_invalid = [
+            "sometrack0",
+            "sometrack1"
+        ]
+
+        response = create_new_playlist_with_tracks(None, Spotify(), "new_playlist_name", False, "playlist_description", tracks_list_with_invalid)
+        
+        assert response["error"] == "Unable to create new playlist / add tracks to playlist"
+
         
 def test_create_new_playlist_with_tracks_empty_track_list_failure(mocker, env_patch):
     with app.app_context():
-        # Prepare mocks
 
         response = create_new_playlist_with_tracks(None, Spotify(), "new_playlist_name", False, "playlist_description", [])
 
@@ -165,3 +197,5 @@ def test_create_new_playlist_with_tracks_error_adding_items_failure(mocker, env_
         response = create_new_playlist_with_tracks(None, Spotify(), "new_playlist_name", False, "playlist_description", sample_tracks_list)
 
         assert response["error"] == "Unable to create new playlist / add tracks to playlist"
+
+

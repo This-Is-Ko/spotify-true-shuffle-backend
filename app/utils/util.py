@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 from flask import current_app
 import spotipy
 
@@ -13,7 +14,7 @@ def update_task_progress(task, state, meta):
     else:
         task.update_state(state=state, meta=meta)
 
-def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str):
+def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str) -> List[str]:
     """
     Get tracks from playlist based on playlist_id
     Use separate spotify call for retrieving Liked Tracks
@@ -113,13 +114,15 @@ def calcFromMillis(milliseconds):
     return seconds, minutes, hours, days
 
 
-def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist_name: str, public_status: bool, playlist_description: str, tracks_to_add: list):
+def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist_name: str, public_status: bool, playlist_description: str, tracks_to_add: List[str]):
     try:
-        if tracks_to_add is None or len(tracks_to_add) == 0:
+        if tracks_to_add is None:
             raise Exception("No tracks to add")
 
         # Remove any invalid uris which have a whitespace
-        tracks_to_add = [track for track in tracks_to_add if ' ' not in track]
+        tracks_to_add = validate_tracks(tracks_to_add)
+        if len(tracks_to_add) == 0:
+            raise Exception("No tracks to add")
 
         # Create new playlist
         user_id = spotify.me()["id"]
@@ -159,7 +162,21 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
             "creation_time": datetime.now()
         }
     except Exception as e:
-        current_app.logger.error( "Error while creating new playlist / adding tracks: " + str(e))
+        current_app.logger.error("Error while creating new playlist / adding tracks: " + str(e))
         return {
             "error": "Unable to create new playlist / add tracks to playlist"
         }
+    
+
+def validate_tracks(track_list: List[str]) -> List[str]:
+    valid_tracks = []
+    invalid_tracks = []
+    for track in track_list:
+        if track.startswith("spotify:track:") and " " not in track[14:]:
+            valid_tracks.append(track)
+        else:
+            invalid_tracks.append(track)
+    if invalid_tracks:
+        current_app.logger.warning("Tracks without the correct uri format were removed")
+        current_app.logger.warning(invalid_tracks)
+    return valid_tracks
