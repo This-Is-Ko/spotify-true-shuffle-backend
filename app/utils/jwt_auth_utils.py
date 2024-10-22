@@ -24,7 +24,12 @@ def validate_auth_header_jwt(auth_header):
     except jwt.DecodeError as e:
         raise AccessTokenInvalid(str(e))
     # Check sub
-    if "sub" not in decoded_token or decoded_token["sub"] != "cron":
+    
+    client_id = current_app.config["SERVICE_CLIENT_ID"]
+    if client_id is None:
+        AccessTokenInvalid("sub invalid in token")
+    
+    if "sub" not in decoded_token or decoded_token["sub"] != client_id:
         raise AccessTokenInvalid(
             "sub claim missing or invalid in token")
     # Check admin
