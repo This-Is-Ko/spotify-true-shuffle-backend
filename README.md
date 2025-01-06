@@ -20,6 +20,13 @@ The following env variables are required to run. Add them into a .env file
     JWT_SECRET # secret to sign jwt
     JWT_ISSUER # issuer value for jwt
     MONGO_URI # database uri
+    ENV=local
+    CELERY_BROKER_URL # celery url
+    CELERY_RESULT_BACKEND_URL # celery url
+    REDIS_PASSWORD # auth to access celery
+    SERVICE_CLIENT_ID # auth for service token for cron jobs
+    SERVICE_CLIENT_SECRET # auth for service token for cron jobs
+    CONFIG_TYPE
 
 To set the environment to the specific environment, set the following variable.
 
@@ -32,6 +39,23 @@ To set the environment to the specific environment, set the following variable.
     # prod
     CONFIG_TYPE=config.ProductionConfig
 
+Example config
+    
+    e.g.
+        CELERY_BROKER_URL=redis://localhost
+        CELERY_RESULT_BACKEND_URL=redis://localhost
+        REDIS_PASSWORD=******
+        SERVICE_CLIENT_ID=abcd
+        SERVICE_CLIENT_SECRET=******
+        SPOTIFY_CLIENT_ID=abcd
+        SPOTIFY_CLIENT_SECRET=******
+        SPOTIFY_REDIRECT_URI=http://localhost:3000
+        CORS_ORIGIN=http://localhost:3000
+        JWT_SECRET=******
+        JWT_ISSUER=http://localhost/
+        CONFIG_TYPE=config.DevelopmentConfig
+        MONGO_URI=mongodb+srv://username:password@cluster0.abcd.mongodb.net
+        ENV=local
 ## Run
 
 Install dependancies:
