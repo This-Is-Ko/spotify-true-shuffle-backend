@@ -32,6 +32,11 @@ class Config:
         'JWT_SECRET', default='JWT_SECRET')
     JWT_ISSUER = os.getenv(
         'JWT_ISSUER', default='JWT_ISSUER')
+    
+    SERVICE_CLIENT_ID = os.getenv(
+        'SERVICE_CLIENT_ID', default='SERVICE_CLIENT_ID')
+    SERVICE_CLIENT_SECRET = os.getenv(
+        'SERVICE_CLIENT_SECRET', default='SERVICE_CLIENT_SECRET')
 
     # CORS
     CORS_ORIGIN = os.getenv(

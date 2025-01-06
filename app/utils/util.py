@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 from flask import current_app
 import spotipy
 
@@ -13,7 +14,7 @@ def update_task_progress(task, state, meta):
     else:
         task.update_state(state=state, meta=meta)
 
-def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str):
+def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str) -> List[str]:
     """
     Get tracks from playlist based on playlist_id
     Use separate spotify call for retrieving Liked Tracks
@@ -29,7 +30,7 @@ def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str):
             if len(tracks_response["items"]) == 0:
                 break
             for track in tracks_response["items"]:
-                if track["track"]["uri"] != None:
+                if track["track"] is not None and track["track"]["uri"] is not None:
                     all_tracks.append(track["track"]["uri"])
                 else:
                     current_app.logger.info("Track missing uri: " + str(track))
@@ -113,14 +114,24 @@ def calcFromMillis(milliseconds):
     return seconds, minutes, hours, days
 
 
-def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist_name: str, public_status: bool, playlist_description: str, tracks_to_add: list):
+def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist_name: str, public_status: bool, playlist_description: str, tracks_to_add: List[str]):
     try:
-        if tracks_to_add is None or len(tracks_to_add) == 0:
+        if tracks_to_add is None:
             raise Exception("No tracks to add")
+
+        # Remove any invalid uris which have a whitespace
+        tracks_to_add = validate_tracks(tracks_to_add)
+        if len(tracks_to_add) == 0:
+            raise Exception("No tracks to add")
+
         # Create new playlist
         user_id = spotify.me()["id"]
         new_playlist = spotify.user_playlist_create(user=user_id, name=new_playlist_name, public=public_status, description=playlist_description)
-        current_app.logger.info("User: {user_id} -- Initialised playlist: {playlist_id}".format(user_id=user_id,  playlist_id=new_playlist["id"]))
+        new_playlist_id = new_playlist["id"]
+        if new_playlist_id is None:
+            raise Exception("Created playlist id is missing")
+        current_app.logger.info("User: {user_id} -- Initialised playlist: {playlist_id}".format(user_id=user_id,  playlist_id=new_playlist_id))
+
         # Add 100 tracks per call
         if len(tracks_to_add) <= 100:
             calls_required = 1
@@ -129,19 +140,21 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
         left_over = len(tracks_to_add) % 100
         for i in range(calls_required):
             if i == calls_required - 1:
-                add_items_response = spotify.playlist_add_items(new_playlist["id"], tracks_to_add[i*100: i*100+left_over])
+                add_items_response = spotify.playlist_add_items(new_playlist_id, tracks_to_add[i*100: i*100+left_over])
                 update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Adding  " + str(i*100+left_over) + "/" + str(len(tracks_to_add)) + " tracks..."}})
             else:
-                add_items_response = spotify.playlist_add_items(new_playlist["id"], tracks_to_add[i*100: i*100+100])
+                add_items_response = spotify.playlist_add_items(new_playlist_id, tracks_to_add[i*100: i*100+100])
                 update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Added " + str(i*100+100) + "/" + str(len(tracks_to_add)) + " tracks"}})
             if not "snapshot_id" in add_items_response:
                 current_app.logger.error("Error while adding tracks. Response: " + add_items_response)
                 return {
-                    "error": "Unable to add tracks to playlist " + new_playlist["id"]
+                    "error": "Unable to add tracks to playlist " + new_playlist_id
                 }
+
         create_playlist_with_tracks_success_log = "User: {user_id} -- Created playlist: {playlist_id} -- Length: {length:d}"
         current_app.logger.info(
-            create_playlist_with_tracks_success_log.format(user_id=user_id, playlist_id=new_playlist["id"], length=len(tracks_to_add)))
+            create_playlist_with_tracks_success_log.format(user_id=user_id, playlist_id=new_playlist_id, length=len(tracks_to_add)))
+        
         return {
             "status": "success",
             "playlist_uri": new_playlist["external_urls"]["spotify"],
@@ -149,7 +162,21 @@ def create_new_playlist_with_tracks(task, spotify: spotipy.Spotify, new_playlist
             "creation_time": datetime.now()
         }
     except Exception as e:
-        current_app.logger.error( "Error while creating new playlist / adding tracks: " + str(e))
+        current_app.logger.error("Error while creating new playlist / adding tracks: " + str(e))
         return {
             "error": "Unable to create new playlist / add tracks to playlist"
         }
+    
+
+def validate_tracks(track_list: List[str]) -> List[str]:
+    valid_tracks = []
+    invalid_tracks = []
+    for track in track_list:
+        if track.startswith("spotify:track:") and " " not in track[14:]:
+            valid_tracks.append(track)
+        else:
+            invalid_tracks.append(track)
+    if invalid_tracks:
+        current_app.logger.warning("Tracks without the correct uri format were removed")
+        current_app.logger.warning(invalid_tracks)
+    return valid_tracks
