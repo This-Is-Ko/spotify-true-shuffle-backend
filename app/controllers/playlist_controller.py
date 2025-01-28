@@ -1,14 +1,12 @@
 from flask_cors import cross_origin
-from marshmallow import ValidationError
 from flask import current_app, request, Blueprint, make_response
-from exceptions.custom_exceptions import SessionExpired, SessionIdNone, SessionIdNotFound
 
 from services import playlist_service
 from schemas.ShufflePlaylistRequestSchema import ShufflePlaylistRequestSchema
 from schemas.ShareLikedTracksRequestSchema import ShareLikedTracksRequestSchema
 from utils.auth_utils import extend_session_expiry
 from decorators.spotify_auth_validator import spotify_auth_validator
-from decorators.schema_validator import validate_request_schema
+from decorators.schema_validator import request_schema_validator
 
 playlist_controller = Blueprint('playlist_controller', __name__, url_prefix='/api/playlist')
 
@@ -33,7 +31,7 @@ def get_playlists(spotify_auth):
 
 @playlist_controller.route('/shuffle', methods=['POST'])
 @spotify_auth_validator
-@validate_request_schema(ShufflePlaylistRequestSchema)
+@request_schema_validator(ShufflePlaylistRequestSchema)
 def queue_shuffle_playlist(spotify_auth, request_body):
     try:
         response = make_response(playlist_service.queue_create_shuffled_playlist(
@@ -73,7 +71,7 @@ def delete_shuffled_playlists(spotify_auth):
 
 @playlist_controller.route('/share/liked-tracks', methods=['POST'])
 @spotify_auth_validator
-@validate_request_schema(ShareLikedTracksRequestSchema)
+@request_schema_validator(ShareLikedTracksRequestSchema)
 def liked_tracks_to_playlist(spotify_auth, request_body):
 
     try:
