@@ -11,7 +11,7 @@ session_controller = Blueprint('session_controller', __name__, url_prefix='/api/
 @session_controller.route('/cleanup', methods=['GET'])
 def clean_up_expired_sessions():
     """
-    Remove expired sessions from database
+    Removes expired sessions from database
     """
     # Verify jwt
     try:

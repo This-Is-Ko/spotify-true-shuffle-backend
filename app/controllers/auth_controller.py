@@ -1,4 +1,4 @@
-from flask import current_app, request, Blueprint
+from flask import current_app, Blueprint
 import jwt
 
 from schemas.ServiceAuthRequestSchema import ServiceAuthRequestSchema

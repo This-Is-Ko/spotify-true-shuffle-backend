@@ -42,8 +42,7 @@ def aggregate_user_data(self, spotify_auth_dict: dict):
             "overall_counter",
             overall_counter)
     except Exception as e:
-        current_app.logger.error(
-            "Error updating overall shuffle count: " + str(e))
+        current_app.logger.error("Error updating overall shuffle count: " + str(e))
 
     try:
         return {
@@ -53,8 +52,7 @@ def aggregate_user_data(self, spotify_auth_dict: dict):
             "analysis": get_user_analysis(self, current_app, spotify)
         }
     except Exception as e:
-        current_app.logger.error(
-            "Error in aggregate_user_data: " + str(e))
+        current_app.logger.error("Error in aggregate_user_data: " + str(e))
         return {
             "status": "error"
         }, 400
@@ -228,8 +226,7 @@ def get_user_analysis(task, current_app, spotify: spotipy.Spotify):
     try:
         audio_features = average_audio_features(task, spotify, all_tracks_ids)
     except Exception as e:
-        current_app.logger.error(
-            "Failed while retrieving/calculating audio features: " + str(e))
+        current_app.logger.error("Failed while retrieving/calculating audio features: " + str(e))
         raise Exception(
             "Failed while retrieving/calculating audio features: " + str(e))
 
