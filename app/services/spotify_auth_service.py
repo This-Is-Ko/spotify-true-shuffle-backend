@@ -53,8 +53,7 @@ def get_spotify_tokens(code):
             if session is None:
                 raise Exception("Unable to save session in database")
         except Exception as e:
-            current_app.logger.error(
-                "Failed to create session: " + str(e))
+            current_app.logger.error(    "Failed to create session: " + str(e))
             return {"status": "error",
                     "error": "Unable to create session"}, 400
 
@@ -105,7 +104,6 @@ def handle_logout(cookies):
         # Remove session from db
         remove_session_entry(session_id)
     except Exception as e:
-        current_app.logger.error(
-            "Error validating session id/deleting session: " + str(e))
+        current_app.logger.error("Error validating session id/deleting session: " + str(e))
 
     return response

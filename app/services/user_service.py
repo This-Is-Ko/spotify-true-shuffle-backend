@@ -103,8 +103,7 @@ def handle_get_user_tracker_data(current_app, spotify_auth: SpotifyAuth, tracker
     try:
         return get_user_tracker_data(user_id, user_json, tracker_name)
     except Exception as e:
-        current_app.logger.error(
-            "Error in handle_get_user_tracker_data: " + str(e))
+        current_app.logger.error("Error in handle_get_user_tracker_data: " + str(e))
         return {
             "status": "error"
         }, 400
@@ -123,8 +122,7 @@ def handle_get_user_analysis(current_app, spotify_auth):
     try:
         return get_user_analysis(current_app, spotify)
     except Exception as e:
-        current_app.logger.error(
-            "Error in handle_get_user_analysis: " + str(e))
+        current_app.logger.error("Error in handle_get_user_analysis: " + str(e))
         return {
             "status": "error"
         }, 400

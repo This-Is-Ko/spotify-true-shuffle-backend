@@ -10,8 +10,7 @@ def get_overall_statistics(current_app):
         overall_counter = database.find_shuffle_counter(
             "overall_counter")
         if overall_counter == None:
-            current_app.logger.error(
-                "Error finding overall counter")
+            current_app.logger.error(    "Error finding overall counter")
             raise Exception("Couldn't find overall counter")
         return {
             "status": "success",

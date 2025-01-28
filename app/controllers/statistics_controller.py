@@ -7,4 +7,7 @@ statistics_controller = Blueprint('statistics_controller', __name__, url_prefix=
 
 @statistics_controller.route('/overall', methods=['GET'])
 def get_statistics():
+    """
+    Endpoint to retrieve overall statistics
+    """
     return (statistics_service.get_overall_statistics(current_app))
