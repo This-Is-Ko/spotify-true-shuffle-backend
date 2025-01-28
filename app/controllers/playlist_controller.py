@@ -53,7 +53,7 @@ def queue_shuffle_playlist(spotify_auth, request_body):
 
 @playlist_controller.route('/shuffle/state/<id>', methods=['GET'])
 @spotify_auth_validator
-def get_shuffle_state(id):
+def get_shuffle_state(id, spotify_auth):
     """
     Endpoint to get the state of a shuffled playlist creation process
     Validates Spotify authentication
@@ -107,7 +107,7 @@ def liked_tracks_to_playlist(spotify_auth, request_body):
 
 @playlist_controller.route('/share/liked-tracks/<id>', methods=['GET'])
 @spotify_auth_validator
-def get_liked_tracks_to_playlist_state(id):
+def get_liked_tracks_to_playlist_state(id, spotify_auth):
     """
     Endpoint to retrieve the state of a playlist creation from liked tracks
     Validates Spotify authentication
