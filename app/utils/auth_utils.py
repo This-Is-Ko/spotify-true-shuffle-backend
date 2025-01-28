@@ -31,7 +31,7 @@ def validate_session(cookies) -> SpotifyAuth :
     """
     Validate session and return spotify auth if valid
     """
-    current_app.logger.info("Validating session...")
+    current_app.logger.debug("Validating session")
     session_id = cookies.get("trueshuffle-sessionId")
 
     # Find session entry with hashed session id
