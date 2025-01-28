@@ -9,6 +9,7 @@ def spotify_auth_validator(f):
     Decorator for Flask endpoints to validate a user's Spotify session.
     If the session is valid, it injects the `spotify_auth` object into the decorated function.
     If the session is invalid or an error occurs, it returns a 401 or 400 response.
+    Note: `spotify_auth` must be passed as keyword argument in controller function otherwise will error
 
     Args:
         f (function): The Flask route handler to be decorated.

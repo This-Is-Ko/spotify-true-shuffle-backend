@@ -80,7 +80,7 @@ def queue_user_aggregated_data(spotify_auth):
     
 @user_controller.route('/aggregate/state/<id>', methods=['GET'])
 @spotify_auth_validator
-def get_user_aggregated_data_state(id):
+def get_user_aggregated_data_state(id, spotify_auth):
     """
     Get state of aggregate data task
     """
