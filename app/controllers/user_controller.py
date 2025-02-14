@@ -76,8 +76,8 @@ def queue_user_aggregated_data(spotify_auth):
     except Exception as e:
         current_app.logger.error("Unable to get user aggregated data state: " + str(e))
         return {"error": "Unable to get user aggregated data state"}, 400
-    
-    
+
+
 @user_controller.route('/aggregate/state/<id>', methods=['GET'])
 @spotify_auth_validator
 def get_user_aggregated_data_state(id, spotify_auth):
@@ -91,4 +91,3 @@ def get_user_aggregated_data_state(id, spotify_auth):
     except Exception as e:
         current_app.logger.error("Unable to retrieve user aggregated data: " + str(e))
         return {"error": "Unable to retrieve user aggregated data"}, 400
-    

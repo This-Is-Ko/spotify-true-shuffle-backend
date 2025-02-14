@@ -1,5 +1,5 @@
 from flask import Blueprint, current_app, request
-import jwt
+
 from exceptions.custom_exceptions import AccessTokenInvalid
 from services import trackers_service
 from utils.jwt_auth_utils import validate_auth_header_jwt

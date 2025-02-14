@@ -3,7 +3,7 @@ import datetime
 import time
 
 from database import database
-from services.spotify_client import *
+from services.spotify_client import create_auth_manager_with_token
 from utils import util
 from utils.constants import USER_ID_KEY
 
@@ -11,7 +11,10 @@ TRACKERS_ENABLED_ATTRIBUTE_NAME = "trackers_enabled"
 TRACK_LIKED_TRACKS_ATTRIBUTE_NAME = "track_liked_tracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 USER_LIKED_TRACKS_TRACKER_LOG = "Tracker: {tracker} -- User: {user_id} -- {status}"
-SUCCESSFUL_UPDATES_LOG = "Tracker: {tracker} -- Successfully updated {success_counter} users out of {total_enabled_users} users"
+SUCCESSFUL_UPDATES_LOG = (
+    "Tracker: {tracker} -- Successfully updated {success_counter} users"
+    + "out of {total_enabled_users} users"
+)
 
 
 def update_trackers(current_app):
@@ -27,9 +30,11 @@ def update_trackers(current_app):
     for user in users:
         time.sleep(2)
         total_users += 1
-        if is_user_entry_valid(user) == False:
+        if is_user_entry_valid(user) is False:
             tracker_logger(current_app, USER_LIKED_TRACKS_TRACKER_LOG, TRACK_SHUFFLES_ATTRIBUTE_NAME,
-                           user[USER_ID_KEY] if USER_ID_KEY in user else "missing id", "Failed to update due to invalid user entry", level="error")
+                           user[USER_ID_KEY] if USER_ID_KEY in user else "missing id",
+                           "Failed to update due to invalid user entry",
+                           level="error")
             continue
         auth_manager = create_auth_manager_with_token(
             current_app, user["spotify"])
@@ -56,14 +61,20 @@ def update_trackers(current_app):
                 difference = current_count - previous_entry["count"]
         except Exception as e:
             tracker_logger(current_app, USER_LIKED_TRACKS_TRACKER_LOG, TRACK_SHUFFLES_ATTRIBUTE_NAME,
-                           user[USER_ID_KEY], "Error while searching for previous tracker entry" + str(e), level="error")
+                           user[USER_ID_KEY],
+                           "Error while searching for previous tracker entry" + str(e),
+                           level="error")
             continue
 
         tracker_entry = {
-            USER_ID_KEY: user[USER_ID_KEY], "count": current_count, "difference": difference, "created": datetime.datetime.today()}
+            USER_ID_KEY: user[USER_ID_KEY],
+            "count": current_count,
+            "difference": difference,
+            "created": datetime.datetime.today()
+        }
 
         try:
-            insert_result = database.insert_liked_tracks_history_entry(
+            database.insert_liked_tracks_history_entry(
                 tracker_entry)
             tracker_logger(current_app, USER_LIKED_TRACKS_TRACKER_LOG, TRACK_SHUFFLES_ATTRIBUTE_NAME,
                            user[USER_ID_KEY], "Successfully added new tracker entry")
@@ -83,7 +94,10 @@ def update_trackers(current_app):
 
 
 def is_user_entry_valid(user):
-    if USER_ID_KEY not in user or "user_attributes" not in user or TRACKERS_ENABLED_ATTRIBUTE_NAME not in user["user_attributes"] or "spotify" not in user:
+    if (
+        USER_ID_KEY not in user or "user_attributes" not in user
+        or TRACKERS_ENABLED_ATTRIBUTE_NAME not in user["user_attributes"] or "spotify" not in user
+    ):
         return False
 
     # required values for spotipy to use refresh token

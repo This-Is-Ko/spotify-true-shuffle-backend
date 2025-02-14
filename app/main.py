@@ -16,7 +16,7 @@ def create_app():
     logging.basicConfig(level=logging.INFO)
     gunicorn_error_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers.extend(gunicorn_error_logger.handlers)
-    
+
     faulthandler.enable()
 
     # Select env and set up config
@@ -25,8 +25,7 @@ def create_app():
     app.logger.info("Config set up for " + CONFIG_TYPE)
 
     # Enable CORS
-    cors = CORS(app, supports_credentials=True,
-                origins=[app.config["CORS_ORIGIN"]])
+    CORS(app, supports_credentials=True, origins=[app.config["CORS_ORIGIN"]])
 
     # Register blueprints for app
     register_all_blueprints(app)
@@ -34,7 +33,7 @@ def create_app():
     # Initialise mongodb client
     try:
         mongo.init_app(app)
-    except:
+    except Exception:
         """We don't provide a URI when running unit tests, so PyMongo will fail to initialize.
         This is okay because we replace it with a version for testing anyway. """
         app.logger.info('PyMongo not initialized!')
@@ -44,7 +43,7 @@ def create_app():
             broker_url=app.config["CELERY_BROKER_URL"],
             result_backend=app.config["CELERY_RESULT_BACKEND_URL"],
             task_ignore_result=True,
-            broker_connection_retry_on_startup = True
+            broker_connection_retry_on_startup=True
         ),
     )
     celery_init_app(app)
@@ -82,5 +81,6 @@ def celery_init_app(app: Flask) -> Celery:
     celery_app.set_default()
     app.extensions["celery"] = celery_app
     return celery_app
+
 
 app = create_app()

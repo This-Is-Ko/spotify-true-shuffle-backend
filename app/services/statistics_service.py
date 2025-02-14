@@ -9,8 +9,8 @@ def get_overall_statistics(current_app):
         # Retrieve counters for playlists and tracks
         overall_counter = database.find_shuffle_counter(
             "overall_counter")
-        if overall_counter == None:
-            current_app.logger.error(    "Error finding overall counter")
+        if overall_counter is None:
+            current_app.logger.error("Error finding overall counter")
             raise Exception("Couldn't find overall counter")
         return {
             "status": "success",
