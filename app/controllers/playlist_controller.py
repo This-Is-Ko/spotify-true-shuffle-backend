@@ -1,4 +1,3 @@
-from flask_cors import cross_origin
 from flask import current_app, request, Blueprint, make_response
 
 from services import playlist_service
@@ -18,8 +17,8 @@ def get_playlists(spotify_auth):
     Endpoint to retrieve user playlists
     Validate Spotify authentication and optionally includes playlist statistics
     """
-    include_stats= False
-    if request.args != None:
+    include_stats = False
+    if request.args is not None:
         include_stats = request.args.get("include-stats")
 
     try:
@@ -49,7 +48,7 @@ def queue_shuffle_playlist(spotify_auth, request_body):
     except Exception as e:
         current_app.logger.error("Unable to queue to create shuffled playlist: " + str(e))
         return {"error": "Unable to queue to create shuffled playlist"}, 400
-    
+
 
 @playlist_controller.route('/shuffle/state/<id>', methods=['GET'])
 @spotify_auth_validator
@@ -93,7 +92,9 @@ def liked_tracks_to_playlist(spotify_auth, request_body):
 
     try:
         if "playlist_name" in request_body and request_body["playlist_name"] != "":
-            response = make_response(playlist_service.queue_create_playlist_from_liked_tracks(spotify_auth, request_body["playlist_name"]))
+            response = make_response(
+                playlist_service.queue_create_playlist_from_liked_tracks(spotify_auth, request_body["playlist_name"])
+            )
             extend_session_expiry(response, request.cookies)
             return response
         else:

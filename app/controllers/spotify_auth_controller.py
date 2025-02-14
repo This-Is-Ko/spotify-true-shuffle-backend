@@ -1,5 +1,4 @@
 from flask import current_app, request, Blueprint
-from flask_cors import cross_origin
 
 from services import spotify_auth_service
 from schemas.AuthCodeRequestSchema import AuthCodeRequestSchema

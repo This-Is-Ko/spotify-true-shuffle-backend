@@ -151,3 +151,7 @@ Update `./nginx/nginx.conf` to point to the certificate files
 Potential cause of Gunicorn timeout due to Pymongo error. Add IP into DB network access "IP Access List"
 
 https://stackoverflow.com/questions/41133455/docker-repository-does-not-have-a-release-file-on-running-apt-get-update-on-ubun
+
+## Cloudflare tunnel
+
+If self-hosting use Cloudflare tunnel https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
