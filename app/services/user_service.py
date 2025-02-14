@@ -4,10 +4,8 @@ from database import database
 import spotipy
 from bson import json_util
 import json
-from celery.result import AsyncResult
 
-from services.spotify_client import *
-from utils.util import *
+from services.spotify_client import create_auth_manager_with_token
 from tasks.task_state import get_celery_task_state
 
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
@@ -41,7 +39,7 @@ def save_user(current_app, spotify_auth: SpotifyAuth, user_attributes):
         user_id, user_entry)
 
     user_json = json.loads(json_util.dumps(user))
-    if (user != None):
+    if (user is not None):
         return {
             "status": "success",
             "user": user_json
@@ -65,7 +63,7 @@ def get_user(current_app, spotify_auth):
     user = database.find_user(user_id)
 
     user_json = json.loads(json_util.dumps(user))
-    if (user != None):
+    if (user is not None):
         return {
             "user": user_json
         }

@@ -1,13 +1,12 @@
-import random
 import spotipy
-from datetime import date, datetime
 from bson import json_util
 import json
 from flask import current_app
 from tasks.task_state import get_celery_task_state
 from database import database
 from exceptions.custom_exceptions import SpotifyAuthInvalid
-from services.spotify_client import *
+from classes.spotify_auth import SpotifyAuth
+from services.spotify_client import create_auth_manager_with_token
 from schemas.Playlist import Playlist
 from tasks import playlist_tasks
 
@@ -51,7 +50,11 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     if include_stats is not None:
         if include_stats is True or include_stats.lower() == "true":
             user = database.find_user(user["id"])
-            if user is not None and "user_attributes" in user and "trackers_enabled" in user["user_attributes"] and user["user_attributes"]["trackers_enabled"] == True:
+            if (
+                user is not None and "user_attributes" in user
+                and "trackers_enabled" in user["user_attributes"]
+                and user["user_attributes"]["trackers_enabled"] is True
+            ):
                 user_shuffle_counter = database.find_shuffle_counter(
                     user["user_id"])
                 if user_shuffle_counter is not None:

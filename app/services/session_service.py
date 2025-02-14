@@ -1,7 +1,5 @@
 from datetime import datetime, timezone
 from database import database
-from bson import json_util
-import json
 
 
 def handle_clean_up_expired_sesions(current_app):

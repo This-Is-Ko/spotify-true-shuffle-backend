@@ -1,10 +1,11 @@
 from flask import current_app, make_response
 from datetime import datetime, timedelta, timezone
 
-from services.spotify_client import *
+from services.spotify_client import create_auth_manager
 from services.user_service import save_user
 from database import database
 from utils.auth_utils import generate_hashed_session_id, generate_session_id, remove_session_entry
+from classes.spotify_auth import SpotifyAuth
 
 
 def generate_spotify_auth_uri():
@@ -17,10 +18,10 @@ def get_spotify_tokens(code):
     auth_response = auth_manager.get_access_token(code=code, check_cache=False)
     if ("access_token") in auth_response:
         spotify_auth = SpotifyAuth(
-            access_token = auth_response["access_token"],
-            refresh_token = auth_response["refresh_token"], 
-            expires_at = auth_response["expires_at"],
-            scope =auth_response["scope"]
+            access_token=auth_response["access_token"],
+            refresh_token=auth_response["refresh_token"],
+            expires_at=auth_response["expires_at"],
+            scope=auth_response["scope"]
         )
         # Save user
         save_user_result = save_user(current_app, spotify_auth, {
@@ -53,7 +54,7 @@ def get_spotify_tokens(code):
             if session is None:
                 raise Exception("Unable to save session in database")
         except Exception as e:
-            current_app.logger.error(    "Failed to create session: " + str(e))
+            current_app.logger.error("Failed to create session: " + str(e))
             return {"status": "error",
                     "error": "Unable to create session"}, 400
 
