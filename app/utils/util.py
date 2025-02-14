@@ -175,9 +175,11 @@ def create_new_playlist_with_tracks(
                     "error": "Unable to add tracks to playlist " + new_playlist_id
                 }
 
-        create_playlist_with_tracks_success_log = "User: {user_id}"
-        + "-- Created playlist: {playlist_id}"
-        + "-- Length: {length:d}"
+        create_playlist_with_tracks_success_log = (
+            "User: {user_id}"
+            + "-- Created playlist: {playlist_id}"
+            + "-- Length: {length:d}"
+        )
         current_app.logger.info(
             create_playlist_with_tracks_success_log.format(
                 user_id=user_id,

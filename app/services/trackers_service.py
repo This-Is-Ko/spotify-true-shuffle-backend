@@ -11,8 +11,10 @@ TRACKERS_ENABLED_ATTRIBUTE_NAME = "trackers_enabled"
 TRACK_LIKED_TRACKS_ATTRIBUTE_NAME = "track_liked_tracks"
 TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 USER_LIKED_TRACKS_TRACKER_LOG = "Tracker: {tracker} -- User: {user_id} -- {status}"
-SUCCESSFUL_UPDATES_LOG = "Tracker: {tracker} -- Successfully updated {success_counter} users"
-+ "out of {total_enabled_users} users"
+SUCCESSFUL_UPDATES_LOG = (
+    "Tracker: {tracker} -- Successfully updated {success_counter} users"
+    + "out of {total_enabled_users} users"
+)
 
 
 def update_trackers(current_app):

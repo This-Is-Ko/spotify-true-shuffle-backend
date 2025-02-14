@@ -12,8 +12,10 @@ def create_auth_manager(current_app):
                         client_id=current_app.config["SPOTIFY_CLIENT_ID"],
                         client_secret=current_app.config["SPOTIFY_CLIENT_SECRET"],
                         redirect_uri=current_app.config["SPOTIFY_REDIRECT_URI"],
-                        scope="playlist-modify-private playlist-modify-public playlist-read-private"
-                        + "playlist-read-collaborative user-library-read")
+                        scope=(
+                            "playlist-modify-private playlist-modify-public playlist-read-private"
+                            + "playlist-read-collaborative user-library-read"
+                        ))
 
 
 def create_auth_manager_with_token(current_app, spotify_auth: SpotifyAuth):
@@ -27,8 +29,10 @@ def create_auth_manager_with_token_dict(current_app, spotify_auth_dict: dict):
                         client_id=current_app.config["SPOTIFY_CLIENT_ID"],
                         client_secret=current_app.config["SPOTIFY_CLIENT_SECRET"],
                         redirect_uri=current_app.config["SPOTIFY_REDIRECT_URI"],
-                        scope="playlist-modify-private playlist-modify-public playlist-read-private"
-                        + "playlist-read-collaborative user-library-read",
+                        scope=(
+                            "playlist-modify-private playlist-modify-public playlist-read-private"
+                            + "playlist-read-collaborative user-library-read"
+                        ),
                         cache_handler=cache)
 
 
