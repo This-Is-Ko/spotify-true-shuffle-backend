@@ -3,9 +3,6 @@ from typing import List
 from flask import current_app
 import spotipy
 
-from services.spotify_client import *
-from schemas.Playlist import Playlist
-
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 
 
@@ -73,7 +70,7 @@ def get_liked_tracks_count(spotify: spotipy.Spotify):
     If error, return False
     """
     liked_tracks_response = spotify.current_user_saved_tracks()
-    get_liked_tracks_log = "Liked tracks response: {response}"
+    # get_liked_tracks_log = "Liked tracks response: {response}"
     # current_app.logger.debug(
     #     get_liked_tracks_log.format(response=liked_tracks_response))
     if "total" in liked_tracks_response:
@@ -165,18 +162,22 @@ def create_new_playlist_with_tracks(
                 add_items_response = spotify.playlist_add_items(
                     new_playlist_id, tracks_to_add[i * 100: i * 100 + left_over])
                 update_task_progress(task, state='PROGRESS', meta={'progress': {
-                                     'state': "Adding  " + str(i * 100 + left_over) + "/" + str(len(tracks_to_add)) + " tracks..."}})
+                                     'state': "Adding  " + str(i * 100 + left_over) + "/" + str(len(tracks_to_add))
+                                     + " tracks..."}})
             else:
                 add_items_response = spotify.playlist_add_items(new_playlist_id, tracks_to_add[i * 100: i * 100 + 100])
                 update_task_progress(task, state='PROGRESS', meta={'progress': {
-                                     'state': "Added " + str(i * 100 + 100) + "/" + str(len(tracks_to_add)) + " tracks"}})
+                                     'state': "Added " + str(i * 100 + 100) + "/" + str(len(tracks_to_add))
+                                     + " tracks"}})
             if "snapshot_id" not in add_items_response:
                 current_app.logger.error("Error while adding tracks. Response: " + add_items_response)
                 return {
                     "error": "Unable to add tracks to playlist " + new_playlist_id
                 }
 
-        create_playlist_with_tracks_success_log = "User: {user_id} -- Created playlist: {playlist_id} -- Length: {length:d}"
+        create_playlist_with_tracks_success_log = "User: {user_id}"
+        + "-- Created playlist: {playlist_id}"
+        + "-- Length: {length:d}"
         current_app.logger.info(
             create_playlist_with_tracks_success_log.format(
                 user_id=user_id,
