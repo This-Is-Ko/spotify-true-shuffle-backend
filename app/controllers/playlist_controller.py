@@ -1,3 +1,4 @@
+from flask_cors import cross_origin # noqa: F401
 from flask import current_app, request, Blueprint, make_response
 
 from services import playlist_service
