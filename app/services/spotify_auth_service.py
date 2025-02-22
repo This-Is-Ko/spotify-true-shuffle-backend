@@ -24,8 +24,7 @@ def get_spotify_tokens(code):
             scope=auth_response["scope"]
         )
         # Save user
-        save_user_result = save_user(current_app, spotify_auth, {
-                                     "trackers_enabled": True})
+        save_user_result = save_user(spotify_auth, {"trackers_enabled": True})
         if ("status" in save_user_result and save_user_result["status"] != "success"):
             return {
                 "status": "error",

@@ -90,7 +90,6 @@ def liked_tracks_to_playlist(spotify_auth, request_body):
     Endpoint to queue the creation of a playlist from liked tracks
     Validates Spotify authentication and request body schema
     """
-
     try:
         if "playlist_name" in request_body and request_body["playlist_name"] != "":
             response = make_response(
