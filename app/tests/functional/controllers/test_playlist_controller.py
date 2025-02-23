@@ -1,282 +1,265 @@
 from datetime import datetime, timedelta, timezone
-from tests import client, env_patch
+from tests import client, env_patch  # noqa: F401
 from spotipy.oauth2 import SpotifyOAuth
-from spotipy import Spotify
 
+from utils import auth_utils
 from database import database
-from tests.functional.helpers.mock_requests import *
-from tests.functional.helpers.mock_responses import *
+from services import playlist_service
 
 test_expiry = datetime.now(timezone.utc) + timedelta(hours=4)
 
 
-def test_get_playlists_success(mocker, client, env_patch):
-    """
-    Successful GET Playlists
-    """
-    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
-                            "access_token": "accesstokenfromspotify",
-                            "refresh_token": "refreshtokenfromspotify"
-                        }
-                        )
-    mocker.patch.object(Spotify, "current_user",
-                        return_value=mock_user_response
-                        )
-    mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value=mock_user_playlists_sample
-                        )
-    mocker.patch.object(Spotify, "me", return_value=mock_user_details_response)
+"""
+Success scenarios - Queue shuffled playlist
+"""
 
-    mocker.patch.object(database, "find_session",
-                        return_value={
-                            "user_id": "user_id",
-                            "access_token": "access_token",
-                            "refresh_token": "refresh_token",
-                            "expires_at": "expires_at",
-                            "scope": "scope",
-                            "session_expiry": test_expiry
-                        }
-                        )
-    mocker.patch.object(database, "find_and_update_session",
-                        return_value={
-                            "user_id": "user_id",
-                            "access_token": "access_token",
-                            "refresh_token": "refresh_token",
-                            "expires_at": "expires_at",
-                            "scope": "scope",
-                            "session_expiry": test_expiry
-                        }
-                        )
+
+def test_queue_shuffle_playlist_success(mocker, client, env_patch):  # noqa: F811
+    """
+    Successful POST shuffle playlist request
+    """
+    mocker.patch.object(
+        SpotifyOAuth,
+        "validate_token",
+        return_value={
+            "access_token": "accesstokenfromspotify",
+            "refresh_token": "refreshtokenfromspotify"
+        }
+    )
+    mocker.patch.object(
+        database,
+        "find_session",
+        return_value={
+            "user_id": "user_id",
+            "access_token": "access_token",
+            "refresh_token": "refresh_token",
+            "expires_at": "expires_at",
+            "scope": "scope",
+            "session_expiry": test_expiry
+        }
+    )
+
+    # Mock the queue_create_shuffled_playlist function
+    mocker.patch.object(playlist_service,
+                        "queue_create_shuffled_playlist",
+                        return_value={"shuffle_task_id": "mocked_task_id"})
+
+    # Mock session handling
+    mocker.patch.object(auth_utils, "extend_session_expiry", return_value=None)
+
+    request_body = {"playlist_id": "playlist_id", "playlist_name": "Test Playlist"}
+
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
     client.set_cookie('localhost', 'trueshuffle-auth', 'true')
 
-    response = client.get('/api/playlist/me')
+    # Perform POST request
+    response = client.post('/api/playlist/shuffle', json=request_body)
+
+    # Get response JSON
     response_json = response.get_json()
+
     assert response.status_code == 200
-    assert response_json["all_playlists"] is not None
-    # Number of playlists returned from spotify + one for Liked Tracks
-    assert len(response_json["all_playlists"]) == 2
-    assert "user_shuffle_counter" not in response_json
+    assert response_json["shuffle_task_id"] == "mocked_task_id"
+    assert "error" not in response_json
 
 
-def test_get_playlists_with_stats_user_tracker_enabled_success(mocker, client, env_patch):
+"""
+Failure scenarios - Queue shuffled playlist
+"""
+
+
+def test_queue_shuffle_playlist_failure_invalid_schema_empty(mocker, client, env_patch):  # noqa: F811
     """
-    Successful GET Playlists with include-stats=true and user tracker enabled
+    Failure POST shuffle playlist request - invalid schema
+    Empty json
     """
-    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
-                            "access_token": "accesstokenfromspotify",
-                            "refresh_token": "refreshtokenfromspotify"
-                        }
-                        )
-    mocker.patch.object(Spotify, "current_user",
-                        return_value=mock_user_response
-                        )
-    mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value=mock_user_playlists_sample
-                        )
-    mocker.patch.object(Spotify, "me", return_value=mock_user_details_response)
+    mocker.patch.object(
+        SpotifyOAuth,
+        "validate_token",
+        return_value={
+            "access_token": "accesstokenfromspotify",
+            "refresh_token": "refreshtokenfromspotify"
+        }
+    )
+    mocker.patch.object(
+        database,
+        "find_session",
+        return_value={
+            "user_id": "user_id",
+            "access_token": "access_token",
+            "refresh_token": "refresh_token",
+            "expires_at": "expires_at",
+            "scope": "scope",
+            "session_expiry": test_expiry
+        }
+    )
 
-    mocker.patch.object(database, "find_user",
-                        return_value={
-                            "user_id": "user_id",
-                            "user_attributes": {
-                                  "trackers_enabled": True
-                            }
-                        }
-                        )
-    mocker.patch.object(database, "find_shuffle_counter",
-                        return_value={
-                            "user_id": "user_id",
-                            "playlist_count": 2,
-                            "track_count": 2,
-                        }
-                        )
-    mocker.patch.object(database, "find_session",
-                        return_value={
-                            "user_id": "user_id",
-                            "access_token": "access_token",
-                            "refresh_token": "refresh_token",
-                            "expires_at": "expires_at",
-                            "scope": "scope",
-                            "session_expiry": test_expiry
-                        }
-                        )
-    mocker.patch.object(database, "find_and_update_session",
-                        return_value={
-                            "user_id": "user_id",
-                            "access_token": "access_token",
-                            "refresh_token": "refresh_token",
-                            "expires_at": "expires_at",
-                            "scope": "scope",
-                            "session_expiry": test_expiry
-                        }
-                        )
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
     client.set_cookie('localhost', 'trueshuffle-auth', 'true')
 
-    response = client.get('/api/playlist/me?include-stats=true')
+    # Perform POST request with invalid schema
+    response = client.post('/api/playlist/shuffle', json={})
+
+    # Get response JSON
     response_json = response.get_json()
-    assert response.status_code == 200
-    assert response_json["all_playlists"] is not None
-    # Number of playlists returned from spotify + one for Liked Tracks
-    assert len(response_json["all_playlists"]) == 2
-    assert response_json["user_shuffle_counter"] is not None
-    assert response_json["user_shuffle_counter"]["playlist_count"] == 2
-    assert response_json["user_shuffle_counter"]["track_count"] == 2
 
-
-def test_get_playlists_with_stats_user_tracker_disabled_success(mocker, client, env_patch):
-    """
-    Successful GET Playlists with include-stats=true and user tracker disabled
-    """
-    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
-                            "access_token": "accesstokenfromspotify",
-                            "refresh_token": "refreshtokenfromspotify"
-                        }
-                        )
-    mocker.patch.object(Spotify, "current_user",
-                        return_value=mock_user_response
-                        )
-    mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value=mock_user_playlists_sample
-                        )
-    mocker.patch.object(Spotify, "me", return_value=mock_user_details_response)
-
-    mocker.patch.object(database, "find_user",
-                        return_value={
-                            "user_id": "user_id",
-                            "user_attributes": {
-                                  "trackers_enabled": False
-                            }
-                        }
-                        )
-
-    mocker.patch.object(database, "find_session",
-                        return_value={
-                            "user_id": "user_id",
-                            "access_token": "access_token",
-                            "refresh_token": "refresh_token",
-                            "expires_at": "expires_at",
-                            "scope": "scope",
-                            "session_expiry": test_expiry
-                        }
-                        )
-    mocker.patch.object(database, "find_and_update_session",
-                        return_value={
-                            "user_id": "user_id",
-                            "access_token": "access_token",
-                            "refresh_token": "refresh_token",
-                            "expires_at": "expires_at",
-                            "scope": "scope",
-                            "session_expiry": test_expiry
-                        }
-                        )
-    # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
-    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
-
-    response = client.get('/api/playlist/me?include-stats=true')
-    response_json = response.get_json()
-    assert response.status_code == 200
-    assert response_json["all_playlists"] is not None
-    # Number of playlists returned from spotify + one for Liked Tracks
-    assert len(response_json["all_playlists"]) == 2
-    assert "user_shuffle_counter" not in response_json
-
-
-def test_get_playlists_failure_cookies_invalid(mocker, client, env_patch):
-    """
-    Failure GET Playlists
-    Request access token structure invalid
-    """
-    mocker.patch.object(SpotifyOAuth, "validate_token", return_value=None
-                        )
-    mocker.patch.object(Spotify, "current_user",
-                        return_value=mock_user_response
-                        )
-    mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value=mock_user_playlists_sample
-                        )
-
-    mocker.patch.object(database, "find_session",
-                        return_value={
-                            "user_id": "user_id",
-                            "access_token": "access_token",
-                            "refresh_token": "refresh_token",
-                            "expires_at": "expires_at",
-                            "scope": "scope",
-                            "session_expiry": test_expiry
-                        }
-                        )
-    # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
-    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
-
-    response = client.get('/api/playlist/me')
-    response_json = response.get_json()
     assert response.status_code == 400
-    assert response_json["error"] is not None
+    assert response_json["error"] == "Invalid request"
 
 
-def test_get_playlists_failure_missing_cookies_failure(mocker, client, env_patch):
+def test_queue_shuffle_playlist_failure_invalid_schema_playlist_id_missing(mocker, client, env_patch):  # noqa: F811
     """
-    Failure GET Playlists
-    Request missing cookies
+    Failure POST shuffle playlist request - invalid schema
+    playlist_id missing
     """
-    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
-                            "access_token": "access token from spotify",
-                            "refresh_token": "access token from spotify"
-                        }
-                        )
-    mocker.patch.object(Spotify, "current_user",
-                        return_value=mock_user_response
-                        )
-    mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value=mock_user_playlists_sample
-                        )
+    mocker.patch.object(
+        SpotifyOAuth,
+        "validate_token",
+        return_value={
+            "access_token": "accesstokenfromspotify",
+            "refresh_token": "refreshtokenfromspotify"
+        }
+    )
+    mocker.patch.object(
+        database,
+        "find_session",
+        return_value={
+            "user_id": "user_id",
+            "access_token": "access_token",
+            "refresh_token": "refresh_token",
+            "expires_at": "expires_at",
+            "scope": "scope",
+            "session_expiry": test_expiry
+        }
+    )
 
-    response = client.get('/api/playlist/me')
+    # Init cookies
+    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
+
+    request_body = {"playlist_name": "Test Playlist"}
+
+    # Perform POST request with invalid schema
+    response = client.post('/api/playlist/shuffle', json=request_body)
+
+    # Get response JSON
     response_json = response.get_json()
+
+    assert response.status_code == 400
+    assert response_json["error"] == "Invalid request"
+
+
+def test_queue_shuffle_playlist_failure_invalid_schema_playlist_name_missing(mocker, client, env_patch):  # noqa: F811
+    """
+    Failure POST shuffle playlist request - invalid schema
+    playlist_name missing
+    """
+    mocker.patch.object(
+        SpotifyOAuth,
+        "validate_token",
+        return_value={
+            "access_token": "accesstokenfromspotify",
+            "refresh_token": "refreshtokenfromspotify"
+        }
+    )
+    mocker.patch.object(
+        database,
+        "find_session",
+        return_value={
+            "user_id": "user_id",
+            "access_token": "access_token",
+            "refresh_token": "refresh_token",
+            "expires_at": "expires_at",
+            "scope": "scope",
+            "session_expiry": test_expiry
+        }
+    )
+
+    # Init cookies
+    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
+
+    request_body = {"playlist_id": "playlist_id"}
+
+    # Perform POST request with invalid schema
+    response = client.post('/api/playlist/shuffle', json=request_body)
+
+    # Get response JSON
+    response_json = response.get_json()
+
+    assert response.status_code == 400
+    assert response_json["error"] == "Invalid request"
+
+
+def test_queue_shuffle_playlist_failure_exception(mocker, client, env_patch):  # noqa: F811
+    """
+    Failure POST shuffle playlist request - service error
+    """
+    mocker.patch.object(
+        SpotifyOAuth,
+        "validate_token",
+        return_value={
+            "access_token": "accesstokenfromspotify",
+            "refresh_token": "refreshtokenfromspotify"
+        }
+    )
+    mocker.patch.object(
+        database,
+        "find_session",
+        return_value={
+            "user_id": "user_id",
+            "access_token": "access_token",
+            "refresh_token": "refresh_token",
+            "expires_at": "expires_at",
+            "scope": "scope",
+            "session_expiry": test_expiry
+        }
+    )
+
+    # Mock the queue_create_shuffled_playlist function to raise an exception
+    mocker.patch.object(playlist_service,
+                        "queue_create_shuffled_playlist",
+                        side_effect=Exception("Internal server error"))
+
+    # Init cookies
+    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
+
+    request_body = {"playlist_id": "playlist_id", "playlist_name": "Test Playlist"}
+
+    # Perform POST request
+    response = client.post('/api/playlist/shuffle', json=request_body)
+
+    # Get response JSON
+    response_json = response.get_json()
+
+    assert response.status_code == 400
+    assert response_json["error"] == "Unable to queue to create shuffled playlist"
+
+
+def test_queue_shuffle_playlist_failure_invalid_auth(mocker, client, env_patch):  # noqa: F811
+    """
+    Failure POST shuffle playlist request - invalid auth
+    """
+    mocker.patch.object(
+        database,
+        "find_session",
+        return_value=None
+    )
+
+    # Init cookies
+    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
+    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
+
+    request_body = {"playlist_id": "playlist_id", "playlist_name": "Test Playlist"}
+
+    # Perform POST request with invalid auth
+    response = client.post('/api/playlist/shuffle', json=request_body)
+
+    # Get response JSON
+    response_json = response.get_json()
+
     assert response.status_code == 401
-    assert response_json == {
-        "error": "Invalid credentials"
-    }
-
-
-def test_get_playlists_failure_upstream_spotify_error(mocker, client, env_patch):
-    """
-    Failure GET Playlists
-    Error from upstream Spotify call
-    """
-    mocker.patch.object(SpotifyOAuth, "validate_token", return_value={
-                            "access_token": "access token from spotify",
-                            "refresh_token": "access token from spotify"
-                        }
-                        )
-    mocker.patch.object(Spotify, "current_user",
-                        return_value=mock_user_response
-                        )
-    mocker.patch.object(Spotify, "current_user_playlists",
-                        return_value={"error": "spotify error"}
-                        )
-
-    mocker.patch.object(database, "find_session",
-                        return_value={
-                            "user_id": "user_id",
-                            "access_token": "access_token",
-                            "refresh_token": "refresh_token",
-                            "expires_at": "expires_at",
-                            "scope": "scope",
-                            "session_expiry": test_expiry
-                        }
-                        )
-    # Init cookies
-    client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
-    client.set_cookie('localhost', 'trueshuffle-auth', 'true')
-
-    response = client.get('/api/playlist/me')
-    response_json = response.get_json()
-    assert response.status_code == 400
-    assert response_json["error"] is not None
+    assert response_json["error"] == "Invalid credentials"

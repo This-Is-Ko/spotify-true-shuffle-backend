@@ -13,7 +13,7 @@ auth_controller = Blueprint('auth_controller', __name__, url_prefix='/api/auth')
 
 @auth_controller.route('/access-token', methods=['POST'])
 @request_schema_validator(ServiceAuthRequestSchema)
-def get_cron_access_token(request_body):
+def generate_cron_access_token(request_body):
     """
     Generate access token for cron job
     """
