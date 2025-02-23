@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, timezone
 from tests import client, env_patch  # noqa: F401
-from spotipy.oauth2 import SpotifyOAuth
 
 from utils import auth_utils
 from database import database
@@ -18,14 +17,6 @@ def test_queue_shuffle_playlist_success(mocker, client, env_patch):  # noqa: F81
     """
     Successful POST shuffle playlist request
     """
-    mocker.patch.object(
-        SpotifyOAuth,
-        "validate_token",
-        return_value={
-            "access_token": "accesstokenfromspotify",
-            "refresh_token": "refreshtokenfromspotify"
-        }
-    )
     mocker.patch.object(
         database,
         "find_session",
@@ -75,14 +66,6 @@ def test_queue_shuffle_playlist_failure_invalid_schema_empty(mocker, client, env
     Empty json
     """
     mocker.patch.object(
-        SpotifyOAuth,
-        "validate_token",
-        return_value={
-            "access_token": "accesstokenfromspotify",
-            "refresh_token": "refreshtokenfromspotify"
-        }
-    )
-    mocker.patch.object(
         database,
         "find_session",
         return_value={
@@ -114,14 +97,6 @@ def test_queue_shuffle_playlist_failure_invalid_schema_playlist_id_missing(mocke
     Failure POST shuffle playlist request - invalid schema
     playlist_id missing
     """
-    mocker.patch.object(
-        SpotifyOAuth,
-        "validate_token",
-        return_value={
-            "access_token": "accesstokenfromspotify",
-            "refresh_token": "refreshtokenfromspotify"
-        }
-    )
     mocker.patch.object(
         database,
         "find_session",
@@ -157,14 +132,6 @@ def test_queue_shuffle_playlist_failure_invalid_schema_playlist_name_missing(moc
     playlist_name missing
     """
     mocker.patch.object(
-        SpotifyOAuth,
-        "validate_token",
-        return_value={
-            "access_token": "accesstokenfromspotify",
-            "refresh_token": "refreshtokenfromspotify"
-        }
-    )
-    mocker.patch.object(
         database,
         "find_session",
         return_value={
@@ -197,14 +164,6 @@ def test_queue_shuffle_playlist_failure_exception(mocker, client, env_patch):  #
     """
     Failure POST shuffle playlist request - service error
     """
-    mocker.patch.object(
-        SpotifyOAuth,
-        "validate_token",
-        return_value={
-            "access_token": "accesstokenfromspotify",
-            "refresh_token": "refreshtokenfromspotify"
-        }
-    )
     mocker.patch.object(
         database,
         "find_session",
