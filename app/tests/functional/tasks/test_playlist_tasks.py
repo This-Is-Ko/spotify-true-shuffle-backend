@@ -1,4 +1,4 @@
-from tests import client, env_patch
+from tests import env_patch # noqa: F401
 
 from spotipy import Spotify
 from database import database
@@ -106,7 +106,7 @@ def test_shuffle_playlist_shuffled_playlist_exists_success(mocker, env_patch):
 
     
 def test_shuffle_playlist_user_not_found_success(mocker, env_patch):
-    # Testcase wehere cannot update trackers however shuffle can still proceed
+    # Testcase where cannot update trackers however shuffle can still proceed
     # Prepare mocks
     mocker.patch("utils.util.update_task_progress", return_value=None)
     mocker.patch("utils.tracker_utils.update_user_trackers", return_value=None)
@@ -117,10 +117,17 @@ def test_shuffle_playlist_user_not_found_success(mocker, env_patch):
     mocker.patch.object(Spotify, "me", return_value=mock_user_details_response)
     mocker.patch.object(Spotify, "user_playlist_create", return_value=create_user_playlist_response)
     mocker.patch.object(Spotify, "playlist_add_items", return_value=playlist_add_items_response)
-    mocker.patch.object(database, "find_user",return_value=None)
+    mocker.patch.object(database, "find_user",
+      return_value={
+          "user_id": "user_id",
+          "user_attributes": {
+              "trackers_enabled": True
+          }
+      }
+    )
 
     response = shuffle_playlist(spotify_auth_sample, "playlist_id", "playlist_name")
-
+    
     assert response["status"] == "success"
     assert response["playlist_uri"] == SPOTIFY_PLAYLIST_URL
     assert response["num_of_tracks"] == 2
