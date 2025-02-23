@@ -29,17 +29,19 @@ def test_queue_shuffle_playlist_success(mocker, client, env_patch):  # noqa: F81
             "session_expiry": test_expiry
         }
     )
-    
-    mocker.patch.object(database, "find_and_update_session",
-                        return_value={
-                            "user_id": "user_id",
-                            "access_token": "access_token",
-                            "refresh_token": "refresh_token",
-                            "expires_at": "expires_at",
-                            "scope": "scope",
-                            "session_expiry": test_expiry
-                        }
-                        )
+
+    mocker.patch.object(
+        database,
+        "find_and_update_session",
+        return_value={
+            "user_id": "user_id",
+            "access_token": "access_token",
+            "refresh_token": "refresh_token",
+            "expires_at": "expires_at",
+            "scope": "scope",
+            "session_expiry": test_expiry
+        }
+    )
 
     # Mock the queue_create_shuffled_playlist function
     mocker.patch.object(playlist_service,
