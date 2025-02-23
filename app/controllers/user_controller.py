@@ -18,7 +18,7 @@ def save_user(spotify_auth, request_body):
     If user is new, create entry in users collection
     Get user_id from token
     """
-    return user_service.save_user(current_app, spotify_auth, request_body["user_attributes"])
+    return user_service.save_user(spotify_auth, request_body["user_attributes"])
 
 
 @user_controller.route('/', methods=['GET'])
@@ -30,7 +30,7 @@ def get_user(spotify_auth):
     Get user_id from token
     """
     try:
-        response = make_response(user_service.get_user(current_app, spotify_auth))
+        response = make_response(user_service.get_user(spotify_auth))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
@@ -55,7 +55,7 @@ def get_user_tracker_data(spotify_auth):
         return {"error": "Invalid request"}, 400
 
     try:
-        response = make_response(user_service.handle_get_user_tracker_data(current_app, spotify_auth, tracker_name))
+        response = make_response(user_service.handle_get_user_tracker_data(spotify_auth, tracker_name))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
@@ -91,3 +91,18 @@ def get_user_aggregated_data_state(id, spotify_auth):
     except Exception as e:
         current_app.logger.error("Unable to retrieve user aggregated data: " + str(e))
         return {"error": "Unable to retrieve user aggregated data"}, 400
+
+
+@user_controller.route('/shuffle/recent', methods=['GET'])
+@spotify_auth_validator
+def get_recent_shuffles(spotify_auth):
+    """
+    Endpoint to retrieve the recent shuffle history for the authenticated user
+    Validates Spotify authentication
+    """
+    try:
+        response = make_response(user_service.get_recent_shuffles(spotify_auth))
+        return response
+    except Exception as e:
+        current_app.logger.error("Unable to retrieve recent shuffles: " + str(e))
+        return {"error": "Unable to retrieve recent shuffles"}, 400

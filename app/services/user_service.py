@@ -5,8 +5,11 @@ import spotipy
 from bson import json_util
 import json
 
+from flask import current_app
+from exceptions.custom_exceptions import SpotifyAuthInvalid
 from services.spotify_client import create_auth_manager_with_token
 from tasks.task_state import get_celery_task_state
+from utils.constants import RECENT_SHUFFLES_KEY
 
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 
@@ -16,7 +19,7 @@ TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 ANALYSE_LIBRARY_ATTRIBUTE_NAME = "analyse_library"
 
 
-def save_user(current_app, spotify_auth: SpotifyAuth, user_attributes):
+def save_user(spotify_auth: SpotifyAuth, user_attributes):
     """
     Check if user exists and update
     Otherwise create new user entry
@@ -49,7 +52,7 @@ def save_user(current_app, spotify_auth: SpotifyAuth, user_attributes):
     }, 400
 
 
-def get_user(current_app, spotify_auth):
+def get_user(spotify_auth: SpotifyAuth):
     """
     Check if user exists and update
     Otherwise create new user entry
@@ -85,7 +88,7 @@ def get_aggregate_user_data_state(id: str):
     return get_celery_task_state(id, "Aggregate user data")
 
 
-def handle_get_user_tracker_data(current_app, spotify_auth: SpotifyAuth, tracker_name):
+def handle_get_user_tracker_data(spotify_auth: SpotifyAuth, tracker_name):
     """
     Check if trackers are enabled for user
     If enabled, retrieve all data points for user
@@ -107,7 +110,7 @@ def handle_get_user_tracker_data(current_app, spotify_auth: SpotifyAuth, tracker
         }, 400
 
 
-def handle_get_user_analysis(current_app, spotify_auth):
+def handle_get_user_analysis(spotify_auth: SpotifyAuth):
     """
     Get all liked tracks to analyse
     Calcuate most common tracks/artists/genres
@@ -124,3 +127,27 @@ def handle_get_user_analysis(current_app, spotify_auth):
         return {
             "status": "error"
         }, 400
+
+
+def get_recent_shuffles(spotify_auth: SpotifyAuth):
+    """
+    Retrieve recent shuffle history for the authenticated user.
+    """
+    auth_manager = create_auth_manager_with_token(
+        current_app, spotify_auth)
+    spotify = spotipy.Spotify(auth_manager=auth_manager)
+    if not auth_manager.validate_token(spotify_auth.to_dict()):
+        raise SpotifyAuthInvalid("Invalid token")
+    user = spotify.me()
+    if user is None:
+        raise Exception("User not found in Spotify")
+
+    user_shuffle_counter_entry = database.find_shuffle_counter(user["id"])
+
+    if user_shuffle_counter_entry is not None and user_shuffle_counter_entry[RECENT_SHUFFLES_KEY] is not None:
+      recent_shuffles = user_shuffle_counter_entry[RECENT_SHUFFLES_KEY]
+      return {
+        "recent_shuffles": json.loads(json_util.dumps(recent_shuffles))
+      }
+    else:
+        return {"recent_shuffles": []}

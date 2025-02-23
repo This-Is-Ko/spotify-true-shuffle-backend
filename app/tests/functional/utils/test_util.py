@@ -1,5 +1,5 @@
 from flask import Flask
-from tests import client, env_patch
+from tests import env_patch
 
 from spotipy import Spotify
 from database import database
