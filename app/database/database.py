@@ -104,21 +104,14 @@ def get_top_artists(limit: int):
     pipeline = [
         # Unwind the artists array to treat each artist separately
         {"$unwind": "$artists"},
-        
         # Group by artist_id and sum shuffle_count
         {"$group": {
             "_id": "$artists.artist_id",
             "artist_name": {"$first": "$artists.artist_name"},
             "total_shuffles": {"$sum": "$shuffle_count"}
         }},
-        
-        # Sort by total shuffles in descending order
         {"$sort": {"total_shuffles": -1}},
-        
-        # Limit the result to the top 'limit' artists
         {"$limit": limit},
-        
-        # Project the final output
         {"$project": {
             "_id": 0,
             "artist_id": "$_id",
@@ -126,8 +119,7 @@ def get_top_artists(limit: int):
             "total_shuffles": 1
         }}
     ]
-    
-    # Run the aggregation and return the results
+
     return list(mongo.db.track_statistics.aggregate(pipeline))
 
 
