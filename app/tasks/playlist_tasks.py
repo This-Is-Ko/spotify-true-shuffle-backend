@@ -59,7 +59,7 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
 
     if response is not None and response["status"] == "success":
         # Queue celery task for updating track stats
-        update_track_statistics.delay(user, all_tracks)
+        update_track_statistics.delay(user[USER_ID_KEY], all_tracks)
 
         # Calculate duration of process
         duration_seconds = int(time.time() - start_time)
@@ -96,13 +96,13 @@ def create_playlist_from_liked_tracks(self, spotify_auth_dict: dict, new_playlis
 
 
 @shared_task(bind=True, ignore_result=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=2)
-def update_track_statistics(self, user, tracks: List[str]):
+def update_track_statistics(self, user_id: str, tracks: List[str]):
     """
     Updates database with track statistics.
     Increments shuffle counts or inserts new tracks if missing.
     """
 
-    if not tracks or not user:
+    if not tracks or not user_id:
         return 0
 
     # Remove any tracks which are the user's local tracks
@@ -113,5 +113,5 @@ def update_track_statistics(self, user, tracks: List[str]):
 
     database.update_track_statistics(filtered_tracks)
     num_tracks_updated = len(filtered_tracks)
-    current_app.logger.info("User: " + user[USER_ID_KEY] + "; Successfully stored tracks: " + str(num_tracks_updated))
+    current_app.logger.info("User: " + user_id + "; Successfully stored tracks: " + str(num_tracks_updated))
     return num_tracks_updated
