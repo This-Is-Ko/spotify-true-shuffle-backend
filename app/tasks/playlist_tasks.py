@@ -5,6 +5,7 @@ from celery import shared_task
 import random
 from flask import current_app
 
+from utils.constants import USER_ID_KEY
 from database import database
 from services.spotify_client import create_spotify_client
 from utils import util, tracker_utils
@@ -67,7 +68,7 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
         tracker_utils.update_user_trackers(user, playlist_id, playlist_name, len(all_tracks), duration_seconds)
 
         # Increment overall counters for playlists and tracks
-        tracker_utils.update_overall_trackers(len(all_tracks))
+        tracker_utils.update_overall_trackers(user, len(all_tracks))
 
     return response
 
@@ -95,13 +96,13 @@ def create_playlist_from_liked_tracks(self, spotify_auth_dict: dict, new_playlis
 
 
 @shared_task(bind=True, ignore_result=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=2)
-def update_track_statistics(self, tracks: List[str]):
+def update_track_statistics(self, user, tracks: List[str]):
     """
     Updates database with track statistics.
     Increments shuffle counts or inserts new tracks if missing.
     """
 
-    if not tracks:
+    if not tracks or not user:
         return
 
     # Remove any tracks which are the user's local tracks
@@ -111,4 +112,4 @@ def update_track_statistics(self, tracks: List[str]):
         return
 
     database.update_track_statistics(filtered_tracks)
-    current_app.logger.info("Successfully stored tracks: " + str(len(filtered_tracks)))
+    current_app.logger.info("User: " + user[USER_ID_KEY] + "; Successfully stored tracks: " + str(len(filtered_tracks)))
