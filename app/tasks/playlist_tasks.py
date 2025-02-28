@@ -1,5 +1,6 @@
 import time
 from datetime import date
+from typing import List
 from celery import shared_task
 import random
 from flask import current_app
@@ -22,7 +23,7 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
 
     # Grab all tracks from playlist
     all_tracks = util.get_tracks_from_playlist(self, spotify_client, playlist_id)
-    if all_tracks is None or len(all_tracks) == 0:
+    if not all_tracks:
         return {"error": "No tracks found for playlist " + playlist_id}
 
     # Check if user exists
@@ -44,16 +45,21 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
             spotify_client.current_user_unfollow_playlist(playlist["id"])
             break
 
+    all_tracks_uri = [track['uri'] for track in all_tracks]
+
     response = util.create_new_playlist_with_tracks(
         self,
         spotify_client,
         SHUFFLED_PLAYLIST_PREFIX + playlist_name,
         False,
         "Shuffled by True Shuffle",
-        all_tracks
+        all_tracks_uri
     )
 
     if response is not None and response["status"] == "success":
+        # Queue celery task for updating track stats
+        update_track_statistics.delay(all_tracks)
+
         # Calculate duration of process
         duration_seconds = int(time.time() - start_time)
 
@@ -71,10 +77,12 @@ def create_playlist_from_liked_tracks(self, spotify_auth_dict: dict, new_playlis
     spotify_client = create_spotify_client(current_app, spotify_auth_dict)
 
     all_tracks = util.get_tracks_from_playlist(self, spotify_client, LIKED_TRACKS_PLAYLIST_ID)
-    if all_tracks is None or len(all_tracks) == 0:
+    if not all_tracks:
         return {"error": "No tracks found for user's liked songs"}
 
     today = date.today()
+
+    all_tracks_uri = [track['uri'] for track in all_tracks]
 
     return util.create_new_playlist_with_tracks(
         self,
@@ -82,5 +90,25 @@ def create_playlist_from_liked_tracks(self, spotify_auth_dict: dict, new_playlis
         new_playlist_name,
         True,
         "True Shuffle | My Liked Tracks from " + today.strftime("%d/%m/%Y"),
-        all_tracks
+        all_tracks_uri
     )
+
+
+@shared_task(bind=True, ignore_result=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=2)
+def update_track_statistics(self, tracks: List[str]):
+    """
+    Updates database with track statistics.
+    Increments shuffle counts or inserts new tracks if missing.
+    """
+
+    if not tracks:
+        return
+
+    # Remove any tracks which are the user's local tracks
+    filtered_tracks = [track for track in tracks if not track.get("is_local", False)]
+
+    if not filtered_tracks:
+        return
+
+    database.update_track_statistics(filtered_tracks)
+    current_app.logger.info("Successfully stored tracks: " + str(len(filtered_tracks)))

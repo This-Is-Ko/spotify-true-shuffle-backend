@@ -1,5 +1,4 @@
 from flask_pymongo import PyMongo
-from flask import current_app
 from main import mongo
 import pymongo
 from pymongo.collection import ReturnDocument
@@ -59,6 +58,77 @@ def find_and_update_shuffle_counter(user_id, shuffle_history_counter):
         upsert=True,
         return_document=ReturnDocument.AFTER
     )
+
+
+# Track statistics update function
+def update_track_statistics(tracks):
+    """
+    Increments the shuffle count or inserts new tracks if missing.
+    """
+    bulk_updates = [
+        pymongo.UpdateOne(
+            {"track_id": track["id"]},
+            {
+                "$set": {
+                    "track_name": track["name"],
+                    "artists": [
+                        {"artist_id": artist["id"], "artist_name": artist["name"]}
+                        for artist in track["artists"]
+                    ]
+                },
+                "$inc": {"shuffle_count": 1}
+            },
+            upsert=True
+        )
+        for track in tracks
+    ]
+
+    if bulk_updates:
+        mongo.db.track_statistics.bulk_write(bulk_updates)
+
+
+def get_top_tracks(limit: int):
+    """
+    Retrieves the top shuffled tracks sorted by shuffle count.
+    """
+    return mongo.db.track_statistics.find(
+        {},
+        {"_id": 0, "track_id": 1, "track_name": 1, "shuffle_count": 1}
+    ).sort("shuffle_count", -1).limit(limit)
+
+
+def get_top_artists(limit: int):
+    """
+    Aggregates shuffle counts by artist and returns the top artists.
+    """
+    pipeline = [
+        # Unwind the artists array to treat each artist separately
+        {"$unwind": "$artists"},
+        
+        # Group by artist_id and sum shuffle_count
+        {"$group": {
+            "_id": "$artists.artist_id",
+            "artist_name": {"$first": "$artists.artist_name"},
+            "total_shuffles": {"$sum": "$shuffle_count"}
+        }},
+        
+        # Sort by total shuffles in descending order
+        {"$sort": {"total_shuffles": -1}},
+        
+        # Limit the result to the top 'limit' artists
+        {"$limit": limit},
+        
+        # Project the final output
+        {"$project": {
+            "_id": 0,
+            "artist_id": "$_id",
+            "artist_name": 1,
+            "total_shuffles": 1
+        }}
+    ]
+    
+    # Run the aggregation and return the results
+    return list(mongo.db.track_statistics.aggregate(pipeline))
 
 
 # User functions

@@ -1,7 +1,16 @@
 from datetime import datetime, timezone
 
+
 class SpotifyAuth:
-    def __init__(self, user_id=None, access_token=None, refresh_token=None, expires_at=None, scope=None, session_expiry=None):
+    def __init__(
+            self,
+            user_id=None,
+            access_token=None,
+            refresh_token=None,
+            expires_at=None,
+            scope=None,
+            session_expiry=None
+            ):
         self.user_id = user_id
         self.access_token = access_token
         self.refresh_token = refresh_token
@@ -13,7 +22,7 @@ class SpotifyAuth:
     @classmethod
     def from_session_entry(cls, session_entry):
         return cls(
-            user_id = None,
+            user_id=None,
             access_token=session_entry["access_token"],
             refresh_token=session_entry["refresh_token"],
             expires_at=session_entry["expires_at"],
@@ -23,7 +32,7 @@ class SpotifyAuth:
 
     def is_expired(self):
         return self.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc)
-    
+
     def to_dict(self):
         data = {}
         # Add non-None attribute values to the dictionary

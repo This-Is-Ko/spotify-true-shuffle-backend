@@ -4,6 +4,7 @@ from flask import current_app
 import spotipy
 
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
+required_fields = ["uri", "name", "id"]
 
 
 def update_task_progress(task, state, meta):
@@ -13,29 +14,61 @@ def update_task_progress(task, state, meta):
         task.update_state(state=state, meta=meta)
 
 
-def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str) -> List[str]:
+def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str) -> List[dict]:
     """
-    Get tracks from playlist based on playlist_id
-    Use separate spotify call for retrieving Liked Tracks
+    Get tracks from a playlist based on playlist_id.
+    Uses a separate Spotify call for retrieving Liked Tracks.
     """
     offset = 0
     all_tracks = []
+
     while True:
         if playlist_id == LIKED_TRACKS_PLAYLIST_ID:
             tracks_response = spotify.current_user_saved_tracks(limit=50, offset=offset)
         else:
             tracks_response = spotify.playlist_items(playlist_id, limit=50, offset=offset)
-        if tracks_response is not None and "items" in tracks_response:
-            if len(tracks_response["items"]) == 0:
-                break
-            for track in tracks_response["items"]:
-                if track["track"] is not None and track["track"]["uri"] is not None:
-                    all_tracks.append(track["track"]["uri"])
-                else:
-                    current_app.logger.info("Track missing uri: " + str(track))
-            offset += len(tracks_response["items"])
+
+        if not tracks_response or "items" not in tracks_response or not tracks_response["items"]:
+            break
+
+        for track_entry in tracks_response["items"]:
+            track = track_entry.get("track")
+
+            if not track:
+                current_app.logger.info(f"Track object missing: {track_entry}")
+                continue
+
+            # Extract track data
+            missing_fields = [field for field in required_fields if not track.get(field)]
+            if missing_fields:
+                current_app.logger.info(f"Track missing fields {missing_fields}: {track}")
+                continue
+
+            # Extract artist data
+            artists = track.get("artists", [])
+            artist_list = [
+                {"id": artist["id"], "name": artist["name"]}
+                for artist in artists if "id" in artist and "name" in artist
+            ]
+
+            # is_local defaulting to False if missing
+            is_local = track.get("is_local", False) or False
+
+            # Append valid track
+            all_tracks.append({
+                "uri": track["uri"],
+                "name": track["name"],
+                "is_local": is_local,
+                "id": track["id"],
+                "artists": artist_list
+            })
+
+        offset += len(tracks_response["items"])
+
         update_task_progress(task=task, state='PROGRESS', meta={'progress': {
-                             'state': "Retrieved " + str(len(all_tracks)) + " tracks so far..."}})
+            'state': f"Retrieved {len(all_tracks)} tracks so far..."
+        }})
+
     return all_tracks
 
 
@@ -131,7 +164,7 @@ def create_new_playlist_with_tracks(
 
         # Remove any invalid uris which have a whitespace
         tracks_to_add = validate_tracks(tracks_to_add)
-        if len(tracks_to_add) == 0:
+        if not tracks_to_add:
             raise Exception("No tracks to add")
 
         # Create new playlist

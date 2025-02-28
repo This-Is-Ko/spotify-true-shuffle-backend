@@ -185,14 +185,14 @@ def get_user_analysis(task, current_app, spotify: spotipy.Spotify):
                 release_year_counts[release_date_object.year] += 1
             else:
                 release_year_counts[release_date_object.year] = 1
-        except Exception as e:
+        except Exception:
             try:
                 release_date_object = datetime.strptime(release_date, '%Y').date()
                 if release_date_object.year in release_year_counts:
                     release_year_counts[release_date_object.year] += 1
                 else:
                     release_year_counts[release_date_object.year] = 1
-            except Exception as e:
+            except Exception:
                 release_date_object = datetime.strptime(release_date, '%Y-%m').date()
                 if release_date_object.year in release_year_counts:
                     release_year_counts[release_date_object.year] += 1
@@ -371,6 +371,6 @@ def prep_essential_track_data(track_data):
                     "image_url": track_data["album"]["images"][1]["url"]
                 },
             }
-        except Exception as e:
+        except Exception:
             return None
     return None

@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app
+from flask import Blueprint, current_app, request
 
 from services import statistics_service
 
@@ -10,4 +10,8 @@ def get_statistics():
     """
     Endpoint to retrieve overall statistics
     """
-    return (statistics_service.get_overall_statistics(current_app))
+    is_full_stats = False
+    if request.args is not None:
+        if request.args.get("full_stats") == "true":
+            is_full_stats = True
+    return (statistics_service.get_overall_statistics(current_app, is_full_stats))

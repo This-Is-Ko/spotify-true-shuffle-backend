@@ -32,7 +32,7 @@ class Config:
         'JWT_SECRET', default='JWT_SECRET')
     JWT_ISSUER = os.getenv(
         'JWT_ISSUER', default='JWT_ISSUER')
-    
+
     SERVICE_CLIENT_ID = os.getenv(
         'SERVICE_CLIENT_ID', default='SERVICE_CLIENT_ID')
     SERVICE_CLIENT_SECRET = os.getenv(
@@ -44,13 +44,16 @@ class Config:
 
     # Database
     MONGO_URI = os.getenv(
-        'MONGO_URI', default='mongodb+srv://dbUser:password@cluster0.aa.mongodb.net/database?retryWrites=true&w=majority')
-    
+        'MONGO_URI',
+        default='mongodb+srv://dbUser:password@cluster0.aa.mongodb.net/database?retryWrites=true&w=majority'
+        )
+
     # Celery
     CELERY_BROKER_URL = os.getenv(
         'CELERY_BROKER_URL', default='redis://localhost')
     CELERY_RESULT_BACKEND_URL = os.getenv(
         'CELERY_RESULT_BACKEND_URL', default='redis://localhost')
+
 
 class DevelopmentConfig(Config):
     FLASK_ENV = 'development'

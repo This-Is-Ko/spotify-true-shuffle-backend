@@ -66,6 +66,11 @@ Run flask app:
 
     flask --app main.py run
 
+Run celery worker:
+
+    cd app
+    celery -A make_celery worker --pool=solo --loglevel INFO
+
 ## Deployment
 
 Current set up to automatically deploy commits to the "main" branch using Railway
