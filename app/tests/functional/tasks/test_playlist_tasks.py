@@ -188,10 +188,6 @@ def test_update_track_statistics_success(mocker, env_patch):
         return_value=None
     )
 
-    test_user = {
-        "user_id": "test_user_123"
-    }
-
     test_tracks = [
         {
             "track_id": "track_001",
@@ -220,7 +216,7 @@ def test_update_track_statistics_success(mocker, env_patch):
         }
     ]
 
-    response = update_track_statistics(test_user, test_tracks)
+    response = update_track_statistics("test_user", test_tracks)
     assert response == 2
 
 
@@ -230,10 +226,6 @@ def test_update_track_statistics_all_tracks_are_is_local_true_success(mocker, en
         return_value=None
     )
 
-    test_user = {
-        "user_id": "test_user_123"
-    }
-
     # Filter out all tracks as all are is_local
     test_tracks = [
         {
@@ -263,7 +255,7 @@ def test_update_track_statistics_all_tracks_are_is_local_true_success(mocker, en
         }
     ]
 
-    response = update_track_statistics(test_user, test_tracks)
+    response = update_track_statistics("test_user", test_tracks)
     assert response == 0
 
 
@@ -273,12 +265,8 @@ def test_update_track_statistics_empty_tracks_success(mocker, env_patch):
         return_value=None
     )
 
-    test_user = {
-        "user_id": "test_user_123"
-    }
-
     # Filter out all tracks as all are is_local
     test_tracks = []
 
-    response = update_track_statistics(test_user, test_tracks)
+    response = update_track_statistics("test_user", test_tracks)
     assert response == 0
