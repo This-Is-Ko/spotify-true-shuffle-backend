@@ -2,6 +2,7 @@ from functools import wraps
 from flask import current_app, request
 from marshmallow import ValidationError
 
+
 def request_schema_validator(schema_class):
     """
     A decorator to validate the request body against a given schema.
@@ -9,7 +10,7 @@ def request_schema_validator(schema_class):
 
     Args:
         schema_class (class): The Marshmallow schema class to validate against.
-        
+
     Returns:
         function: The decorated function with `request_body` passed as a keyword argument.
     """

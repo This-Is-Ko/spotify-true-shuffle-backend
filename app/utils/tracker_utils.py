@@ -5,13 +5,14 @@ from flask import current_app
 from utils.constants import (
     PLAYLIST_COUNT_KEY, TRACK_COUNT_KEY, TRACKERS_ENABLED_KEY, OVERALL_COUNTER_KEY,
     USER_ID_KEY, RECENT_SHUFFLES_KEY, LAST_UPDATED_KEY,
-    RECENT_SHUFFLES_PLAYLIST_ID_KEY, RECENT_SHUFFLES_TRACKS_SHUFFLED_KEY, 
+    RECENT_SHUFFLES_PLAYLIST_ID_KEY, RECENT_SHUFFLES_TRACKS_SHUFFLED_KEY,
     RECENT_SHUFFLES_SHUFFLED_AT_KEY, RECENT_SHUFFLES_DURATION_SECONDS_KEY,
     RECENT_SHUFFLES_PLAYLIST_NAME_KEY
 )
 
 
 MAX_RECENT_SHUFFLES = 10
+
 
 def update_user_trackers(user, playlist_id: str, playlist_name: str, track_count: int, duration_seconds: int):
     if user is not None and track_count is not None:
@@ -39,7 +40,13 @@ def update_user_trackers(user, playlist_id: str, playlist_name: str, track_count
                 current_app.logger.error("Error updating user shuffle count: " + str(e))
 
 
-def update_recent_shuffles(user_shuffle_counter: dict, playlist_id: str, playlist_name: str, track_count: int, duration_seconds: int):
+def update_recent_shuffles(
+        user_shuffle_counter: dict,
+        playlist_id: str,
+        playlist_name: str,
+        track_count: int,
+        duration_seconds: int
+        ):
     if RECENT_SHUFFLES_KEY not in user_shuffle_counter:
         user_shuffle_counter[RECENT_SHUFFLES_KEY] = []
 

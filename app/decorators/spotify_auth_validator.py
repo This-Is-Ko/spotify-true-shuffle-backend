@@ -27,7 +27,7 @@ def spotify_auth_validator(f):
         except Exception as e:
             current_app.logger.error("Invalid request: " + str(e))
             return {"error": "Invalid request"}, 400
-        
+
         # If validation succeeds, pass the Spotify auth object to the decorated function.
         return f(*args, spotify_auth=spotify_auth, **kwargs)
     return decorated

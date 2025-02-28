@@ -145,9 +145,9 @@ def get_recent_shuffles(spotify_auth: SpotifyAuth):
     user_shuffle_counter_entry = database.find_shuffle_counter(user["id"])
 
     if user_shuffle_counter_entry is not None and user_shuffle_counter_entry[RECENT_SHUFFLES_KEY] is not None:
-      recent_shuffles = user_shuffle_counter_entry[RECENT_SHUFFLES_KEY]
-      return {
-        "recent_shuffles": json.loads(json_util.dumps(recent_shuffles))
-      }
+        recent_shuffles = user_shuffle_counter_entry[RECENT_SHUFFLES_KEY]
+        return {
+          "recent_shuffles": json.loads(json_util.dumps(recent_shuffles))
+        }
     else:
         return {"recent_shuffles": []}
