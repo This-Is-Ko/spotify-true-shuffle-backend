@@ -5,7 +5,7 @@ from database import database
 
 from tests.functional.helpers.mock_requests import *
 from tests.functional.helpers.mock_responses import *
-from tasks.playlist_tasks import shuffle_playlist, create_playlist_from_liked_tracks
+from tasks.playlist_tasks import shuffle_playlist, create_playlist_from_liked_tracks, update_track_statistics
 
 SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
@@ -104,7 +104,7 @@ def test_shuffle_playlist_shuffled_playlist_exists_success(mocker, env_patch):
     assert response["num_of_tracks"] == 2
     assert response["creation_time"] is not None
 
-    
+
 def test_shuffle_playlist_user_not_found_success(mocker, env_patch):
     # Testcase where cannot update trackers however shuffle can still proceed
     # Prepare mocks
@@ -127,7 +127,7 @@ def test_shuffle_playlist_user_not_found_success(mocker, env_patch):
     )
 
     response = shuffle_playlist(spotify_auth_sample, "playlist_id", "playlist_name")
-    
+
     assert response["status"] == "success"
     assert response["playlist_uri"] == SPOTIFY_PLAYLIST_URL
     assert response["num_of_tracks"] == 2
@@ -160,7 +160,7 @@ def test_create_playlist_from_liked_tracks_success(mocker, env_patch):
     mocker.patch.object(Spotify, "playlist_add_items", return_value=playlist_add_items_response)
 
     response = create_playlist_from_liked_tracks(spotify_auth_sample, "playlist_name")
-    
+
     assert response["status"] == "success"
     assert response["playlist_uri"] == SPOTIFY_PLAYLIST_URL
     assert response["num_of_tracks"] == 2
@@ -174,3 +174,108 @@ def test_screate_playlist_from_liked_tracks_tracks_empty_failure(mocker, env_pat
     response = create_playlist_from_liked_tracks(spotify_auth_sample, "playlist_name")
 
     assert response["error"] == "No tracks found for user's liked songs"
+
+
+############ update_track_statistics ################
+
+
+def test_update_track_statistics_success(mocker, env_patch):
+    # Prepare mocks
+    mocker.patch.object(database, "update_track_statistics",
+        return_value=None
+    )
+
+    test_user = {
+        "user_id": "test_user_123"
+    }
+
+    test_tracks = [
+        {
+            "track_id": "track_001",
+            "track_name": "Test Track 1",
+            "artists": [
+                {"artist_id": "artist_001", "artist_name": "Artist One"}
+            ],
+            "is_local": False
+        },
+        {
+            "track_id": "track_002",
+            "track_name": "Test Track 2",
+            "artists": [
+                {"artist_id": "artist_002", "artist_name": "Artist Two"},
+                {"artist_id": "artist_003", "artist_name": "Artist Three"}
+            ],
+            "is_local": False
+        },
+        {
+            "track_id": "track_003",
+            "track_name": "Local Track (Ignored)",
+            "artists": [
+                {"artist_id": "artist_004", "artist_name": "Artist Four"}
+            ],
+            "is_local": True  # This track should be filtered out
+        }
+    ]
+
+    response = update_track_statistics(test_user, test_tracks)
+    assert response == 2
+
+
+def test_update_track_statistics_all_tracks_are_is_local_true_success(mocker, env_patch):
+    # Prepare mocks
+    mocker.patch.object(database, "update_track_statistics",
+        return_value=None
+    )
+
+    test_user = {
+        "user_id": "test_user_123"
+    }
+
+    # Filter out all tracks as all are is_local
+    test_tracks = [
+        {
+            "track_id": "track_001",
+            "track_name": "Test Track 1",
+            "artists": [
+                {"artist_id": "artist_001", "artist_name": "Artist One"}
+            ],
+            "is_local": True
+        },
+        {
+            "track_id": "track_002",
+            "track_name": "Test Track 2",
+            "artists": [
+                {"artist_id": "artist_002", "artist_name": "Artist Two"},
+                {"artist_id": "artist_003", "artist_name": "Artist Three"}
+            ],
+            "is_local": True
+        },
+        {
+            "track_id": "track_003",
+            "track_name": "Local Track (Ignored)",
+            "artists": [
+                {"artist_id": "artist_004", "artist_name": "Artist Four"}
+            ],
+            "is_local": True  # This track should be filtered out
+        }
+    ]
+
+    response = update_track_statistics(test_user, test_tracks)
+    assert response == 0
+
+
+def test_update_track_statistics_empty_tracks_success(mocker, env_patch):
+    # Prepare mocks
+    mocker.patch.object(database, "update_track_statistics",
+        return_value=None
+    )
+
+    test_user = {
+        "user_id": "test_user_123"
+    }
+
+    # Filter out all tracks as all are is_local
+    test_tracks = []
+
+    response = update_track_statistics(test_user, test_tracks)
+    assert response == 0

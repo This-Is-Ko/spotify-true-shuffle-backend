@@ -59,7 +59,7 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
 
     if response is not None and response["status"] == "success":
         # Queue celery task for updating track stats
-        update_track_statistics.delay(all_tracks)
+        update_track_statistics.delay(user, all_tracks)
 
         # Calculate duration of process
         duration_seconds = int(time.time() - start_time)
@@ -68,7 +68,7 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
         tracker_utils.update_user_trackers(user, playlist_id, playlist_name, len(all_tracks), duration_seconds)
 
         # Increment overall counters for playlists and tracks
-        tracker_utils.update_overall_trackers(user, len(all_tracks))
+        tracker_utils.update_overall_trackers(len(all_tracks))
 
     return response
 
@@ -103,13 +103,15 @@ def update_track_statistics(self, user, tracks: List[str]):
     """
 
     if not tracks or not user:
-        return
+        return 0
 
     # Remove any tracks which are the user's local tracks
     filtered_tracks = [track for track in tracks if not track.get("is_local", False)]
 
     if not filtered_tracks:
-        return
+        return 0
 
     database.update_track_statistics(filtered_tracks)
-    current_app.logger.info("User: " + user[USER_ID_KEY] + "; Successfully stored tracks: " + str(len(filtered_tracks)))
+    num_tracks_updated = len(filtered_tracks)
+    current_app.logger.info("User: " + user[USER_ID_KEY] + "; Successfully stored tracks: " + str(num_tracks_updated))
+    return num_tracks_updated
