@@ -5,6 +5,8 @@ import spotipy
 
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 required_fields = ["uri", "name", "id"]
+CELERY_PROGRESS_STATE_CREATE_PLAYLIST_TEMPLATE = "Adding {}/{} tracks..."
+CELERY_PROGRESS_STATE_CREATE_PLAYLIST_LAST_TEMPLATE = "Added {}/{} tracks"
 
 
 def update_task_progress(task, state, meta):
@@ -184,6 +186,9 @@ def create_new_playlist_with_tracks(
             )
         )
 
+        # Return playlist uri early to allow user to start listening while rest of tracks are being added
+        playlist_uri = new_playlist["external_urls"]["spotify"]
+
         # Add 100 tracks per call
         if len(tracks_to_add) <= 100:
             calls_required = 1
@@ -194,14 +199,28 @@ def create_new_playlist_with_tracks(
             if i == calls_required - 1:
                 add_items_response = spotify.playlist_add_items(
                     new_playlist_id, tracks_to_add[i * 100: i * 100 + left_over])
-                update_task_progress(task, state='PROGRESS', meta={'progress': {
-                                     'state': "Adding  " + str(i * 100 + left_over) + "/" + str(len(tracks_to_add))
-                                     + " tracks..."}})
+                update_task_progress(
+                    task,
+                    state="PROGRESS",
+                    meta={
+                        "progress": {
+                            "state": CELERY_PROGRESS_STATE_CREATE_PLAYLIST_TEMPLATE.format(i * 100 + left_over, len(tracks_to_add)),
+                            "playlist_uri": playlist_uri
+                        }
+                    }
+                )
             else:
                 add_items_response = spotify.playlist_add_items(new_playlist_id, tracks_to_add[i * 100: i * 100 + 100])
-                update_task_progress(task, state='PROGRESS', meta={'progress': {
-                                     'state': "Added " + str(i * 100 + 100) + "/" + str(len(tracks_to_add))
-                                     + " tracks"}})
+                update_task_progress(
+                    task,
+                    state="PROGRESS",
+                    meta={
+                        "progress": {
+                            "state": CELERY_PROGRESS_STATE_CREATE_PLAYLIST_LAST_TEMPLATE.format(i * 100 + 100, len(tracks_to_add)),
+                            "playlist_uri": playlist_uri
+                        }
+                    }
+                )
             if "snapshot_id" not in add_items_response:
                 current_app.logger.error("Error while adding tracks. Response: " + add_items_response)
                 return {
