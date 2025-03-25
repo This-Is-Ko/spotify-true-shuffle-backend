@@ -59,7 +59,7 @@ def get_shuffle_state(id, spotify_auth):
     Validates Spotify authentication
     """
     try:
-        response = make_response(playlist_service.get_shuffle_state(id))
+        response = make_response(playlist_service.get_shuffle_state(spotify_auth, id))
         return response
     except Exception as e:
         current_app.logger.error("Unable to retrieve shuffle state: " + str(e))
