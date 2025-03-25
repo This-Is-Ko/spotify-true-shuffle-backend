@@ -82,8 +82,8 @@ def queue_create_shuffled_playlist(spotify_auth: SpotifyAuth, playlist_id, playl
     return {"shuffle_task_id": result.id}
 
 
-def get_shuffle_state(id: str):
-    return get_celery_task_state(id, "Shuffle playlist")
+def get_shuffle_state(spotify_auth: SpotifyAuth, id: str):
+    return get_celery_task_state(spotify_auth, id, "Shuffle playlist")
 
 
 def delete_all_shuffled_playlists(spotify_auth: SpotifyAuth):
