@@ -1,6 +1,7 @@
 from flask_cors import cross_origin  # noqa: F401
 from flask import current_app, request, Blueprint, make_response
 
+from utils.logger_utils import logErrorWithUser
 from services import playlist_service
 from schemas.ShufflePlaylistRequestSchema import ShufflePlaylistRequestSchema
 from schemas.ShareLikedTracksRequestSchema import ShareLikedTracksRequestSchema
@@ -27,9 +28,7 @@ def get_playlists(spotify_auth):
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
-        current_app.logger.error("Unable to retrieve user playlists: " + str(e))
-        if spotify_auth is not None and spotify_auth.user_id is not None:
-            current_app.logger.error("User: " + spotify_auth.user_id)
+        logErrorWithUser("Unable to retrieve user playlists: " + str(e), spotify_auth)
         return {"error": "Unable to retrieve user playlists"}, 400
 
 
@@ -47,7 +46,7 @@ def queue_shuffle_playlist(spotify_auth, request_body):
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
-        current_app.logger.error("Unable to queue to create shuffled playlist: " + str(e))
+        logErrorWithUser("Unable to queue to create shuffled playlist: " + str(e), spotify_auth)
         return {"error": "Unable to queue to create shuffled playlist"}, 400
 
 
@@ -62,7 +61,7 @@ def get_shuffle_state(id, spotify_auth):
         response = make_response(playlist_service.get_shuffle_state(spotify_auth, id))
         return response
     except Exception as e:
-        current_app.logger.error("Unable to retrieve shuffle state: " + str(e))
+        logErrorWithUser("Unable to retrieve shuffle state: " + str(e), spotify_auth)
         return {"error": "Unable to retrieve shuffle state"}, 400
 
 
@@ -78,7 +77,7 @@ def delete_shuffled_playlists(spotify_auth):
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
-        current_app.logger.error("Unable to delete shuffled playlists: " + str(e))
+        logErrorWithUser("Unable to delete shuffled playlists: " + str(e), spotify_auth)
         return {"error": "Unable to delete shuffled playlists"}, 400
 
 
@@ -102,7 +101,7 @@ def liked_tracks_to_playlist(spotify_auth, request_body):
             extend_session_expiry(response, request.cookies)
             return response
     except Exception as e:
-        current_app.logger.error("Unable to create share playlist: " + str(e))
+        logErrorWithUser("Unable to create share playlist: " + str(e), spotify_auth)
         return {"error": "Unable to create share playlist"}, 400
 
 
@@ -118,5 +117,5 @@ def get_liked_tracks_to_playlist_state(id, spotify_auth):
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:
-        current_app.logger.error("Unable to get create liked playlist state: " + str(e))
+        logErrorWithUser("Unable to get create liked playlist state: " + str(e), spotify_auth)
         return {"error": "Unable to get create liked playlist state"}, 400

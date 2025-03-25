@@ -66,7 +66,7 @@ Run flask app:
 
     flask --app main.py run
 
-Run celery worker:
+Start redis instance (e.g. docker) then run celery worker:
 
     cd app
     celery -A make_celery worker --pool=solo --loglevel INFO

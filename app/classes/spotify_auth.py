@@ -22,7 +22,7 @@ class SpotifyAuth:
     @classmethod
     def from_session_entry(cls, session_entry):
         return cls(
-            user_id=None,
+            user_id=session_entry["user_id"],
             access_token=session_entry["access_token"],
             refresh_token=session_entry["refresh_token"],
             expires_at=session_entry["expires_at"],
