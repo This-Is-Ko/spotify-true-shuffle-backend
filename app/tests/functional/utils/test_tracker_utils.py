@@ -1,3 +1,4 @@
+from unittest.mock import Mock
 from flask import Flask
 from tests import env_patch  # noqa: F401
 from database import database
@@ -14,6 +15,8 @@ LAST_UPDATED_KEY = "last_updated"
 
 app = Flask('test')
 
+celery_task = Mock()
+celery_task.request = Mock(id="12345-67890")
 """
 Success scenarios - update_user_trackers
 """
@@ -48,7 +51,7 @@ def test_update_user_trackers_success(mocker, env_patch):  # noqa: F811
                                                                    "find_and_update_shuffle_counter",
                                                                    return_value=None)
 
-        update_user_trackers(test_user, playlist_id, playlist_name, track_count, duration_seconds)
+        update_user_trackers(celery_task, test_user, playlist_id, playlist_name, track_count, duration_seconds)
 
         mock_find_shuffle_counter.assert_called_once_with("user123")
         mock_find_and_update_shuffle_counter.assert_called_once()
@@ -71,7 +74,7 @@ def test_update_user_trackers_no_existing_counter(mocker, env_patch):  # noqa: F
                                                                    "find_and_update_shuffle_counter",
                                                                    return_value=None)
 
-        update_user_trackers(test_user, playlist_id, playlist_name, track_count, duration_seconds)
+        update_user_trackers(celery_task, test_user, playlist_id, playlist_name, track_count, duration_seconds)
 
         # Assertions
         mock_find_shuffle_counter.assert_called_once_with("user123")
@@ -92,7 +95,7 @@ def test_update_user_trackers_user_not_found(mocker, env_patch):  # noqa: F811
         duration_seconds = 3600
 
         mock_find_and_update = mocker.patch.object(database, "find_and_update_shuffle_counter")
-        update_user_trackers(user, playlist_id, playlist_name, track_count, duration_seconds)
+        update_user_trackers(celery_task, user, playlist_id, playlist_name, track_count, duration_seconds)
 
         mock_find_and_update.assert_not_called()
 
@@ -106,7 +109,7 @@ def test_update_user_trackers_trackers_disabled(mocker, env_patch):  # noqa: F81
         duration_seconds = 3600
 
         mock_find_and_update = mocker.patch.object(database, "find_and_update_shuffle_counter")
-        update_user_trackers(user, playlist_id, playlist_name, track_count, duration_seconds)
+        update_user_trackers(celery_task, user, playlist_id, playlist_name, track_count, duration_seconds)
 
         mock_find_and_update.assert_not_called()
 
@@ -122,7 +125,7 @@ def test_update_user_trackers_exception_handling(mocker, env_patch):  # noqa: F8
         mocker.patch.object(database, "find_shuffle_counter", side_effect=Exception("Database error"))
         mock_find_and_update = mocker.patch.object(database, "find_and_update_shuffle_counter")
 
-        update_user_trackers(user, playlist_id, playlist_name, track_count, duration_seconds)
+        update_user_trackers(celery_task, user, playlist_id, playlist_name, track_count, duration_seconds)
 
         mock_find_and_update.assert_not_called()
 

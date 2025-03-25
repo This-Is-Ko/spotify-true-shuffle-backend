@@ -59,13 +59,13 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
 
     if response is not None and response["status"] == "success":
         # Queue celery task for updating track stats
-        update_track_statistics.delay(user[USER_ID_KEY], all_tracks)
+        # update_track_statistics.delay(user[USER_ID_KEY], all_tracks)
 
         # Calculate duration of process
         duration_seconds = int(time.time() - start_time)
 
         # Increment user counters for playlists and tracks
-        tracker_utils.update_user_trackers(user, playlist_id, playlist_name, len(all_tracks), duration_seconds)
+        tracker_utils.update_user_trackers(self, user, playlist_id, playlist_name, len(all_tracks), duration_seconds)
 
         # Increment overall counters for playlists and tracks
         tracker_utils.update_overall_trackers(len(all_tracks))

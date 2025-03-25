@@ -111,5 +111,5 @@ def queue_create_playlist_from_liked_tracks(spotify_auth: SpotifyAuth, new_playl
     return {"create_liked_playlist_id": result.id}
 
 
-def get_create_playlist_from_liked_tracks_state(id: str):
-    return get_celery_task_state(id, "Create liked playlist")
+def get_create_playlist_from_liked_tracks_state(spotify_auth: SpotifyAuth, id: str):
+    return get_celery_task_state(spotify_auth, id, "Create liked playlist")
