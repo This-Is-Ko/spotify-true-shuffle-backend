@@ -14,7 +14,14 @@ from utils.constants import (
 MAX_RECENT_SHUFFLES = 10
 
 
-def update_user_trackers(celery_task, user, playlist_id: str, playlist_name: str, track_count: int, duration_seconds: int):
+def update_user_trackers(
+        celery_task,
+        user,
+        playlist_id: str,
+        playlist_name: str,
+        track_count: int,
+        duration_seconds: int
+        ):
     if user is not None and track_count is not None:
         if user["user_attributes"][TRACKERS_ENABLED_KEY] is True:
             try:

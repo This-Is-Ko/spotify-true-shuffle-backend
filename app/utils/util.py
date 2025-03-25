@@ -204,7 +204,10 @@ def create_new_playlist_with_tracks(
                     state="PROGRESS",
                     meta={
                         "progress": {
-                            "state": CELERY_PROGRESS_STATE_CREATE_PLAYLIST_TEMPLATE.format(i * 100 + left_over, len(tracks_to_add)),
+                            "state": CELERY_PROGRESS_STATE_CREATE_PLAYLIST_TEMPLATE.format(
+                                i * 100 + left_over,
+                                len(tracks_to_add)
+                            ),
                             "playlist_uri": playlist_uri
                         }
                     }
@@ -216,7 +219,10 @@ def create_new_playlist_with_tracks(
                     state="PROGRESS",
                     meta={
                         "progress": {
-                            "state": CELERY_PROGRESS_STATE_CREATE_PLAYLIST_LAST_TEMPLATE.format(i * 100 + 100, len(tracks_to_add)),
+                            "state": CELERY_PROGRESS_STATE_CREATE_PLAYLIST_LAST_TEMPLATE.format(
+                                i * 100 + 100,
+                                len(tracks_to_add)
+                            ),
                             "playlist_uri": playlist_uri
                         }
                     }

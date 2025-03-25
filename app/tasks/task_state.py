@@ -4,7 +4,7 @@ from flask import current_app
 from classes.spotify_auth import SpotifyAuth
 
 
-def get_celery_task_state(spotify_auth: SpotifyAuth, id: str, type: str):    
+def get_celery_task_state(spotify_auth: SpotifyAuth, id: str, type: str):
     if not spotify_auth or not spotify_auth.user_id:
         current_app.logger.error("error=missing_user_id")
         raise ValueError("Missing user_id in Spotify authentication")

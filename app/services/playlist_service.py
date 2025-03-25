@@ -37,10 +37,15 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
             if playlist_entry["name"].startswith(SHUFFLED_PLAYLIST_PREFIX):
                 continue
             numOfTracks = None
-            if playlist_entry["tracks"] != None:
+            if playlist_entry["tracks"] is not None:
                 numOfTracks = playlist_entry["tracks"]["total"]
             all_playlists.append(Playlist(
-                playlist_entry["name"], playlist_entry["owner"], playlist_entry["id"], playlist_entry["images"][0], numOfTracks))
+                playlist_entry["name"],
+                playlist_entry["owner"],
+                playlist_entry["id"],
+                playlist_entry["images"][0],
+                numOfTracks
+            ))
 
     get_playlists_success_log = "User: {user_id} -- Retrieved {num_of_playlists:d} playlists"
     current_app.logger.info(get_playlists_success_log.format(

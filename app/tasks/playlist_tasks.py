@@ -5,7 +5,6 @@ from celery import shared_task
 import random
 from flask import current_app
 
-from utils.constants import USER_ID_KEY
 from database import database
 from services.spotify_client import create_spotify_client
 from utils import util, tracker_utils
