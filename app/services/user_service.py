@@ -84,8 +84,8 @@ def queue_get_aggregate_user_data(spotify_auth: SpotifyAuth):
     return {"aggregate_task_id": result.id}
 
 
-def get_aggregate_user_data_state(id: str):
-    return get_celery_task_state(id, "Aggregate user data")
+def get_aggregate_user_data_state(spotify_auth: SpotifyAuth, id: str):
+    return get_celery_task_state(spotify_auth, id, "Aggregate user data")
 
 
 def handle_get_user_tracker_data(spotify_auth: SpotifyAuth, tracker_name):

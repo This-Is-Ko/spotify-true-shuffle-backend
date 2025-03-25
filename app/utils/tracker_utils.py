@@ -7,14 +7,21 @@ from utils.constants import (
     USER_ID_KEY, RECENT_SHUFFLES_KEY, LAST_UPDATED_KEY,
     RECENT_SHUFFLES_PLAYLIST_ID_KEY, RECENT_SHUFFLES_TRACKS_SHUFFLED_KEY,
     RECENT_SHUFFLES_SHUFFLED_AT_KEY, RECENT_SHUFFLES_DURATION_SECONDS_KEY,
-    RECENT_SHUFFLES_PLAYLIST_NAME_KEY
+    RECENT_SHUFFLES_PLAYLIST_NAME_KEY, RECENT_SHUFFLES_CELERY_TASK_ID_KEY
 )
 
 
 MAX_RECENT_SHUFFLES = 10
 
 
-def update_user_trackers(user, playlist_id: str, playlist_name: str, track_count: int, duration_seconds: int):
+def update_user_trackers(
+        celery_task,
+        user,
+        playlist_id: str,
+        playlist_name: str,
+        track_count: int,
+        duration_seconds: int
+        ):
     if user is not None and track_count is not None:
         if user["user_attributes"][TRACKERS_ENABLED_KEY] is True:
             try:
@@ -33,7 +40,16 @@ def update_user_trackers(user, playlist_id: str, playlist_name: str, track_count
 
                 user_shuffle_counter[LAST_UPDATED_KEY] = datetime.now(timezone.utc)
 
-                update_recent_shuffles(user_shuffle_counter, playlist_id, playlist_name, track_count, duration_seconds)
+                celery_task_id = None
+                if celery_task is not None and celery_task.request is not None:
+                    celery_task_id = celery_task.request.id
+
+                update_recent_shuffles(user_shuffle_counter,
+                                       playlist_id,
+                                       playlist_name,
+                                       track_count,
+                                       duration_seconds,
+                                       celery_task_id)
 
                 database.find_and_update_shuffle_counter(user[USER_ID_KEY], user_shuffle_counter)
             except Exception as e:
@@ -45,7 +61,8 @@ def update_recent_shuffles(
         playlist_id: str,
         playlist_name: str,
         track_count: int,
-        duration_seconds: int
+        duration_seconds: int,
+        celery_task_id: str
         ):
     if RECENT_SHUFFLES_KEY not in user_shuffle_counter:
         user_shuffle_counter[RECENT_SHUFFLES_KEY] = []
@@ -56,7 +73,8 @@ def update_recent_shuffles(
         RECENT_SHUFFLES_PLAYLIST_NAME_KEY: playlist_name,
         RECENT_SHUFFLES_TRACKS_SHUFFLED_KEY: track_count,
         RECENT_SHUFFLES_SHUFFLED_AT_KEY: datetime.now(timezone.utc),
-        RECENT_SHUFFLES_DURATION_SECONDS_KEY: duration_seconds
+        RECENT_SHUFFLES_DURATION_SECONDS_KEY: duration_seconds,
+        RECENT_SHUFFLES_CELERY_TASK_ID_KEY: celery_task_id
     }
     user_shuffle_counter[RECENT_SHUFFLES_KEY].append(new_recent_shuffles_entry)
 

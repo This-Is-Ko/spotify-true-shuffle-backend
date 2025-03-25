@@ -114,7 +114,7 @@ def get_liked_tracks_to_playlist_state(id, spotify_auth):
     Validates Spotify authentication
     """
     try:
-        response = make_response(playlist_service.get_create_playlist_from_liked_tracks_state(id))
+        response = make_response(playlist_service.get_create_playlist_from_liked_tracks_state(spotify_auth, id))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:

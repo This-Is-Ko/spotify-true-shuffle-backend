@@ -85,7 +85,7 @@ def get_user_aggregated_data_state(id, spotify_auth):
     Get state of aggregate data task
     """
     try:
-        response = make_response(user_service.get_aggregate_user_data_state(id))
+        response = make_response(user_service.get_aggregate_user_data_state(spotify_auth, id))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:

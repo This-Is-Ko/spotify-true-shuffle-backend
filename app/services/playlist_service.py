@@ -37,10 +37,15 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
             if playlist_entry["name"].startswith(SHUFFLED_PLAYLIST_PREFIX):
                 continue
             numOfTracks = None
-            if playlist_entry["tracks"] != None:
+            if playlist_entry["tracks"] is not None:
                 numOfTracks = playlist_entry["tracks"]["total"]
             all_playlists.append(Playlist(
-                playlist_entry["name"], playlist_entry["owner"], playlist_entry["id"], playlist_entry["images"][0], numOfTracks))
+                playlist_entry["name"],
+                playlist_entry["owner"],
+                playlist_entry["id"],
+                playlist_entry["images"][0],
+                numOfTracks
+            ))
 
     get_playlists_success_log = "User: {user_id} -- Retrieved {num_of_playlists:d} playlists"
     current_app.logger.info(get_playlists_success_log.format(
@@ -111,5 +116,5 @@ def queue_create_playlist_from_liked_tracks(spotify_auth: SpotifyAuth, new_playl
     return {"create_liked_playlist_id": result.id}
 
 
-def get_create_playlist_from_liked_tracks_state(id: str):
-    return get_celery_task_state(id, "Create liked playlist")
+def get_create_playlist_from_liked_tracks_state(spotify_auth: SpotifyAuth, id: str):
+    return get_celery_task_state(spotify_auth, id, "Create liked playlist")
