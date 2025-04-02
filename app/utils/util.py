@@ -5,6 +5,9 @@ import spotipy
 
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 required_fields = ["uri", "name", "id"]
+# Spotify offically indicates 10k however API call was able to hit 11k
+PLAYLIST_MAX_TRACKS = 10900
+
 CELERY_PROGRESS_STATE_CREATE_PLAYLIST_TEMPLATE = "Adding {}/{} tracks..."
 CELERY_PROGRESS_STATE_CREATE_PLAYLIST_LAST_TEMPLATE = "Added {}/{} tracks"
 
@@ -168,6 +171,13 @@ def create_new_playlist_with_tracks(
         tracks_to_add = validate_tracks(tracks_to_add)
         if not tracks_to_add:
             raise Exception("No tracks to add")
+        
+        
+        # Limit the number of tracks to Spotify's max
+        playlist_trimmed = False
+        if len(tracks_to_add) > PLAYLIST_MAX_TRACKS:
+            tracks_to_add = tracks_to_add[:PLAYLIST_MAX_TRACKS]
+            playlist_trimmed = True
 
         # Create new playlist
         user_id = spotify.me()["id"]
@@ -230,6 +240,7 @@ def create_new_playlist_with_tracks(
             if "snapshot_id" not in add_items_response:
                 current_app.logger.error("Error while adding tracks. Response: " + add_items_response)
                 return {
+                    "status": "error",
                     "error": "Unable to add tracks to playlist " + new_playlist_id
                 }
 
@@ -248,11 +259,13 @@ def create_new_playlist_with_tracks(
             "status": "success",
             "playlist_uri": new_playlist["external_urls"]["spotify"],
             "num_of_tracks": len(tracks_to_add),
-            "creation_time": datetime.now()
+            "creation_time": datetime.now(),
+            "playlist_trimmed": playlist_trimmed
         }
     except Exception as e:
         current_app.logger.error("Error while creating new playlist / adding tracks: " + str(e))
         return {
+            "status": "error",
             "error": "Unable to create new playlist / add tracks to playlist"
         }
 

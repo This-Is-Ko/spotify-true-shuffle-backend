@@ -181,23 +181,21 @@ def get_user_analysis(task, current_app, spotify: spotipy.Spotify):
 
         try:
             release_date_object = datetime.strptime(release_date, '%Y-%m-%d').date()
-            if release_date_object.year in release_year_counts:
-                release_year_counts[release_date_object.year] += 1
-            else:
-                release_year_counts[release_date_object.year] = 1
-        except Exception:
+        except ValueError:
             try:
                 release_date_object = datetime.strptime(release_date, '%Y').date()
-                if release_date_object.year in release_year_counts:
-                    release_year_counts[release_date_object.year] += 1
-                else:
-                    release_year_counts[release_date_object.year] = 1
-            except Exception:
-                release_date_object = datetime.strptime(release_date, '%Y-%m').date()
-                if release_date_object.year in release_year_counts:
-                    release_year_counts[release_date_object.year] += 1
-                else:
-                    release_year_counts[release_date_object.year] = 1
+            except ValueError:
+                try:
+                    release_date_object = datetime.strptime(release_date, '%Y-%m').date()
+                except ValueError:
+                    # Ignore this track as formatting doesn't match
+                    release_date_object = None
+
+        # Update release year count only if parsing was successful
+        if release_date_object:
+            release_year_counts[release_date_object.year] = release_year_counts.get(release_date_object.year, 0) + 1
+
+
         util.update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Analysed " + str(counter) + " tracks so far..."}})
         counter = counter + 1
     
