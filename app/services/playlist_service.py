@@ -25,6 +25,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     user = spotify.me()
     if user is None or user["id"] is None:
         raise Exception("User not found in Spotify")
+    user_id = user["id"]
 
     all_playlists = []
     # Add liked tracks as playlist option
@@ -58,7 +59,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     # TODO use logInfoWithUser
     get_playlists_success_log = "User: {user_id} -- Retrieved {num_of_playlists:d} playlists"
     current_app.logger.info(get_playlists_success_log.format(
-        user_id=user["id"], num_of_playlists=len(all_playlists)))
+        user_id=user_id, num_of_playlists=len(all_playlists)))
     
 
     response_body = dict()
@@ -67,7 +68,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     # Include additional statistics if requested and enabled for user
     if include_stats is not None:
         if include_stats is True or include_stats.lower() == "true":
-            user = database.find_user(user["id"])
+            user = database.find_user(user_id)
             if (
                 user is not None and "user_attributes" in user
                 and "trackers_enabled" in user["user_attributes"]
