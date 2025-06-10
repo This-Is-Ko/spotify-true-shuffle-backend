@@ -53,7 +53,11 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
                     numOfTracks
                 ))
     except TypeError as e:
-        logErrorWithUser("Playlist response: " + json.dumps(playlists), spotify_auth)
+        # Handle playlist logging error
+        try:
+            logErrorWithUser("Playlist response: " + json.dumps(playlists), spotify_auth)
+        except TypeError as ex:
+            logErrorWithUser(f"Error serializing playlists: {ex}", spotify_auth)
         raise Exception("Error trying to map user's playlists: " + str(e))
     logInfoWithUser(f"Retrieved {len(all_playlists):d} playlists", spotify_auth)
 
