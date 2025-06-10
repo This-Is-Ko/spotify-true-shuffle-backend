@@ -9,6 +9,7 @@ from classes.spotify_auth import SpotifyAuth
 from services.spotify_client import create_auth_manager_with_token
 from schemas.Playlist import Playlist
 from tasks import playlist_tasks
+from utils.logger_utils import logErrorWithUser, logInfoWithUser
 
 SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
@@ -22,34 +23,43 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     if not auth_manager.validate_token(spotify_auth.to_dict()):
         raise SpotifyAuthInvalid("Invalid token")
     user = spotify.me()
-    if user is None:
+    if user is None or user["id"] is None:
         raise Exception("User not found in Spotify")
 
     all_playlists = []
     # Add liked tracks as playlist option
     all_playlists.append(Playlist("Liked Tracks", user, LIKED_TRACKS_PLAYLIST_ID, {
                          "url": "https://misc.scdn.co/liked-songs/liked-songs-300.png"}, None))
+    logInfoWithUser("Added Liked Tracks playlist", spotify_auth)
 
-    playlists = spotify.current_user_playlists()
-    if playlists is not None and "items" in playlists:
-        for playlist_entry in playlists["items"]:
-            # Don't select playlists already shuffled
-            if playlist_entry["name"].startswith(SHUFFLED_PLAYLIST_PREFIX):
-                continue
-            numOfTracks = None
-            if playlist_entry["tracks"] is not None:
+    # Retrieve user's playlists and parse details
+    try:
+        playlists = spotify.current_user_playlists()
+        if playlists is not None and "items" in playlists:
+            for playlist_entry in playlists["items"]:
+                # Skip playlists missing info
+                if playlist_entry is None or playlist_entry["name"] is None or playlist_entry["tracks"] is None or playlist_entry["tracks"]["total"] is None:
+                    continue
+                # Skip playlists which are shuffled previously based on prefixed name
+                if playlist_entry["name"].startswith(SHUFFLED_PLAYLIST_PREFIX):
+                    continue
                 numOfTracks = playlist_entry["tracks"]["total"]
-            all_playlists.append(Playlist(
-                playlist_entry["name"],
-                playlist_entry["owner"],
-                playlist_entry["id"],
-                playlist_entry["images"][0],
-                numOfTracks
-            ))
+                all_playlists.append(Playlist(
+                    playlist_entry["name"],
+                    playlist_entry["owner"],
+                    playlist_entry["id"],
+                    playlist_entry["images"][0],
+                    numOfTracks
+                ))
+    except TypeError as e:
+        logErrorWithUser("Playlist response: " + playlists, spotify_auth)
+        raise Exception("Error trying to map user's playlists: " + str(e))
 
+    # TODO use logInfoWithUser
     get_playlists_success_log = "User: {user_id} -- Retrieved {num_of_playlists:d} playlists"
     current_app.logger.info(get_playlists_success_log.format(
-        user_id=spotify.me()["id"], num_of_playlists=len(all_playlists)))
+        user_id=user["id"], num_of_playlists=len(all_playlists)))
+    
 
     response_body = dict()
     response_body["all_playlists"] = all_playlists
@@ -101,6 +111,7 @@ def delete_all_shuffled_playlists(spotify_auth: SpotifyAuth):
             spotify.current_user_unfollow_playlist(playlist["id"])
             deleted_playlists.append(playlist["id"])
 
+    # TODO use logInfoWithUser
     delete_success_log = "User: {user_id} -- Deleted {num_deleted_playlists:d} playlist(s): {deleted_playlists_list}"
     current_app.logger.info(delete_success_log.format(user_id=spotify.me()["id"], num_deleted_playlists=len(
         deleted_playlists), deleted_playlists_list=str(deleted_playlists)))
