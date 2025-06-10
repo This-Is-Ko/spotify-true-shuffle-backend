@@ -53,14 +53,9 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
                     numOfTracks
                 ))
     except TypeError as e:
-        logErrorWithUser("Playlist response: " + playlists, spotify_auth)
+        logErrorWithUser("Playlist response: " + json.dumps(playlists), spotify_auth)
         raise Exception("Error trying to map user's playlists: " + str(e))
-
-    # TODO use logInfoWithUser
-    get_playlists_success_log = "User: {user_id} -- Retrieved {num_of_playlists:d} playlists"
-    current_app.logger.info(get_playlists_success_log.format(
-        user_id=user_id, num_of_playlists=len(all_playlists)))
-    
+    logInfoWithUser(f"Retrieved {len(all_playlists):d} playlists", spotify_auth)
 
     response_body = dict()
     response_body["all_playlists"] = all_playlists
@@ -89,7 +84,10 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
 
 def queue_create_shuffled_playlist(spotify_auth: SpotifyAuth, playlist_id, playlist_name):
     result = playlist_tasks.shuffle_playlist.delay(spotify_auth.to_dict(), playlist_id, playlist_name)
-    current_app.logger.info("Shuffle id:" + result.id)
+    if result is None:
+        logErrorWithUser(f"Shuffle queue failed", spotify_auth)
+        return None
+    logInfoWithUser(f"Shuffle id: {result.id}", spotify_auth)
     return {"shuffle_task_id": result.id}
 
 
@@ -112,10 +110,7 @@ def delete_all_shuffled_playlists(spotify_auth: SpotifyAuth):
             spotify.current_user_unfollow_playlist(playlist["id"])
             deleted_playlists.append(playlist["id"])
 
-    # TODO use logInfoWithUser
-    delete_success_log = "User: {user_id} -- Deleted {num_deleted_playlists:d} playlist(s): {deleted_playlists_list}"
-    current_app.logger.info(delete_success_log.format(user_id=spotify.me()["id"], num_deleted_playlists=len(
-        deleted_playlists), deleted_playlists_list=str(deleted_playlists)))
+    logInfoWithUser(f"Deleted {len(deleted_playlists):d} playlist(s): {str(deleted_playlists)}", spotify_auth)
     return {
         "status": "success",
         "deleted_playlists_count": len(deleted_playlists)
