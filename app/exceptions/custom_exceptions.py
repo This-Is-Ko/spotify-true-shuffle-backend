@@ -31,3 +31,15 @@ class SpotifyAuthInvalid(Exception):
     Spotify auth info is invalid
     """
     pass
+
+class InvalidUser(Exception):
+    """
+    Invalid user exception
+    """
+    pass
+
+class GetPlaylistsException(Exception):
+    """
+    Get playlists exception
+    """
+    pass

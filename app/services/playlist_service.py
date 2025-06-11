@@ -4,7 +4,7 @@ import json
 from flask import current_app
 from tasks.task_state import get_celery_task_state
 from database import database
-from exceptions.custom_exceptions import SpotifyAuthInvalid
+from exceptions.custom_exceptions import GetPlaylistsException, InvalidUser, SpotifyAuthInvalid
 from classes.spotify_auth import SpotifyAuth
 from services.spotify_client import create_auth_manager_with_token
 from schemas.Playlist import Playlist
@@ -24,7 +24,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
         raise SpotifyAuthInvalid("Invalid token")
     user = spotify.me()
     if user is None or user["id"] is None:
-        raise Exception("User not found in Spotify")
+        raise InvalidUser("User not found in Spotify")
     user_id = user["id"]
 
     all_playlists = []
@@ -35,30 +35,59 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
 
     # Retrieve user's playlists and parse details
     try:
-        playlists = spotify.current_user_playlists()
-        if playlists is not None and "items" in playlists:
+        playlists = spotify.current_user_playlists(limit=50)
+        if playlists is None or "total" not in playlists or "items" not in playlists:
+            raise GetPlaylistsException("Failed to retrieve user's playlists")
+
+        if playlists["total"] < 1:
+            logInfoWithUser("No playlists found for user", spotify_auth)
+        else:
+            logInfoWithUser(f"User has {playlists['total']} playlists", spotify_auth)
             for playlist_entry in playlists["items"]:
                 # Skip playlists missing info
-                if playlist_entry is None or playlist_entry["name"] is None or playlist_entry["tracks"] is None or playlist_entry["tracks"]["total"] is None:
+                if playlist_entry is None or "name" not in playlist_entry:
+                    logInfoWithUser(f"Missing playlist name for playlist", spotify_auth)
+                    continue
+                playlist_name = playlist_entry["name"]
+                #Validate id is present
+                if "id" not in playlist_entry:
+                    logInfoWithUser(f"Missing playlist id for playlist: {playlist_name}", spotify_auth)
+                    continue
+                playlist_id = playlist_entry["id"]
+                # Validate track info is present
+                tracks_info = playlist_entry.get("tracks")
+                if not tracks_info or "total" not in tracks_info:
+                    logInfoWithUser(f"Missing track info for playlist: {playlist_name} (id: {playlist_id})", spotify_auth)
                     continue
                 # Skip playlists which are shuffled previously based on prefixed name
-                if playlist_entry["name"].startswith(SHUFFLED_PLAYLIST_PREFIX):
+                if playlist_name.startswith(SHUFFLED_PLAYLIST_PREFIX):
                     continue
-                numOfTracks = playlist_entry["tracks"]["total"]
+                # Validate playlist owner and id info is present
+                if "owner" not in playlist_entry:
+                    logInfoWithUser(f"Missing playlist owner for playlist: {playlist_name} (id: {playlist_id})", spotify_auth)
+                    continue
+                # Validate playlist images are present
+                images = playlist_entry.get("images", [])
+                if not images:
+                    logInfoWithUser(f"Missing playlist images for playlist: {playlist_name} (id: {playlist_id})", spotify_auth)
+                    continue
+                playlist_owner = playlist_entry["owner"]
+                playlist_image = images[0]
+                num_of_tracks = tracks_info["total"]
                 all_playlists.append(Playlist(
-                    playlist_entry["name"],
-                    playlist_entry["owner"],
-                    playlist_entry["id"],
-                    playlist_entry["images"][0],
-                    numOfTracks
+                    playlist_name,
+                    playlist_owner,
+                    playlist_id,
+                    playlist_image,
+                    num_of_tracks
                 ))
-    except TypeError as e:
+    except Exception as e:
         # Handle playlist logging error
         try:
-            logErrorWithUser("Playlist response: " + json.dumps(playlists), spotify_auth)
+            logErrorWithUser(f"Get current user playlists - Playlist response: {json.dumps(playlists, default=str)}", spotify_auth)
         except TypeError as ex:
-            logErrorWithUser(f"Error serializing playlists: {ex}", spotify_auth)
-        raise Exception("Error trying to map user's playlists: " + str(e))
+            logErrorWithUser(f"Get current user playlists - Error serializing playlists: {ex}", spotify_auth)
+        raise GetPlaylistsException(f"Failed to parse Spotify playlists: {e}")
     logInfoWithUser(f"Retrieved {len(all_playlists):d} playlists", spotify_auth)
 
     response_body = dict()
