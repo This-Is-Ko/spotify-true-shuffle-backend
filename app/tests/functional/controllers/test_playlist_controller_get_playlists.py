@@ -61,6 +61,7 @@ def test_get_playlists_success(mocker, client, env_patch):
     assert response.status_code == 200
     assert response_json["all_playlists"] is not None
     # Number of playlists returned from spotify + one for Liked Tracks
+    # Playlists with images empty and images misspelt "imag@es" should be skipped
     assert len(response_json["all_playlists"]) == 2
     assert "user_shuffle_counter" not in response_json
 

@@ -59,6 +59,78 @@ mock_user_playlists_sample = {
             },
             "type": "string",
             "uri": "string"
+        },
+        {
+            "collaborative": True,
+            "description": "images is None",
+            "external_urls": {
+                "spotify": "string"
+            },
+            "href": "string",
+            "id": "string",
+            "images": None,
+            "name": "string",
+            "owner": {
+                "external_urls": {
+                    "spotify": "string"
+                },
+                "followers": {
+                    "href": "string",
+                    "total": 0
+                },
+                "href": "string",
+                "id": "string",
+                "type": "user",
+                "uri": "string",
+                "display_name": "string"
+            },
+            "public": True,
+            "snapshot_id": "string",
+            "tracks": {
+                "href": "string",
+                "total": 0
+            },
+            "type": "string",
+            "uri": "string"
+        },
+        {
+            "collaborative": True,
+            "description": "images is misspelt - real api response edge case",
+            "external_urls": {
+                "spotify": "string"
+            },
+            "href": "string",
+            "id": "string",
+            "imag@es": [
+                {
+                  "url": "https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228\n",
+                  "height": 300,
+                  "width": 300
+                }
+            ],
+            "name": "string",
+            "owner": {
+                "external_urls": {
+                    "spotify": "string"
+                },
+                "followers": {
+                    "href": "string",
+                    "total": 0
+                },
+                "href": "string",
+                "id": "string",
+                "type": "user",
+                "uri": "string",
+                "display_name": "string"
+            },
+            "public": True,
+            "snapshot_id": "string",
+            "tracks": {
+                "href": "string",
+                "total": 0
+            },
+            "type": "string",
+            "uri": "string"
         }
     ],
     "href": "https://api.spotify.com/v1/me/shows?offset=0&limit=20\n",
@@ -66,7 +138,7 @@ mock_user_playlists_sample = {
     "next": "https://api.spotify.com/v1/me/shows?offset=1&limit=1",
     "offset": 0,
     "previous": "https://api.spotify.com/v1/me/shows?offset=1&limit=1",
-    "total": 1
+    "total": 3
 }
 
 mock_tracks_response = {

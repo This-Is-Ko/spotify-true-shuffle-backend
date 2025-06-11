@@ -49,31 +49,37 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
                     logInfoWithUser(f"Missing playlist name for playlist", spotify_auth)
                     continue
                 playlist_name = playlist_entry["name"]
+
+                # Skip playlists which are shuffled previously based on prefixed name
+                if playlist_name.startswith(SHUFFLED_PLAYLIST_PREFIX):
+                    continue
+
                 #Validate id is present
                 if "id" not in playlist_entry:
                     logInfoWithUser(f"Missing playlist id for playlist: {playlist_name}", spotify_auth)
                     continue
                 playlist_id = playlist_entry["id"]
+
                 # Validate track info is present
                 tracks_info = playlist_entry.get("tracks")
                 if not tracks_info or "total" not in tracks_info:
                     logInfoWithUser(f"Missing track info for playlist: {playlist_name} (id: {playlist_id})", spotify_auth)
                     continue
-                # Skip playlists which are shuffled previously based on prefixed name
-                if playlist_name.startswith(SHUFFLED_PLAYLIST_PREFIX):
-                    continue
+                num_of_tracks = tracks_info["total"]
+
                 # Validate playlist owner and id info is present
                 if "owner" not in playlist_entry:
                     logInfoWithUser(f"Missing playlist owner for playlist: {playlist_name} (id: {playlist_id})", spotify_auth)
                     continue
+                playlist_owner = playlist_entry["owner"]
+
                 # Validate playlist images are present
                 images = playlist_entry.get("images", [])
                 if not images:
                     logInfoWithUser(f"Missing playlist images for playlist: {playlist_name} (id: {playlist_id})", spotify_auth)
                     continue
-                playlist_owner = playlist_entry["owner"]
-                playlist_image = images[0]
-                num_of_tracks = tracks_info["total"]
+                playlist_image = images[0]                
+                
                 all_playlists.append(Playlist(
                     playlist_name,
                     playlist_owner,
