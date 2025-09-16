@@ -31,7 +31,6 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     # Add liked tracks as playlist option
     all_playlists.append(Playlist("Liked Tracks", user, LIKED_TRACKS_PLAYLIST_ID, {
                          "url": "https://misc.scdn.co/liked-songs/liked-songs-300.png"}, None))
-    logInfoWithUser("Added Liked Tracks playlist", spotify_auth)
 
     # Retrieve user's playlists and parse details
     try:
@@ -52,9 +51,10 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
 
                 # Skip playlists which are shuffled previously based on prefixed name
                 if playlist_name.startswith(SHUFFLED_PLAYLIST_PREFIX):
+                    logInfoWithUser(f"Skipping already shuffled playlist based on prefix", spotify_auth)
                     continue
 
-                #Validate id is present
+                # Validate id is present
                 if "id" not in playlist_entry:
                     logInfoWithUser(f"Missing playlist id for playlist: {playlist_name}", spotify_auth)
                     continue
@@ -94,7 +94,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
         except TypeError as ex:
             logErrorWithUser(f"Get current user playlists - Error serializing playlists: {ex}", spotify_auth)
         raise GetPlaylistsException(f"Failed to parse Spotify playlists: {e}")
-    logInfoWithUser(f"Retrieved {len(all_playlists):d} playlists", spotify_auth)
+    logInfoWithUser(f"Total playlists retrieved: {len(all_playlists):d}", spotify_auth)
 
     response_body = dict()
     response_body["all_playlists"] = all_playlists
