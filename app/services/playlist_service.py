@@ -34,15 +34,29 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
 
     # Retrieve user's playlists and parse details
     try:
-        playlists = spotify.current_user_playlists(limit=50)
+        limit = 50
+        offset = 0
+        playlists = spotify.current_user_playlists(limit=limit, offset=offset)
         if playlists is None or "total" not in playlists or "items" not in playlists:
             raise GetPlaylistsException("Failed to retrieve user's playlists")
 
-        if playlists["total"] < 1:
+        total_playlists = playlists["total"]
+        if total_playlists < 1:
             logInfoWithUser("No playlists found for user", spotify_auth)
         else:
-            logInfoWithUser(f"User has {playlists['total']} playlists", spotify_auth)
-            for playlist_entry in playlists["items"]:
+            fetched_playlists = playlists["items"]
+
+            # Fetch additional playlists if total > limit
+            while len(fetched_playlists) < total_playlists:
+                offset += limit
+                logInfoWithUser(f"Fetching additional playlists offset: {offset}", spotify_auth)
+                next_page = spotify.current_user_playlists(limit=limit, offset=offset)
+                if next_page is None or "items" not in next_page or not next_page["items"]:
+                    break
+                fetched_playlists.extend(next_page["items"])
+        
+            logInfoWithUser(f"User has {total_playlists} playlists", spotify_auth)
+            for playlist_entry in fetched_playlists:
                 # Skip playlists missing info
                 if playlist_entry is None or "name" not in playlist_entry:
                     logInfoWithUser(f"Missing playlist name for playlist", spotify_auth)
