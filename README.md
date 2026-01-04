@@ -16,7 +16,7 @@ The following env variables are required to run. Add them into a .env file
     SPOTIFY_CLIENT_SECRET # retrieve from Spotify Dev Console
     SPOTIFY_REDIRECT_URI # frontend uri
     COOKIE_DOMAIN # cookie domain value (Leave empty for localhost)
-    CORS_ORIGIN # cors origin value (http://localhost:3000)
+    CORS_ORIGIN # cors origin value (http://127.0.0.1:3000)
     JWT_SECRET # secret to sign jwt
     JWT_ISSUER # issuer value for jwt
     MONGO_URI # database uri
@@ -49,8 +49,8 @@ Example config
         SERVICE_CLIENT_SECRET=******
         SPOTIFY_CLIENT_ID=abcd
         SPOTIFY_CLIENT_SECRET=******
-        SPOTIFY_REDIRECT_URI=http://localhost:3000
-        CORS_ORIGIN=http://localhost:3000
+        SPOTIFY_REDIRECT_URI=http://127.0.0.1:3000
+        CORS_ORIGIN=http://127.0.0.1:3000
         JWT_SECRET=******
         JWT_ISSUER=http://localhost/
         CONFIG_TYPE=config.DevelopmentConfig

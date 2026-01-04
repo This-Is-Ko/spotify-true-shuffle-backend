@@ -21,6 +21,19 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
     # Store start time to calculate duration
     start_time = time.time()
 
+    # Fetch playlist details to get image URL
+    playlist_image_url = None
+    if playlist_id == LIKED_TRACKS_PLAYLIST_ID:
+        # Use default liked songs image URL
+        playlist_image_url = "https://misc.scdn.co/liked-songs/liked-songs-300.png"
+    else:
+        try:
+            playlist_details = spotify_client.playlist(playlist_id)
+            if playlist_details and "images" in playlist_details and len(playlist_details["images"]) > 0:
+                playlist_image_url = playlist_details["images"][0].get("url")
+        except Exception as e:
+            current_app.logger.warning(f"Could not fetch playlist image for {playlist_id}: {str(e)}")
+
     # Grab all tracks from playlist
     all_tracks = util.get_tracks_from_playlist(self, spotify_client, playlist_id)
     if not all_tracks:
@@ -64,7 +77,7 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
         duration_seconds = int(time.time() - start_time)
 
         # Increment user counters for playlists and tracks
-        tracker_utils.update_user_trackers(self, user, playlist_id, playlist_name, len(all_tracks), duration_seconds)
+        tracker_utils.update_user_trackers(self, user, playlist_id, playlist_name, len(all_tracks), duration_seconds, playlist_image_url)
 
         # Increment overall counters for playlists and tracks
         tracker_utils.update_overall_trackers(len(all_tracks))
