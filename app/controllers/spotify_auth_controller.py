@@ -30,5 +30,4 @@ def logout_user():
     """
     Update cookies to expired to logout user
     """
-
     return spotify_auth_service.handle_logout(request.cookies)

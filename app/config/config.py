@@ -40,7 +40,7 @@ class Config:
 
     # CORS
     CORS_ORIGIN = os.getenv(
-        'CORS_ORIGIN', default='http://localhost:3000')
+        'CORS_ORIGIN', default='http://127.0.0.1:3000')
 
     # Database
     MONGO_URI = os.getenv(

@@ -1,70 +1,48 @@
+networks:
+  custom_network:
+    driver: bridge
+
 services:
-  flask:
-    build:
-      context: .
-      dockerfile: ./docker/prod/flask.Dockerfile
-    image: kobo67/true-shuffle:true_shuffle_flask_web
+  true_shuffle_cloudflared:
+    image: cloudflare/cloudflared
+    container_name: true_shuffle_cloudflare_tunnel
+    command: tunnel run
     volumes:
-      - ./ssl:/ssl
+      - "${HOST_DIR}/cloudflared_trueshuffle/config:/config"
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    restart: unless-stopped
+    networks:
+      - custom_network
+
+  true_shuffle_flask:
+    image: kobo67/true-shuffle:true_shuffle_flask_web
+    container_name: true_shuffle_flask
+    hostname: true_shuffle_flask
     ports:
       - 5000:5000
+    networks:
+      - custom_network
+    restart: unless-stopped
     env_file:
       - .env
-    depends_on:
-      celery_worker:
-        condition: service_healthy
-    networks:
-      - app-network
-    restart: unless-stopped
 
-  redis:
+  true_shuffle_redis:
     image: redis:7-alpine
+    container_name: true_shuffle_redis
+    hostname: true_shuffle_redis
     ports:
       - 6379:6379
     command: redis-server --requirepass $REDIS_PASSWORD
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 90s
-      timeout: 5s
-      retries: 5
     networks:
-      - app-network
+      - custom_network
     restart: unless-stopped
 
-  celery_worker:
-    build:
-      context: .
-      dockerfile: ./docker/prod/celery.Dockerfile
+  true_shuffle_celery_worker:
     image: kobo67/true-shuffle:true_shuffle_celery_worker
-    healthcheck:
-      test: celery -A make_celery inspect ping
-      interval: 90s
-      timeout: 5s
-      retries: 5
+    container_name: true_shuffle_celery_worker
     env_file:
       - .env
-    depends_on:
-      - redis
     networks:
-      - app-network
+      - custom_network
     restart: unless-stopped
-
-  nginx:
-    image: nginx
-    volumes:
-      # Ensure config file is added into /nginx/nginx.conf
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
-      - /etc/letsencrypt/live/api.trueshuffle.top:/etc/letsencrypt/live/api.trueshuffle.top
-      - /etc/letsencrypt/archive/api.trueshuffle.top:/etc/letsencrypt/archive/api.trueshuffle.top
-    ports:
-      - 80:80
-      - 443:443
-    depends_on:
-      - flask
-    networks:
-      - app-network
-    restart: unless-stopped
-
-networks:
-  app-network:
-    driver: bridge
