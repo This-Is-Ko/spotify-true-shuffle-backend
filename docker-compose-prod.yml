@@ -16,6 +16,9 @@ services:
       - custom_network
 
   true_shuffle_flask:
+    build:
+      context: .
+      dockerfile: Dockerfile.flask
     image: kobo67/true-shuffle:${FLASK_TAG}
     container_name: true_shuffle_flask
     hostname: true_shuffle_flask
@@ -39,6 +42,9 @@ services:
     restart: unless-stopped
 
   true_shuffle_celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
     image: kobo67/true-shuffle:${CELERY_TAG}
     container_name: true_shuffle_celery_worker
     env_file:
