@@ -81,7 +81,7 @@ def queue_get_aggregate_user_data(spotify_auth: SpotifyAuth):
     """
     correlation_id = g.correlation_id if hasattr(g, 'correlation_id') else None
     result = aggregate_user_data.delay(spotify_auth.to_dict(), correlation_id)
-    print("Aggregate data id:" + result.id)
+    current_app.logger.info(f"Aggregate data id: {result.id}")
     return {"aggregate_task_id": result.id}
 
 

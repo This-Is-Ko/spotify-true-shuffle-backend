@@ -14,13 +14,20 @@ mongo = PyMongo()
 def create_app():
     app = Flask(__name__)
 
-    # Configure logging level and format
-    logging.basicConfig(level=logging.INFO)
+    # Configure logging for Gunicorn
+    # When running under Gunicorn, use its logger handlers to avoid duplicate logs
     gunicorn_error_logger = logging.getLogger('gunicorn.error')
-    app.logger.handlers.extend(gunicorn_error_logger.handlers)
+    if gunicorn_error_logger.handlers:
+        # Running under Gunicorn - use Gunicorn's logger handlers
+        app.logger.handlers = gunicorn_error_logger.handlers
+        app.logger.setLevel(logging.INFO)
+        # Prevent propagation to root logger to avoid duplicates
+        app.logger.propagate = False
+    else:
+        # Not running under Gunicorn (e.g., development), configure basic logging
+        logging.basicConfig(level=logging.INFO, format='%(levelname)s:%(name)s:%(message)s')
 
-    # Print application version at startup
-    print(f"True Shuffle Backend - Version {__version__}")
+    # Log application version at startup (removed print to avoid duplicate logs)
     app.logger.info(f"True Shuffle Backend - Version {__version__}")
 
     faulthandler.enable()
