@@ -8,6 +8,7 @@ from flask import current_app
 from database import database
 from services.spotify_client import create_spotify_client
 from utils import util, tracker_utils
+from utils.logger_utils import logWarning, logInfo
 
 SHUFFLED_PLAYLIST_PREFIX = "[Shuffled] "
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
@@ -15,7 +16,15 @@ TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 
 
 @shared_task(bind=True, ignore_result=False, expires=60)
-def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
+def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name, correlation_id=None):
+    # Store correlation_id in task metadata and request context for logging
+    if correlation_id:
+        self.update_state(state='PROGRESS', meta={'correlation_id': correlation_id})
+        # Store in request context for logger_utils access
+        if not hasattr(self.request, 'meta'):
+            self.request.meta = {}
+        self.request.meta['correlation_id'] = correlation_id
+    
     spotify_client = create_spotify_client(current_app, spotify_auth_dict)
 
     # Store start time to calculate duration
@@ -32,7 +41,7 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
             if playlist_details and "images" in playlist_details and len(playlist_details["images"]) > 0:
                 playlist_image_url = playlist_details["images"][0].get("url")
         except Exception as e:
-            current_app.logger.warning(f"Could not fetch playlist image for {playlist_id}: {str(e)}")
+            logWarning(f"Could not fetch playlist image for {playlist_id}: {str(e)}")
 
     # Grab all tracks from playlist
     all_tracks = util.get_tracks_from_playlist(self, spotify_client, playlist_id)
@@ -47,7 +56,8 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
     util.update_task_progress(
         self,
         state='PROGRESS',
-        meta={'progress': {'state': "Shuffling " + str(len(all_tracks)) + " tracks..."}}
+        meta={'progress': {'state': "Shuffling " + str(len(all_tracks)) + " tracks..."}},
+        correlation_id=correlation_id
     )
     random.shuffle(all_tracks)
 
@@ -86,7 +96,15 @@ def shuffle_playlist(self, spotify_auth_dict: dict, playlist_id, playlist_name):
 
 
 @shared_task(bind=True, ignore_result=False, expires=60)
-def create_playlist_from_liked_tracks(self, spotify_auth_dict: dict, new_playlist_name):
+def create_playlist_from_liked_tracks(self, spotify_auth_dict: dict, new_playlist_name, correlation_id=None):
+    # Store correlation_id in task metadata and request context for logging
+    if correlation_id:
+        self.update_state(state='PROGRESS', meta={'correlation_id': correlation_id})
+        # Store in request context for logger_utils access
+        if not hasattr(self.request, 'meta'):
+            self.request.meta = {}
+        self.request.meta['correlation_id'] = correlation_id
+    
     spotify_client = create_spotify_client(current_app, spotify_auth_dict)
 
     all_tracks = util.get_tracks_from_playlist(self, spotify_client, LIKED_TRACKS_PLAYLIST_ID)
@@ -108,11 +126,18 @@ def create_playlist_from_liked_tracks(self, spotify_auth_dict: dict, new_playlis
 
 
 @shared_task(bind=True, ignore_result=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=2)
-def update_track_statistics(self, user_id: str, tracks: List[str]):
+def update_track_statistics(self, user_id: str, tracks: List[str], correlation_id=None):
     """
     Updates database with track statistics.
     Increments shuffle counts or inserts new tracks if missing.
     """
+    # Store correlation_id in task metadata and request context for logging
+    if correlation_id:
+        self.update_state(state='PROGRESS', meta={'correlation_id': correlation_id})
+        # Store in request context for logger_utils access
+        if not hasattr(self.request, 'meta'):
+            self.request.meta = {}
+        self.request.meta['correlation_id'] = correlation_id
 
     if not tracks or not user_id:
         return 0
@@ -125,5 +150,5 @@ def update_track_statistics(self, user_id: str, tracks: List[str]):
 
     database.update_track_statistics(filtered_tracks)
     num_tracks_updated = len(filtered_tracks)
-    current_app.logger.info("User: " + user_id + "; Successfully stored tracks: " + str(num_tracks_updated))
+    logInfo("User: " + user_id + "; Successfully stored tracks: " + str(num_tracks_updated))
     return num_tracks_updated

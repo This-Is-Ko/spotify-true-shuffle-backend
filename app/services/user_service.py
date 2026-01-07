@@ -5,7 +5,7 @@ import spotipy
 from bson import json_util
 import json
 
-from flask import current_app
+from flask import current_app, g
 from exceptions.custom_exceptions import SpotifyAuthInvalid
 from services.spotify_client import create_auth_manager_with_token
 from tasks.task_state import get_celery_task_state
@@ -79,7 +79,8 @@ def queue_get_aggregate_user_data(spotify_auth: SpotifyAuth):
     """
     Return celery task id
     """
-    result = aggregate_user_data.delay(spotify_auth.to_dict())
+    correlation_id = g.correlation_id if hasattr(g, 'correlation_id') else None
+    result = aggregate_user_data.delay(spotify_auth.to_dict(), correlation_id)
     print("Aggregate data id:" + result.id)
     return {"aggregate_task_id": result.id}
 
@@ -121,7 +122,10 @@ def handle_get_user_analysis(spotify_auth: SpotifyAuth):
     if not auth_manager.validate_token(spotify_auth.to_dict()):
         return {"error": "Invalid token"}, 400
     try:
-        return get_user_analysis(current_app, spotify)
+        correlation_id = g.correlation_id if hasattr(g, 'correlation_id') else None
+        # Note: get_user_analysis expects a task object, but we're calling it directly
+        # Passing None for task since this is not a Celery task context
+        return get_user_analysis(None, current_app, spotify, correlation_id)
     except Exception as e:
         current_app.logger.error("Error in handle_get_user_analysis: " + str(e))
         return {

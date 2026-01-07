@@ -1,7 +1,7 @@
 import spotipy
 from bson import json_util
 import json
-from flask import current_app
+from flask import current_app, g
 from tasks.task_state import get_celery_task_state
 from database import database
 from exceptions.custom_exceptions import GetPlaylistsException, InvalidUser, SpotifyAuthInvalid
@@ -140,7 +140,8 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
 
 
 def queue_create_shuffled_playlist(spotify_auth: SpotifyAuth, playlist_id, playlist_name):
-    result = playlist_tasks.shuffle_playlist.delay(spotify_auth.to_dict(), playlist_id, playlist_name)
+    correlation_id = g.correlation_id if hasattr(g, 'correlation_id') else None
+    result = playlist_tasks.shuffle_playlist.delay(spotify_auth.to_dict(), playlist_id, playlist_name, correlation_id)
     if result is None:
         logErrorWithUser(f"Shuffle queue failed", spotify_auth)
         return None
@@ -175,7 +176,8 @@ def delete_all_shuffled_playlists(spotify_auth: SpotifyAuth):
 
 
 def queue_create_playlist_from_liked_tracks(spotify_auth: SpotifyAuth, new_playlist_name="My Liked Tracks"):
-    result = playlist_tasks.create_playlist_from_liked_tracks.delay(spotify_auth.to_dict(), new_playlist_name)
+    correlation_id = g.correlation_id if hasattr(g, 'correlation_id') else None
+    result = playlist_tasks.create_playlist_from_liked_tracks.delay(spotify_auth.to_dict(), new_playlist_name, correlation_id)
     print("Create playlist id:" + result.id)
     return {"create_liked_playlist_id": result.id}
 

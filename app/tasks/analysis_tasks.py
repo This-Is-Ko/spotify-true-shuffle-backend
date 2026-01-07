@@ -8,6 +8,7 @@ from datetime import datetime
 from database import database
 from services.spotify_client import create_auth_manager_with_token_dict
 from utils import util
+from utils.logger_utils import logError
 
 TRACKERS_ENABLED_ATTRIBUTE_NAME = "trackers_enabled"
 TRACK_LIKED_TRACKS_ATTRIBUTE_NAME = "track_liked_tracks"
@@ -15,10 +16,18 @@ TRACK_SHUFFLES_ATTRIBUTE_NAME = "track_shuffles"
 ANALYSE_LIBRARY_ATTRIBUTE_NAME = "analyse_library"
 
 @shared_task(bind=True, ignore_result=False)
-def aggregate_user_data(self, spotify_auth_dict: dict):
+def aggregate_user_data(self, spotify_auth_dict: dict, correlation_id=None):
     """
     Return user trackers and analysis in one call
     """
+    # Store correlation_id in task metadata and request context for logging
+    if correlation_id:
+        self.update_state(state='PROGRESS', meta={'correlation_id': correlation_id})
+        # Store in request context for logger_utils access
+        if not hasattr(self.request, 'meta'):
+            self.request.meta = {}
+        self.request.meta['correlation_id'] = correlation_id
+    
     auth_manager = create_auth_manager_with_token_dict(
         current_app, spotify_auth_dict)
     spotify = spotipy.Spotify(auth_manager=auth_manager)
@@ -42,23 +51,23 @@ def aggregate_user_data(self, spotify_auth_dict: dict):
             "overall_counter",
             overall_counter)
     except Exception as e:
-        current_app.logger.error("Error updating overall shuffle count: " + str(e))
+        logError("Error updating overall shuffle count: " + str(e))
 
     try:
         return {
             "status": "success",
             TRACK_LIKED_TRACKS_ATTRIBUTE_NAME: get_user_tracker_data(self, user_id, user_json,
-                                                                     TRACK_LIKED_TRACKS_ATTRIBUTE_NAME),
-            "analysis": get_user_analysis(self, current_app, spotify)
+                                                                     TRACK_LIKED_TRACKS_ATTRIBUTE_NAME, correlation_id),
+            "analysis": get_user_analysis(self, current_app, spotify, correlation_id)
         }
     except Exception as e:
-        current_app.logger.error("Error in aggregate_user_data: " + str(e))
+        logError("Error in aggregate_user_data: " + str(e))
         return {
             "status": "error"
         }, 400
 
 
-def get_user_tracker_data(task, user_id, user_json, tracker_name):
+def get_user_tracker_data(task, user_id, user_json, tracker_name, correlation_id=None):
     # Check tracker status
     if (TRACKERS_ENABLED_ATTRIBUTE_NAME not in user_json["user_attributes"] or user_json["user_attributes"][TRACKERS_ENABLED_ATTRIBUTE_NAME] is not True):
         raise Exception("Trackers not enabled")
@@ -75,14 +84,14 @@ def get_user_tracker_data(task, user_id, user_json, tracker_name):
             "message": "track_name invalid"
         }, 400
     data = json.loads(json_util.dumps(list(data_cursor)))
-    util.update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Getting history tracker data"}})
+    util.update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Getting history tracker data"}}, correlation_id=correlation_id)
     return {
         "status": "success",
         "data": data
     }
 
 
-def get_user_analysis(task, current_app, spotify: spotipy.Spotify):
+def get_user_analysis(task, current_app, spotify: spotipy.Spotify, correlation_id=None):
     # Get all tracks from library
     all_tracks = util.get_all_tracks_with_data_from_playlist(task, 
         spotify, util.LIKED_TRACKS_PLAYLIST_ID)
@@ -196,7 +205,7 @@ def get_user_analysis(task, current_app, spotify: spotipy.Spotify):
             release_year_counts[release_date_object.year] = release_year_counts.get(release_date_object.year, 0) + 1
 
 
-        util.update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Analysed " + str(counter) + " tracks so far..."}})
+        util.update_task_progress(task, state='PROGRESS', meta={'progress': {'state': "Analysed " + str(counter) + " tracks so far..."}}, correlation_id=correlation_id)
         counter = counter + 1
     
     average_track_length = total_length / num_tracks
@@ -224,7 +233,7 @@ def get_user_analysis(task, current_app, spotify: spotipy.Spotify):
     try:
         audio_features = average_audio_features(task, spotify, all_tracks_ids)
     except Exception as e:
-        current_app.logger.error("Failed while retrieving/calculating audio features: " + str(e))
+        logError("Failed while retrieving/calculating audio features: " + str(e))
         raise Exception(
             "Failed while retrieving/calculating audio features: " + str(e))
 

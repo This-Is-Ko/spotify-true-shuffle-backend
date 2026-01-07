@@ -1,10 +1,12 @@
-from flask import Flask
+from flask import Flask, g, request
 from flask_cors import CORS
 import os
 from flask_pymongo import PyMongo
 from celery import Celery, Task
 import logging
 import faulthandler
+import uuid
+from __version__ import __version__
 
 mongo = PyMongo()
 
@@ -17,6 +19,10 @@ def create_app():
     gunicorn_error_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers.extend(gunicorn_error_logger.handlers)
 
+    # Print application version at startup
+    print(f"True Shuffle Backend - Version {__version__}")
+    app.logger.info(f"True Shuffle Backend - Version {__version__}")
+
     faulthandler.enable()
 
     # Select env and set up config
@@ -26,6 +32,22 @@ def create_app():
 
     # Enable CORS
     CORS(app, supports_credentials=True, origins=[app.config["CORS_ORIGIN"]])
+
+    # Add correlation ID handling
+    @app.before_request
+    def handle_correlation_id():
+        """Extract or generate X-Correlation-ID and store in Flask g object"""
+        correlation_id = request.headers.get('X-Correlation-ID')
+        if not correlation_id:
+            correlation_id = str(uuid.uuid4())
+        g.correlation_id = correlation_id
+
+    @app.after_request
+    def add_correlation_id_header(response):
+        """Add X-Correlation-ID header to all responses"""
+        if hasattr(g, 'correlation_id'):
+            response.headers['X-Correlation-ID'] = g.correlation_id
+        return response
 
     # Register blueprints for app
     register_all_blueprints(app)
