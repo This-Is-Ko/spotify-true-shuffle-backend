@@ -16,7 +16,7 @@ services:
       - custom_network
 
   true_shuffle_flask:
-    image: kobo67/true-shuffle:true_shuffle_flask-${FLASK_TAG}
+    image: kobo67/true-shuffle:${FLASK_TAG}
     container_name: true_shuffle_flask
     hostname: true_shuffle_flask
     ports:
@@ -39,7 +39,7 @@ services:
     restart: unless-stopped
 
   true_shuffle_celery_worker:
-    image: kobo67/true-shuffle:true_shuffle_celery_worker-${CELERY_TAG}
+    image: kobo67/true-shuffle:${CELERY_TAG}
     container_name: true_shuffle_celery_worker
     env_file:
       - .env
