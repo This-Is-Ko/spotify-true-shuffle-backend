@@ -17,15 +17,12 @@ The following env variables are required to run. Add them into a .env file
     SPOTIFY_REDIRECT_URI # frontend uri
     COOKIE_DOMAIN # cookie domain value (Leave empty for localhost)
     CORS_ORIGIN # cors origin value (http://127.0.0.1:3000)
-    JWT_SECRET # secret to sign jwt
-    JWT_ISSUER # issuer value for jwt
     MONGO_URI # database uri
     ENV=local
     CELERY_BROKER_URL # celery url
     CELERY_RESULT_BACKEND_URL # celery url
     REDIS_PASSWORD # auth to access celery
-    SERVICE_CLIENT_ID # auth for service token for cron jobs
-    SERVICE_CLIENT_SECRET # auth for service token for cron jobs
+    CRON_API_KEY # static API key for cron job endpoints (generate with: openssl rand -hex 32)
     CONFIG_TYPE
 
 To set the environment to the specific environment, set the following variable.
@@ -45,14 +42,11 @@ Example config
         CELERY_BROKER_URL=redis://localhost
         CELERY_RESULT_BACKEND_URL=redis://localhost
         REDIS_PASSWORD=******
-        SERVICE_CLIENT_ID=abcd
-        SERVICE_CLIENT_SECRET=******
         SPOTIFY_CLIENT_ID=abcd
         SPOTIFY_CLIENT_SECRET=******
         SPOTIFY_REDIRECT_URI=http://127.0.0.1:3000
         CORS_ORIGIN=http://127.0.0.1:3000
-        JWT_SECRET=******
-        JWT_ISSUER=http://localhost/
+        CRON_API_KEY=******
         CONFIG_TYPE=config.DevelopmentConfig
         MONGO_URI=mongodb+srv://username:password@cluster0.abcd.mongodb.net
         ENV=local
@@ -116,6 +110,18 @@ Use pytest to run tests on the app:
 Authentication is handled by Spotify and the access-token/refresh-token are stored for each user. 
 
 Sessions are created and send in cookies to the user which are revoked once logged out.
+
+### Cron Job Authentication
+
+Cron endpoints (`/api/session/cleanup` and `/api/trackers/update`) require a static API key in the `X-Cron-Key` header:
+
+    GET /api/session/cleanup
+    Header: X-Cron-Key: <your-cron-api-key>
+
+    GET /api/trackers/update
+    Header: X-Cron-Key: <your-cron-api-key>
+
+Generate a secure key with: `openssl rand -hex 32`
 
 ## Docker
 

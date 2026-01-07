@@ -2,22 +2,21 @@ from flask import Blueprint, current_app, request
 
 from exceptions.custom_exceptions import AccessTokenInvalid
 from services import trackers_service
-from utils.jwt_auth_utils import validate_auth_header_jwt
+from utils.cron_auth_utils import validate_cron_api_key
 
 trackers_controller = Blueprint('trackers_controller', __name__, url_prefix='/api/trackers')
 
 
 @trackers_controller.route('/update', methods=['GET'])
 def update_trackers():
-    # Verify jwt
+    # Verify cron API key
     try:
-        auth_header = request.headers.get('Authorization')
-        validate_auth_header_jwt(auth_header)
+        validate_cron_api_key(request)
     except AccessTokenInvalid as e:
-        current_app.logger.error("Error decoding token: " + str(e))
+        current_app.logger.error("Invalid cron API key: " + str(e))
         return {"error": "Invalid credentials"}, 403
     except Exception as e:
-        current_app.logger.error("Error decoding token: " + str(e))
+        current_app.logger.error("Error validating cron API key: " + str(e))
         return {"error": "Invalid credentials"}, 403
 
     current_app.logger.debug("Valid credentials")

@@ -41,6 +41,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
             raise GetPlaylistsException("Failed to retrieve user's playlists")
 
         total_playlists = playlists["total"]
+        existing_shuffled_playlist_count = 0
         if total_playlists < 1:
             logInfoWithUser("No playlists found for user", spotify_auth)
         else:
@@ -56,6 +57,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
                 fetched_playlists.extend(next_page["items"])
         
             logInfoWithUser(f"User has {total_playlists} playlists", spotify_auth)
+
             for playlist_entry in fetched_playlists:
                 # Skip playlists missing info
                 if playlist_entry is None or "name" not in playlist_entry:
@@ -65,6 +67,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
 
                 # Skip playlists which are shuffled previously based on prefixed name
                 if playlist_name.startswith(SHUFFLED_PLAYLIST_PREFIX):
+                    existing_shuffled_playlist_count += 1
                     logInfoWithUser(f"Skipping already shuffled playlist based on prefix", spotify_auth)
                     continue
 
@@ -112,6 +115,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
 
     response_body = dict()
     response_body["all_playlists"] = all_playlists
+    response_body["existing_shuffled_playlist_count"] = existing_shuffled_playlist_count
 
     # Include additional statistics if requested and enabled for user
     if include_stats is not None:

@@ -27,16 +27,9 @@ class Config:
     COOKIE_DOMAIN = os.getenv(
         'COOKIE_DOMAIN', default=None)
 
-    # JWT
-    JWT_SECRET = os.getenv(
-        'JWT_SECRET', default='JWT_SECRET')
-    JWT_ISSUER = os.getenv(
-        'JWT_ISSUER', default='JWT_ISSUER')
-
-    SERVICE_CLIENT_ID = os.getenv(
-        'SERVICE_CLIENT_ID', default='SERVICE_CLIENT_ID')
-    SERVICE_CLIENT_SECRET = os.getenv(
-        'SERVICE_CLIENT_SECRET', default='SERVICE_CLIENT_SECRET')
+    # Cron API Key
+    CRON_API_KEY = os.getenv(
+        'CRON_API_KEY', default=None)
 
     # CORS
     CORS_ORIGIN = os.getenv(
