@@ -18,7 +18,7 @@ services:
   true_shuffle_flask:
     build:
       context: .
-      dockerfile: Dockerfile.flask
+      dockerfile: docker/prod/flask.Dockerfile
     image: kobo67/true-shuffle:${FLASK_TAG}
     container_name: true_shuffle_flask
     hostname: true_shuffle_flask
@@ -44,7 +44,7 @@ services:
   true_shuffle_celery_worker:
     build:
       context: .
-      dockerfile: Dockerfile.celery
+      dockerfile: docker/prod/celery.Dockerfile
     image: kobo67/true-shuffle:${CELERY_TAG}
     container_name: true_shuffle_celery_worker
     env_file:
