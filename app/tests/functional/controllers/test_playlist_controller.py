@@ -4,6 +4,7 @@ from tests import client, env_patch  # noqa: F401
 from database import database
 from utils import auth_utils
 from services import playlist_service
+from controllers import playlist_controller
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
 from celery.result import AsyncResult
@@ -529,7 +530,7 @@ def test_delete_shuffled_playlists_no_shuffled_success(mocker, client, env_patch
         "deleted_playlists_count": 0
     })
 
-    mocker.patch.object(auth_utils, "extend_session_expiry", return_value=None)
+    mocker.patch.object(playlist_controller, "extend_session_expiry", return_value=None)
 
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
@@ -850,7 +851,7 @@ def test_get_liked_tracks_playlist_state_progress_success(mocker, client, env_pa
     mock_result.info = {"progress": 60}
     mocker.patch("tasks.task_state.AsyncResult", return_value=mock_result)
 
-    mocker.patch.object(auth_utils, "extend_session_expiry", return_value=None)
+    mocker.patch.object(playlist_controller, "extend_session_expiry", return_value=None)
 
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
@@ -898,7 +899,7 @@ def test_get_liked_tracks_playlist_state_success_success(mocker, client, env_pat
     mock_result.forget = mocker.Mock()
     mocker.patch("tasks.task_state.AsyncResult", return_value=mock_result)
 
-    mocker.patch.object(auth_utils, "extend_session_expiry", return_value=None)
+    mocker.patch.object(playlist_controller, "extend_session_expiry", return_value=None)
 
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')

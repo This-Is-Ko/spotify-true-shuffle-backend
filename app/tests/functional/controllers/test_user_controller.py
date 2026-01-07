@@ -4,6 +4,7 @@ from tests import client, env_patch  # noqa: F401
 from database import database
 from utils import auth_utils
 from services import user_service
+from controllers import user_controller
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import Spotify
 from celery.result import AsyncResult
@@ -717,6 +718,8 @@ def test_get_user_aggregate_state_success_success(mocker, client, env_patch):  #
     mock_result.forget = mocker.Mock()
     mocker.patch("tasks.task_state.AsyncResult", return_value=mock_result)
 
+    mocker.patch.object(user_controller, "extend_session_expiry", return_value=None)
+
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
     client.set_cookie('localhost', 'trueshuffle-auth', 'true')
@@ -762,6 +765,8 @@ def test_get_user_aggregate_state_pending_success(mocker, client, env_patch):  #
     mock_result.ready = mocker.Mock(return_value=False)
     mock_result.successful = mocker.Mock(return_value=False)
     mocker.patch("tasks.task_state.AsyncResult", return_value=mock_result)
+
+    mocker.patch.object(user_controller, "extend_session_expiry", return_value=None)
 
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')
