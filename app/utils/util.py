@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 from flask import current_app
 import spotipy
+from utils.logger_utils import logError, logInfo, logWarning
 
 LIKED_TRACKS_PLAYLIST_ID = "likedTracks"
 required_fields = ["uri", "name", "id"]
@@ -12,10 +13,24 @@ CELERY_PROGRESS_STATE_CREATE_PLAYLIST_TEMPLATE = "Adding {}/{} tracks..."
 CELERY_PROGRESS_STATE_CREATE_PLAYLIST_LAST_TEMPLATE = "Added {}/{} tracks"
 
 
-def update_task_progress(task, state, meta):
+def update_task_progress(task, state, meta, correlation_id=None):
     if (task is None):
-        current_app.logger.error("Task is missing - Unable to update task state")
+        logError("Task is missing - Unable to update task state")
     else:
+        # Ensure correlation_id is included in metadata
+        if not isinstance(meta, dict):
+            meta = {}
+        if correlation_id:
+            meta['correlation_id'] = correlation_id
+        elif 'correlation_id' not in meta:
+            # Try to get correlation_id from task request if available
+            try:
+                if hasattr(task, 'request') and task.request:
+                    task_meta = task.request.get('meta', {})
+                    if isinstance(task_meta, dict) and 'correlation_id' in task_meta:
+                        meta['correlation_id'] = task_meta['correlation_id']
+            except Exception:
+                pass
         task.update_state(state=state, meta=meta)
 
 
@@ -40,13 +55,13 @@ def get_tracks_from_playlist(task, spotify: spotipy.Spotify, playlist_id: str) -
             track = track_entry.get("track")
 
             if not track:
-                current_app.logger.info(f"Track object missing: {track_entry}")
+                logInfo(f"Track object missing: {track_entry}")
                 continue
 
             # Extract track data
             missing_fields = [field for field in required_fields if not track.get(field)]
             if missing_fields:
-                current_app.logger.info(f"Track missing fields {missing_fields}: {track}")
+                logInfo(f"Track missing fields {missing_fields}: {track}")
                 continue
 
             # Extract artist data
@@ -189,7 +204,7 @@ def create_new_playlist_with_tracks(
         new_playlist_id = new_playlist["id"]
         if new_playlist_id is None:
             raise Exception("Created playlist id is missing")
-        current_app.logger.info(
+        logInfo(
             "User: {user_id} -- Initialised playlist: {playlist_id}".format(
                 user_id=user_id,
                 playlist_id=new_playlist_id
@@ -238,7 +253,7 @@ def create_new_playlist_with_tracks(
                     }
                 )
             if "snapshot_id" not in add_items_response:
-                current_app.logger.error("Error while adding tracks. Response: " + add_items_response)
+                logError("Error while adding tracks. Response: " + str(add_items_response))
                 return {
                     "status": "error",
                     "error": "Unable to add tracks to playlist " + new_playlist_id
@@ -249,7 +264,7 @@ def create_new_playlist_with_tracks(
             + "-- Created playlist: {playlist_id}"
             + "-- Length: {length:d}"
         )
-        current_app.logger.info(
+        logInfo(
             create_playlist_with_tracks_success_log.format(
                 user_id=user_id,
                 playlist_id=new_playlist_id,
@@ -263,7 +278,7 @@ def create_new_playlist_with_tracks(
             "playlist_trimmed": playlist_trimmed
         }
     except Exception as e:
-        current_app.logger.error("Error while creating new playlist / adding tracks: " + str(e))
+        logError("Error while creating new playlist / adding tracks: " + str(e))
         return {
             "status": "error",
             "error": "Unable to create new playlist / add tracks to playlist"
@@ -279,6 +294,6 @@ def validate_tracks(track_list: List[str]) -> List[str]:
         else:
             invalid_tracks.append(track)
     if invalid_tracks:
-        current_app.logger.warning("Tracks without the correct uri format were removed")
-        current_app.logger.warning(invalid_tracks)
+        logWarning("Tracks without the correct uri format were removed")
+        logWarning(str(invalid_tracks))
     return valid_tracks

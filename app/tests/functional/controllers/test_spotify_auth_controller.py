@@ -8,10 +8,17 @@ from tests.functional.helpers.mock_requests import *
 from tests.functional.helpers.mock_responses import *
 
 
-def test_get_spotify_uri_success(client, env_patch):
+def test_get_spotify_uri_success(mocker, client, env_patch):
     """
     Successful GET Spotify Uri
     """
+    # Mock generate_spotify_auth_uri at the controller level to prevent opening browser or creating real SpotifyOAuth instances
+    # This prevents any real Spotify API calls or browser interactions
+    mocker.patch("controllers.spotify_auth_controller.spotify_auth_service.generate_spotify_auth_uri", return_value="https://accounts.spotify.com/authorize?mock_url")
+    # Also mock create_auth_manager to prevent any SpotifyOAuth instances from being created
+    mock_auth_manager = mocker.MagicMock()
+    mock_auth_manager.get_authorize_url.return_value = "https://accounts.spotify.com/authorize?mock_url"
+    mocker.patch("services.spotify_client.create_auth_manager", return_value=mock_auth_manager)
     response = client.get('/api/spotify/auth/login')
     response_json = response.get_json()
     assert response.status_code == 200
