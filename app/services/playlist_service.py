@@ -178,7 +178,7 @@ def delete_all_shuffled_playlists(spotify_auth: SpotifyAuth):
 def queue_create_playlist_from_liked_tracks(spotify_auth: SpotifyAuth, new_playlist_name="My Liked Tracks"):
     correlation_id = g.correlation_id if hasattr(g, 'correlation_id') else None
     result = playlist_tasks.create_playlist_from_liked_tracks.delay(spotify_auth.to_dict(), new_playlist_name, correlation_id)
-    print("Create playlist id:" + result.id)
+    current_app.logger.info(f"Create playlist id: {result.id}")
     return {"create_liked_playlist_id": result.id}
 
 
