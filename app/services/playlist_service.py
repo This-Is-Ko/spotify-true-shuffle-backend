@@ -2,6 +2,7 @@ import spotipy
 from bson import json_util
 import json
 from flask import current_app, g
+from classes.shuffle_type import Shuffle_Type
 from tasks.task_state import get_celery_task_state
 from database import database
 from exceptions.custom_exceptions import GetPlaylistsException, InvalidUser, SpotifyAuthInvalid
@@ -139,9 +140,9 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     return response_body
 
 
-def queue_create_shuffled_playlist(spotify_auth: SpotifyAuth, playlist_id, playlist_name):
+def queue_create_shuffled_playlist(spotify_auth: SpotifyAuth, playlist_id, playlist_name, shuffle_type: Shuffle_Type):
     correlation_id = g.correlation_id if hasattr(g, 'correlation_id') else None
-    result = playlist_tasks.shuffle_playlist.delay(spotify_auth.to_dict(), playlist_id, playlist_name, correlation_id)
+    result = playlist_tasks.shuffle_playlist.delay(spotify_auth.to_dict(), playlist_id, playlist_name, correlation_id, shuffle_type.value)
     if result is None:
         logErrorWithUser(f"Shuffle queue failed", spotify_auth)
         return None
