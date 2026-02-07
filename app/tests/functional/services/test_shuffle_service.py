@@ -15,22 +15,32 @@ SPOTIFY_PLAYLIST_URL = "open.spotify.com/playlist/spotifyPlaylistUrl"
 
 shuffle_request = {
     "playlist_id": "playlist_id0",
-    "playlist_name": "playlist_name0"
+    "playlist_name": "playlist_name0",
+    "shuffle_type": "CLASSIC_NEW_PLAYLIST"
 }
 
 all_user_playlists_response_sample = {
     "items": [
         {
             "name": "playlist0",
-            "id": "playlist0"
+            "id": "playlist0",
+            "external_urls": {
+                "spotify": SPOTIFY_PLAYLIST_URL
+            }
         },
         {
             "name": "playlist1",
-            "id": "playlist1"
+            "id": "playlist1",
+            "external_urls": {
+                "spotify": SPOTIFY_PLAYLIST_URL
+            }
         },
         {
             "name": SHUFFLED_PLAYLIST_PREFIX + "playlist1",
-            "id": "playlist1"
+            "id": "playlist1",
+            "external_urls": {
+                "spotify": SPOTIFY_PLAYLIST_URL
+            }
         }
     ]
 }

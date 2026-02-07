@@ -42,7 +42,7 @@ def queue_shuffle_playlist(spotify_auth, request_body):
     """
     try:
         response = make_response(playlist_service.queue_create_shuffled_playlist(
-            spotify_auth, request_body["playlist_id"], request_body["playlist_name"]))
+            spotify_auth, request_body["playlist_id"], request_body["playlist_name"], request_body["shuffle_type"]))
         extend_session_expiry(response, request.cookies)
         return response
     except Exception as e:

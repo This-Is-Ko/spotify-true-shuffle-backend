@@ -1,0 +1,6 @@
+from enum import Enum
+
+class Shuffle_Type(Enum):
+    CLASSIC_NEW_PLAYLIST = "CLASSIC_NEW_PLAYLIST"
+    REUSE_EXISTING_PLAYLIST = "REUSE_EXISTING_PLAYLIST"
+    

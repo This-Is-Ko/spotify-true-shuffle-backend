@@ -1,8 +1,9 @@
 from marshmallow import Schema, fields
 
+from classes.shuffle_type import Shuffle_Type
+
 
 class ShufflePlaylistRequestSchema(Schema):
     playlist_id = fields.String(required=True)
     playlist_name = fields.String(required=True)
-    is_use_liked_tracks = fields.Boolean()
-    is_make_new_playlist = fields.Boolean()
+    shuffle_type = fields.Enum(Shuffle_Type, by_value=True, required=False,)
