@@ -56,7 +56,7 @@ def test_queue_shuffle_playlist_success(mocker, client, env_patch):  # noqa: F81
     # Mock session handling
     mocker.patch.object(auth_utils, "extend_session_expiry", return_value=None)
 
-    request_body = {"playlist_id": "playlist_id", "playlist_name": "Test Playlist"}
+    request_body = {"playlist_id": "playlist_id", "playlist_name": "Test Playlist", "shuffle_type": "CLASSIC_NEW_PLAYLIST"}
 
     # Init cookies
     client.set_cookie('localhost', 'trueshuffle-sessionId', 'sessionId')

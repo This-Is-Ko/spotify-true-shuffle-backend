@@ -20,15 +20,24 @@ all_user_playlists_response_sample = {
     "items": [
         {
             "name": "playlist0",
-            "id": "playlist0"
+            "id": "playlist0",
+            "external_urls": {
+                "spotify": SPOTIFY_PLAYLIST_URL
+            }
         },
         {
             "name": "playlist1",
-            "id": "playlist1"
+            "id": "playlist1",
+            "external_urls": {
+                "spotify": SPOTIFY_PLAYLIST_URL
+            }
         },
         {
             "name": SHUFFLED_PLAYLIST_PREFIX + "playlist1",
-            "id": "playlist1"
+            "id": "playlist1",
+            "external_urls": {
+                "spotify": SPOTIFY_PLAYLIST_URL
+            }
         }
     ]
 }
