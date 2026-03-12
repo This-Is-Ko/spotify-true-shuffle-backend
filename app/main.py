@@ -72,7 +72,8 @@ def create_app():
             broker_url=app.config["CELERY_BROKER_URL"],
             result_backend=app.config["CELERY_RESULT_BACKEND_URL"],
             task_ignore_result=True,
-            broker_connection_retry_on_startup=True
+            broker_connection_retry_on_startup=True,
+            result_expires=3600
         ),
     )
     celery_init_app(app)
