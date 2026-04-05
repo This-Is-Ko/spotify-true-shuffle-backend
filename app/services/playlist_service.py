@@ -49,15 +49,13 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
             fetched_playlists = playlists["items"]
 
             # Fetch additional playlists if total > limit
-            while len(fetched_playlists) < total_playlists:
-                offset += limit
-                logInfoWithUser(f"Fetching additional playlists offset: {offset}", spotify_auth)
-                next_page = spotify.current_user_playlists(limit=limit, offset=offset)
-                if next_page is None or "items" not in next_page or not next_page["items"]:
+            while playlists_resp.get("next"):
+                playlists_resp = spotify.next(playlists_resp)
+                if not playlists_resp or "items" not in playlists_resp:
                     break
-                fetched_playlists.extend(next_page["items"])
-        
-            logInfoWithUser(f"User has {total_playlists} playlists", spotify_auth)
+                fetched_playlists.extend(playlists_resp["items"])
+
+            logInfoWithUser(f"User total playlists: {total_playlists}; Fetched playlists before filtering: {len(fetched_playlists)}", spotify_auth)
 
             for playlist_entry in fetched_playlists:
                 # Skip playlists missing info
