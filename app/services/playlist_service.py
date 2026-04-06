@@ -104,7 +104,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     except Exception as e:
         # Handle playlist logging error
         try:
-            logErrorWithUser(f"Get current user playlists - Playlist response: {json.dumps(playlists, default=str)}", spotify_auth)
+            logErrorWithUser(f"Get current user playlists - Playlist response: {json.dumps(playlists_resp, default=str)}", spotify_auth)
         except TypeError as ex:
             logErrorWithUser(f"Get current user playlists - Error serializing playlists: {ex}", spotify_auth)
         raise GetPlaylistsException(f"Failed to parse Spotify playlists: {e}")
