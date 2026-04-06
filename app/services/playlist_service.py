@@ -35,18 +35,16 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
 
     # Retrieve user's playlists and parse details
     try:
-        limit = 50
-        offset = 0
-        playlists = spotify.current_user_playlists(limit=limit, offset=offset)
-        if playlists is None or "total" not in playlists or "items" not in playlists:
+        playlists_resp = spotify.current_user_playlists(limit=50, offset=0)
+        if playlists_resp is None or "total" not in playlists_resp or "items" not in playlists_resp:
             raise GetPlaylistsException("Failed to retrieve user's playlists")
 
-        total_playlists = playlists["total"]
+        total_playlists = playlists_resp["total"]
         existing_shuffled_playlist_count = 0
         if total_playlists < 1:
             logInfoWithUser("No playlists found for user", spotify_auth)
         else:
-            fetched_playlists = playlists["items"]
+            fetched_playlists = playlists_resp["items"]
 
             # Fetch additional playlists if total > limit
             while playlists_resp.get("next"):
