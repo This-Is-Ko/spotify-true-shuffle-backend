@@ -35,29 +35,25 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
 
     # Retrieve user's playlists and parse details
     try:
-        limit = 50
-        offset = 0
-        playlists = spotify.current_user_playlists(limit=limit, offset=offset)
-        if playlists is None or "total" not in playlists or "items" not in playlists:
+        playlists_resp = spotify.current_user_playlists(limit=50, offset=0)
+        if playlists_resp is None or "total" not in playlists_resp or "items" not in playlists_resp:
             raise GetPlaylistsException("Failed to retrieve user's playlists")
 
-        total_playlists = playlists["total"]
+        total_playlists = playlists_resp["total"]
         existing_shuffled_playlist_count = 0
         if total_playlists < 1:
             logInfoWithUser("No playlists found for user", spotify_auth)
         else:
-            fetched_playlists = playlists["items"]
+            fetched_playlists = playlists_resp["items"]
 
-            # Fetch additional playlists if total > limit
-            while len(fetched_playlists) < total_playlists:
-                offset += limit
-                logInfoWithUser(f"Fetching additional playlists offset: {offset}", spotify_auth)
-                next_page = spotify.current_user_playlists(limit=limit, offset=offset)
-                if next_page is None or "items" not in next_page or not next_page["items"]:
+            # Fetch additional pages only when Spotify reports more playlists than fetched.
+            while len(fetched_playlists) < total_playlists and playlists_resp.get("next"):
+                playlists_resp = spotify.next(playlists_resp)
+                if not playlists_resp or "items" not in playlists_resp:
                     break
-                fetched_playlists.extend(next_page["items"])
-        
-            logInfoWithUser(f"User has {total_playlists} playlists", spotify_auth)
+                fetched_playlists.extend(playlists_resp["items"])
+
+            logInfoWithUser(f"User total playlists: {total_playlists}; Fetched playlists before filtering: {len(fetched_playlists)}", spotify_auth)
 
             for playlist_entry in fetched_playlists:
                 # Skip playlists missing info
@@ -108,7 +104,7 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
     except Exception as e:
         # Handle playlist logging error
         try:
-            logErrorWithUser(f"Get current user playlists - Playlist response: {json.dumps(playlists, default=str)}", spotify_auth)
+            logErrorWithUser(f"Get current user playlists - Playlist response: {json.dumps(playlists_resp, default=str)}", spotify_auth)
         except TypeError as ex:
             logErrorWithUser(f"Get current user playlists - Error serializing playlists: {ex}", spotify_auth)
         raise GetPlaylistsException(f"Failed to parse Spotify playlists: {e}")
