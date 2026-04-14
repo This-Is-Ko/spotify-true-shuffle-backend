@@ -46,8 +46,8 @@ def get_user_playlists(spotify_auth: SpotifyAuth, include_stats):
         else:
             fetched_playlists = playlists_resp["items"]
 
-            # Fetch additional playlists if total > limit
-            while playlists_resp.get("next"):
+            # Fetch additional pages only when Spotify reports more playlists than fetched.
+            while len(fetched_playlists) < total_playlists and playlists_resp.get("next"):
                 playlists_resp = spotify.next(playlists_resp)
                 if not playlists_resp or "items" not in playlists_resp:
                     break
